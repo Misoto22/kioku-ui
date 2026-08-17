@@ -82,6 +82,17 @@ function propertyName(node: ts.PropertyName) {
   }
 }
 
+function moduleReferenceName(node: ts.Node | undefined) {
+  if (node && ts.isStringLiteralLike(node)) return node.text;
+  if (
+    node &&
+    ts.isLiteralTypeNode(node) &&
+    ts.isStringLiteralLike(node.literal)
+  ) {
+    return node.literal.text;
+  }
+}
+
 type MemberExpression =
   ts.ElementAccessExpression | ts.PropertyAccessExpression;
 
@@ -148,6 +159,7 @@ function expressionContext(expression: ts.Expression): string {
       : 'constructor argument';
   }
   if (ts.isExportAssignment(parent)) return 'export';
+  if (ts.isExportSpecifier(parent)) return 'export';
   return 'expression';
 }
 
@@ -206,11 +218,10 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     });
   };
 
-  const collectStylexImports = (node: ts.Node) => {
+  const collectStylexModuleForms = (node: ts.Node) => {
     if (
       ts.isImportDeclaration(node) &&
-      ts.isStringLiteral(node.moduleSpecifier) &&
-      node.moduleSpecifier.text === stylexModule
+      moduleReferenceName(node.moduleSpecifier) === stylexModule
     ) {
       const importClause = node.importClause;
       if (!importClause) {
@@ -221,25 +232,83 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         }
         const bindings = importClause.namedBindings;
         if (bindings && ts.isNamespaceImport(bindings)) {
-          const symbol = checker.getSymbolAtLocation(bindings.name);
-          if (symbol) {
-            importedNamespaceSymbols.add(symbol);
-            importNames.set(symbol, bindings.name.text);
+          if (importClause.isTypeOnly) {
+            report(
+              bindings,
+              `type-only namespace import ${bindings.name.text}`,
+            );
+          } else {
+            const symbol = checker.getSymbolAtLocation(bindings.name);
+            if (symbol) {
+              importedNamespaceSymbols.add(symbol);
+              importNames.set(symbol, bindings.name.text);
+            }
           }
         } else if (bindings) {
-          for (const element of bindings.elements) {
-            const importedName =
-              element.propertyName?.text ?? element.name.text;
-            const rename =
-              importedName === element.name.text
-                ? ''
-                : ` as ${element.name.text}`;
-            report(element, `named import ${importedName}${rename}`);
+          if (bindings.elements.length === 0) {
+            report(bindings, 'empty named StyleX import');
+          } else {
+            for (const element of bindings.elements) {
+              const importedName =
+                element.propertyName?.text ?? element.name.text;
+              const rename =
+                importedName === element.name.text
+                  ? ''
+                  : ` as ${element.name.text}`;
+              const type =
+                importClause.isTypeOnly || element.isTypeOnly ? 'type ' : '';
+              report(element, `${type}named import ${importedName}${rename}`);
+            }
           }
         }
       }
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference) &&
+      moduleReferenceName(node.moduleReference.expression) === stylexModule
+    ) {
+      report(node, `import-equals StyleX import ${node.name.text}`);
+    } else if (
+      ts.isExportDeclaration(node) &&
+      moduleReferenceName(node.moduleSpecifier) === stylexModule
+    ) {
+      const clause = node.exportClause;
+      const type = node.isTypeOnly ? 'type ' : '';
+      if (!clause) {
+        report(node, `${type}star StyleX re-export`);
+      } else if (ts.isNamespaceExport(clause)) {
+        report(clause, `${type}namespace StyleX re-export ${clause.name.text}`);
+      } else if (clause.elements.length === 0) {
+        report(clause, `${type}empty named StyleX re-export`);
+      } else {
+        for (const element of clause.elements) {
+          const importedName = element.propertyName?.text ?? element.name.text;
+          const rename =
+            importedName === element.name.text
+              ? ''
+              : ` as ${element.name.text}`;
+          const elementType =
+            node.isTypeOnly || element.isTypeOnly ? 'type ' : '';
+          const elementKind = elementType ? '' : 'named ';
+          report(
+            element,
+            `${elementType}${elementKind}StyleX re-export ${importedName}${rename}`,
+          );
+        }
+      }
+    } else if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      moduleReferenceName(node.arguments[0]) === stylexModule
+    ) {
+      report(node, 'dynamic StyleX import');
+    } else if (
+      ts.isImportTypeNode(node) &&
+      moduleReferenceName(node.argument) === stylexModule
+    ) {
+      report(node, 'StyleX import type');
     }
-    ts.forEachChild(node, collectStylexImports);
+    ts.forEachChild(node, collectStylexModuleForms);
   };
 
   const inspectStyleDeclarations = (node: ts.Node) => {
@@ -355,11 +424,28 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     );
   };
 
-  collectStylexImports(sourceFile);
+  collectStylexModuleForms(sourceFile);
+
+  const referencedSymbol = (identifier: ts.Identifier) => {
+    const parent = identifier.parent;
+    if (
+      ts.isShorthandPropertyAssignment(parent) &&
+      parent.name === identifier
+    ) {
+      return checker.getShorthandAssignmentValueSymbol(parent);
+    }
+    if (ts.isExportSpecifier(parent)) {
+      const localName = parent.propertyName ?? parent.name;
+      return localName === identifier
+        ? checker.getExportSpecifierLocalTargetSymbol(parent)
+        : undefined;
+    }
+    return checker.getSymbolAtLocation(identifier);
+  };
 
   const visit = (node: ts.Node) => {
     if (ts.isIdentifier(node) && !ts.isNamespaceImport(node.parent)) {
-      const symbol = checker.getSymbolAtLocation(node);
+      const symbol = referencedSymbol(node);
       if (symbol && importedNamespaceSymbols.has(symbol)) {
         analyzeImportedNamespaceUse(node, importNames.get(symbol) ?? node.text);
       }

@@ -2,8 +2,10 @@
 
 This internal package verifies that authored core sources stay within the
 StyleX syntax supported by the public build integrations. The supported subset
-is deliberately small: import the StyleX namespace and call `create`,
-`defineVars`, `keyframes`, or `props` directly through that import.
+is deliberately small: use a static value namespace import, then call `create`,
+`defineVars`, `keyframes`, or `props` directly through that import. Default,
+named, type-only, dynamic, import-equals, side-effect, import-type, and
+re-export forms are outside the contract.
 
 The namespace import can use any local name, and a statically named computed
 member is equivalent to dot syntax:
@@ -27,14 +29,32 @@ const alias = sx; // namespace alias
 const create = sx.create; // member alias
 const {props} = sx; // destructuring
 const aggregate = [sx]; // object/array/spread aggregation
+const holder = {sx}; // shorthand aggregation
 function capture(value = sx) {} // capture or default parameter
 return sx; // return/export flow
+export {sx}; // local namespace export
 sx[method]({}); // dynamic property
 sx.create.call(null, {}); // indirect invocation
 new sx.create({}); // constructor invocation
 sx.create`...`; // tagged invocation
 sx.firstThatWorks('red', 'blue'); // unsupported capability
 sx['firstThatWorks']('red', 'blue');
+```
+
+Module forms other than the static value namespace import are also rejected at
+their own source location:
+
+```ts
+import stylex from '@stylexjs/stylex';
+import {create} from '@stylexjs/stylex';
+import type * as stylexTypes from '@stylexjs/stylex';
+import legacy = require('@stylexjs/stylex');
+
+await import('@stylexjs/stylex');
+type Styles = import('@stylexjs/stylex').StyleXStyles;
+
+export * as stylex from '@stylexjs/stylex';
+export {create as makeStyles} from '@stylexjs/stylex';
 ```
 
 These restrictions make policy failures deterministic without attempting to
