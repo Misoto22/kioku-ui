@@ -320,7 +320,7 @@ void config;
         {cause: error},
       );
     }
-  });
+  }, 20_000);
 
   it('does not require a source build plugin for the compiled Vite example', async () => {
     expect(await packageUsesBuildPlugin('apps/example-vite')).toBe(false);

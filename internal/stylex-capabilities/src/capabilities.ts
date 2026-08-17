@@ -56,7 +56,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
   }
   interface Scope {
     bindings: Map<string, Binding>;
-    kind: 'block' | 'catch' | 'function' | 'source';
+    kind: 'block' | 'catch' | 'function' | 'loop' | 'source' | 'switch';
     parent?: Scope;
   }
 
@@ -83,6 +83,23 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     scope.bindings.set(name, binding);
     return binding;
   };
+
+  const childScope = (kind: Scope['kind'], parent: Scope): Scope => ({
+    bindings: new Map(),
+    kind,
+    parent,
+  });
+
+  const cloneScopeChain = (scope: Scope): Scope => ({
+    bindings: new Map(
+      [...scope.bindings].map(([name, binding]) => [
+        name,
+        {value: binding.value},
+      ]),
+    ),
+    kind: scope.kind,
+    parent: scope.parent ? cloneScopeChain(scope.parent) : undefined,
+  });
 
   const bindOther = (scope: Scope, name: ts.BindingName) => {
     if (ts.isIdentifier(name)) {
@@ -111,7 +128,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
   };
 
   const predeclareStatements = (
-    statements: ts.NodeArray<ts.Statement>,
+    statements: readonly ts.Statement[],
     scope: Scope,
   ) => {
     for (const statement of statements) {
@@ -201,29 +218,213 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     return !capability || !isSupportedStylexCapability(capability);
   };
 
-  const expressionBinding = (expression: ts.Expression, scope: Scope) => {
-    if (ts.isIdentifier(expression)) {
-      return resolveBinding(scope, expression.text)?.value;
-    }
-    if (
-      ts.isPropertyAccessExpression(expression) &&
-      ts.isIdentifier(expression.expression)
+  const normalizeExpression = (expression: ts.Expression): ts.Expression => {
+    let current = expression;
+    while (
+      ts.isParenthesizedExpression(current) ||
+      ts.isAsExpression(current) ||
+      ts.isTypeAssertionExpression(current) ||
+      ts.isNonNullExpression(current) ||
+      ts.isSatisfiesExpression(current)
     ) {
-      const namespace = resolveBinding(
-        scope,
-        expression.expression.text,
-      )?.value;
-      if (namespace?.kind === 'namespace') {
-        return {
-          kind: 'method',
-          method: expression.name.text,
-          reported: false,
-        } as const satisfies BindingValue;
+      current = current.expression;
+    }
+    return current;
+  };
+
+  const expressionIdentifierName = (expression: ts.Expression) => {
+    const normalized = normalizeExpression(expression);
+    return ts.isIdentifier(normalized) ? normalized.text : undefined;
+  };
+
+  const methodValue = (method: string, reported = false): BindingValue => ({
+    kind: 'method',
+    method,
+    reported,
+  });
+
+  const assignIdentifier = (
+    name: string,
+    value: BindingValue,
+    scope: Scope,
+  ) => {
+    const binding = resolveBinding(scope, name);
+    if (binding) binding.value = value;
+  };
+
+  function assignObjectPattern(
+    pattern: ts.ObjectLiteralExpression,
+    value: BindingValue,
+    scope: Scope,
+  ) {
+    for (const property of pattern.properties) {
+      if (ts.isPropertyAssignment(property)) {
+        const importedName = propertyName(property.name);
+        const target = property.initializer;
+        const targetName = expressionIdentifierName(target);
+        if (value.kind === 'namespace' && importedName) {
+          const alias =
+            targetName && targetName !== importedName
+              ? ` as ${targetName}`
+              : '';
+          report(property, `destructured stylex.${importedName}${alias}`);
+          assignTarget(target, methodValue(importedName, true), scope);
+        } else {
+          assignTarget(target, otherValue, scope);
+        }
+      } else if (ts.isShorthandPropertyAssignment(property)) {
+        const importedName = property.name.text;
+        if (value.kind === 'namespace') {
+          report(property, `destructured stylex.${importedName}`);
+          assignIdentifier(
+            importedName,
+            methodValue(importedName, true),
+            scope,
+          );
+        } else {
+          assignIdentifier(importedName, otherValue, scope);
+        }
+      } else if (ts.isSpreadAssignment(property)) {
+        assignTarget(property.expression, otherValue, scope);
       }
+    }
+  }
+
+  function assignTarget(
+    target: ts.Expression,
+    value: BindingValue,
+    scope: Scope,
+  ) {
+    const normalized = normalizeExpression(target);
+    if (ts.isIdentifier(normalized)) {
+      assignIdentifier(normalized.text, value, scope);
+    } else if (ts.isObjectLiteralExpression(normalized)) {
+      assignObjectPattern(normalized, value, scope);
+    } else if (ts.isArrayLiteralExpression(normalized)) {
+      for (const element of normalized.elements) {
+        if (ts.isOmittedExpression(element)) continue;
+        assignTarget(
+          ts.isSpreadElement(element) ? element.expression : element,
+          otherValue,
+          scope,
+        );
+      }
+    } else if (
+      ts.isBinaryExpression(normalized) &&
+      normalized.operatorToken.kind === ts.SyntaxKind.EqualsToken
+    ) {
+      assignTarget(normalized.left, value, scope);
+    }
+  }
+
+  function evaluateExpression(
+    expression: ts.Expression,
+    scope: Scope,
+  ): BindingValue {
+    const normalized = normalizeExpression(expression);
+    if (normalized !== expression) {
+      return evaluateExpression(normalized, scope);
+    }
+
+    if (ts.isIdentifier(normalized)) {
+      return resolveBinding(scope, normalized.text)?.value ?? otherValue;
+    }
+
+    if (ts.isPropertyAccessExpression(normalized)) {
+      const receiver = evaluateExpression(normalized.expression, scope);
+      return receiver.kind === 'namespace'
+        ? methodValue(normalized.name.text)
+        : otherValue;
+    }
+
+    if (
+      ts.isBinaryExpression(normalized) &&
+      normalized.operatorToken.kind === ts.SyntaxKind.EqualsToken
+    ) {
+      const value = evaluateExpression(normalized.right, scope);
+      assignTarget(normalized.left, value, scope);
+      return value;
+    }
+
+    if (ts.isCallExpression(normalized)) {
+      const callee = normalizeExpression(normalized.expression);
+      if (ts.isPropertyAccessExpression(callee)) {
+        const receiver = evaluateExpression(callee.expression, scope);
+        const method = callee.name.text;
+        if (receiver.kind === 'namespace' && unsupportedMethod(method)) {
+          const localName = expressionIdentifierName(callee.expression);
+          const alias =
+            localName && localName !== receiver.importName
+              ? ` via ${localName}`
+              : '';
+          report(normalized, `stylex.${method}${alias}`);
+        }
+      } else {
+        const callable = evaluateExpression(callee, scope);
+        if (
+          callable.kind === 'method' &&
+          !callable.reported &&
+          unsupportedMethod(callable.method)
+        ) {
+          const localName = expressionIdentifierName(callee);
+          const alias = localName ? ` via ${localName}` : '';
+          report(normalized, `stylex.${callable.method}${alias}`);
+        }
+      }
+      for (const argument of normalized.arguments) {
+        evaluateExpression(argument, scope);
+      }
+      return otherValue;
+    }
+
+    if (
+      ts.isArrowFunction(normalized) ||
+      ts.isFunctionExpression(normalized) ||
+      ts.isClassExpression(normalized)
+    ) {
+      visit(normalized, scope);
+      return otherValue;
+    }
+
+    ts.forEachChild(normalized, (child) => {
+      if (ts.isExpression(child)) {
+        evaluateExpression(child, scope);
+      } else {
+        visit(child, scope);
+      }
+    });
+    return otherValue;
+  }
+
+  const predeclareVariableList = (
+    declarationList: ts.VariableDeclarationList,
+    scope: Scope,
+  ) => {
+    const targetScope =
+      (declarationList.flags & ts.NodeFlags.BlockScoped) === 0
+        ? nearestFunctionScope(scope)
+        : scope;
+    for (const declaration of declarationList.declarations) {
+      bindOther(targetScope, declaration.name);
     }
   };
 
-  const visit = (node: ts.Node, scope: Scope) => {
+  const visitLoopInitializer = (
+    initializer: ts.ForInitializer | undefined,
+    scope: Scope,
+  ) => {
+    if (!initializer) return;
+    if (ts.isVariableDeclarationList(initializer)) {
+      predeclareVariableList(initializer, scope);
+      for (const declaration of initializer.declarations) {
+        visit(declaration, scope);
+      }
+    } else {
+      evaluateExpression(initializer, scope);
+    }
+  };
+
+  function visit(node: ts.Node, scope: Scope): void {
     if (ts.isSourceFile(node)) {
       predeclareStatements(node.statements, scope);
       predeclareVarBindings(node, scope);
@@ -233,23 +434,53 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
 
     if (ts.isImportDeclaration(node)) return;
 
+    if (ts.isSwitchStatement(node)) {
+      evaluateExpression(node.expression, scope);
+      const switchScope = childScope('switch', scope);
+      const statements = node.caseBlock.clauses.flatMap((clause) => [
+        ...clause.statements,
+      ]);
+      predeclareStatements(statements, switchScope);
+      for (const clause of node.caseBlock.clauses) {
+        if (ts.isCaseClause(clause)) {
+          evaluateExpression(clause.expression, switchScope);
+        }
+        for (const statement of clause.statements) {
+          visit(statement, switchScope);
+        }
+      }
+      return;
+    }
+
+    if (ts.isForStatement(node)) {
+      const loopScope = childScope('loop', scope);
+      visitLoopInitializer(node.initializer, loopScope);
+      if (node.condition) evaluateExpression(node.condition, loopScope);
+      if (node.incrementor) evaluateExpression(node.incrementor, loopScope);
+      visit(node.statement, loopScope);
+      return;
+    }
+
+    if (ts.isForInStatement(node) || ts.isForOfStatement(node)) {
+      const loopScope = childScope('loop', scope);
+      if (ts.isVariableDeclarationList(node.initializer)) {
+        predeclareVariableList(node.initializer, loopScope);
+      }
+      evaluateExpression(node.expression, loopScope);
+      visitLoopInitializer(node.initializer, loopScope);
+      visit(node.statement, loopScope);
+      return;
+    }
+
     if (ts.isBlock(node)) {
-      const blockScope: Scope = {
-        bindings: new Map(),
-        kind: 'block',
-        parent: scope,
-      };
+      const blockScope = childScope('block', scope);
       predeclareStatements(node.statements, blockScope);
       for (const statement of node.statements) visit(statement, blockScope);
       return;
     }
 
     if (ts.isCatchClause(node)) {
-      const catchScope: Scope = {
-        bindings: new Map(),
-        kind: 'catch',
-        parent: scope,
-      };
+      const catchScope = childScope('catch', scope);
       if (node.variableDeclaration) {
         bindOther(catchScope, node.variableDeclaration.name);
       }
@@ -258,11 +489,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
 
     if (ts.isFunctionLike(node)) {
-      const functionScope: Scope = {
-        bindings: new Map(),
-        kind: 'function',
-        parent: scope,
-      };
+      const functionScope = childScope('function', cloneScopeChain(scope));
       if (
         (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) &&
         node.name
@@ -273,7 +500,9 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         bindOther(functionScope, parameter.name);
       }
       for (const parameter of node.parameters) {
-        if (parameter.initializer) visit(parameter.initializer, functionScope);
+        if (parameter.initializer) {
+          evaluateExpression(parameter.initializer, functionScope);
+        }
       }
       if ('body' in node && node.body) {
         predeclareVarBindings(node.body, functionScope);
@@ -283,9 +512,8 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
 
     if (ts.isVariableDeclaration(node)) {
-      if (node.initializer) visit(node.initializer, scope);
       const initializer = node.initializer
-        ? expressionBinding(node.initializer, scope)
+        ? evaluateExpression(node.initializer, scope)
         : undefined;
       const targetScope = variableScope(node, scope);
 
@@ -326,45 +554,9 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       return;
     }
 
-    if (
-      ts.isBinaryExpression(node) &&
-      node.operatorToken.kind === ts.SyntaxKind.EqualsToken
-    ) {
-      visit(node.right, scope);
-      if (ts.isIdentifier(node.left)) {
-        const binding = resolveBinding(scope, node.left.text);
-        if (binding) {
-          binding.value = expressionBinding(node.right, scope) ?? otherValue;
-        }
-      } else {
-        visit(node.left, scope);
-      }
+    if (ts.isExpression(node)) {
+      evaluateExpression(node, scope);
       return;
-    }
-
-    if (ts.isCallExpression(node)) {
-      if (
-        ts.isPropertyAccessExpression(node.expression) &&
-        ts.isIdentifier(node.expression.expression)
-      ) {
-        const localName = node.expression.expression.text;
-        const namespace = resolveBinding(scope, localName)?.value;
-        const method = node.expression.name.text;
-        if (namespace?.kind === 'namespace' && unsupportedMethod(method)) {
-          const alias =
-            localName === namespace.importName ? '' : ` via ${localName}`;
-          report(node, `stylex.${method}${alias}`);
-        }
-      } else if (ts.isIdentifier(node.expression)) {
-        const method = resolveBinding(scope, node.expression.text)?.value;
-        if (
-          method?.kind === 'method' &&
-          !method.reported &&
-          unsupportedMethod(method.method)
-        ) {
-          report(node, `stylex.${method.method} via ${node.expression.text}`);
-        }
-      }
     }
 
     if (ts.isPropertyAssignment(node)) {
@@ -379,7 +571,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
 
     ts.forEachChild(node, (child) => visit(child, scope));
-  };
+  }
 
   visit(sourceFile, rootScope);
   return [...problems].sort();
