@@ -34,6 +34,7 @@ jobs:
       - run: pnpm check:package-boundaries
       - run: pnpm format
       - run: pnpm lint
+      - run: pnpm build:packages
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm exec playwright install --with-deps chromium

@@ -243,15 +243,16 @@ importers:
 
   packages/themes/kioku:
     dependencies:
-      '@misoto22/kioku-ui':
-        specifier: workspace:>=0.0.0 <0.2.0
-        version: link:../../core
       react:
         specifier: ^19.0.0
         version: 19.2.8
       react-dom:
         specifier: ^19.0.0
         version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@misoto22/kioku-ui':
+        specifier: workspace:*
+        version: link:../../core
 
   packages/vega: {}
 
