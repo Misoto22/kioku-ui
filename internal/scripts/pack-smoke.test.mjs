@@ -127,6 +127,44 @@ test('checked-in reference builds install their standalone frozen locks', async 
   );
 });
 
+test('packed consumer evidence rejects an omitted runtime surface and semantic variable', () => {
+  assert.equal(
+    typeof packSmokeContract.packedRuntimeProblems,
+    'function',
+    'pack smoke must validate the rendered packed runtime surface',
+  );
+  assert.equal(
+    typeof packSmokeContract.semanticCssProblems,
+    'function',
+    'pack smoke must validate CSS resolved from the packed consumer',
+  );
+
+  assert.deepEqual(
+    packSmokeContract.packedRuntimeProblems({
+      button: '<button aria-busy="true" disabled="">Delete release</button>',
+      card: '<article>Release details</article>',
+      emptyState: '<div>◇ No release candidates</div>',
+      heading: '<h2>Release review</h2>',
+      table:
+        '<table><thead><tr><th>Status</th></tr></thead><tbody><tr><td>Ready</td></tr></tbody></table>',
+    }),
+    ['packed runtime omitted Text'],
+  );
+
+  assert.deepEqual(
+    packSmokeContract.semanticCssProblems({
+      css: ':root { --kioku-ui-radius-sm: 4px; }',
+      label: 'packed CSS fixture',
+      legacyProperties: ['--kioku-ui-radius-sm'],
+      requiredProperties: ['--kioku-ui-color-accent-hover'],
+    }),
+    [
+      'packed CSS fixture omitted --kioku-ui-color-accent-hover',
+      'packed CSS fixture retained legacy --kioku-ui-radius-sm',
+    ],
+  );
+});
+
 test('CI reference builds install their standalone frozen locks', async () => {
   const workflow = parseYaml(
     await readFile('.github/workflows/ci.yml', 'utf8'),
@@ -588,6 +626,12 @@ test(
   async () => {
     assert.deepEqual(await packSmoke(process.cwd()), {
       consumers: ['compiled', 'source-authoring'],
+      packedSurface: {
+        legacyPropertiesRejected: 7,
+        publicTypes: 8,
+        runtimeComponents: 6,
+        semanticProperties: 26,
+      },
       packages: [
         '@misoto22/kioku-ui',
         '@misoto22/kioku-ui-build',

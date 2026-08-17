@@ -9,8 +9,9 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {basename, join, resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {basename, dirname, join, resolve} from 'node:path';
+import {fileURLToPath, pathToFileURL} from 'node:url';
+import {createRequire} from 'node:module';
 import {promisify} from 'node:util';
 import {load as parseYaml} from 'js-yaml';
 
@@ -23,6 +24,104 @@ const publicPackageNames = [
   '@misoto22/kioku-ui-build',
   '@misoto22/kioku-ui-theme-kioku',
 ];
+const finalSemanticProperties = [
+  '--kioku-ui-color-surface-raised',
+  '--kioku-ui-color-surface-muted',
+  '--kioku-ui-color-text-secondary',
+  '--kioku-ui-color-text-muted',
+  '--kioku-ui-color-text-on-accent',
+  '--kioku-ui-color-accent',
+  '--kioku-ui-color-accent-hover',
+  '--kioku-ui-color-accent-active',
+  '--kioku-ui-color-overlay-hover',
+  '--kioku-ui-color-overlay-active',
+  '--kioku-ui-color-disabled-surface',
+  '--kioku-ui-color-disabled-text',
+  '--kioku-ui-border-interactive',
+  '--kioku-ui-border-disabled',
+  '--kioku-ui-typography-font-family-display',
+  '--kioku-ui-typography-font-size-xs',
+  '--kioku-ui-typography-font-size2xl',
+  '--kioku-ui-radius-inner',
+  '--kioku-ui-radius-element',
+  '--kioku-ui-radius-container',
+  '--kioku-ui-radius-page',
+  '--kioku-ui-radius-full',
+  '--kioku-ui-size-control-sm',
+  '--kioku-ui-size-control-md',
+  '--kioku-ui-size-control-lg',
+  '--kioku-ui-size-hit-target',
+];
+const legacySemanticProperties = [
+  '--kioku-ui-radius-sm',
+  '--kioku-ui-radius-md',
+  '--kioku-ui-radius-lg',
+  '--kioku-ui-radius-round',
+  '--kioku-ui-density-control-block',
+  '--kioku-ui-density-control-inline',
+  '--kioku-ui-density-item-gap',
+];
+
+export function semanticCssProblems({
+  css,
+  label,
+  legacyProperties = legacySemanticProperties,
+  requiredProperties = finalSemanticProperties,
+}) {
+  const problems = [];
+
+  for (const customProperty of requiredProperties) {
+    if (!css.includes(customProperty)) {
+      problems.push(`${label} omitted ${customProperty}`);
+    }
+  }
+  for (const customProperty of legacyProperties) {
+    if (css.includes(customProperty)) {
+      problems.push(`${label} retained legacy ${customProperty}`);
+    }
+  }
+
+  return problems;
+}
+
+export function packedRuntimeProblems(markup) {
+  const problems = [];
+
+  if (
+    !markup.button?.startsWith('<button') ||
+    !markup.button.includes('Delete release') ||
+    !markup.button.includes('aria-busy="true"') ||
+    !markup.button.includes('disabled=""')
+  ) {
+    problems.push('packed runtime omitted Button');
+  }
+  if (!markup.text?.includes('Supporting copy')) {
+    problems.push('packed runtime omitted Text');
+  }
+  if (!markup.heading?.startsWith('<h2')) {
+    problems.push('packed runtime omitted Heading');
+  }
+  if (!markup.card?.startsWith('<article')) {
+    problems.push('packed runtime omitted Card');
+  }
+  if (
+    !markup.emptyState?.includes('No release candidates') ||
+    !markup.emptyState.includes('◇') ||
+    markup.emptyState.indexOf('◇') >
+      markup.emptyState.indexOf('No release candidates')
+  ) {
+    problems.push('packed runtime omitted EmptyState');
+  }
+  if (
+    !markup.table?.startsWith('<table') ||
+    !markup.table.includes('<th') ||
+    !markup.table.includes('<td')
+  ) {
+    problems.push('packed runtime omitted Table');
+  }
+
+  return problems;
+}
 
 function exportEntries(exports, subpath = '.') {
   if (typeof exports === 'string') {
@@ -698,8 +797,11 @@ async function writeCompiledConsumer(sourceRoot, consumerRoot, artifacts) {
             versions,
             '@vitejs/plugin-react',
           ),
+          '@types/react': lockedVersion(versions, '@types/react'),
+          '@types/react-dom': lockedVersion(versions, '@types/react-dom'),
           react: lockedVersion(versions, 'react'),
           'react-dom': lockedVersion(versions, 'react-dom'),
+          typescript: lockedVersion(versions, 'typescript'),
           vite: lockedVersion(versions, 'vite'),
         },
       },
@@ -715,22 +817,150 @@ async function writeCompiledConsumer(sourceRoot, consumerRoot, artifacts) {
     join(consumerRoot, 'src/main.tsx'),
     `import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Button, Card} from '@misoto22/kioku-ui';
+import type {
+  ButtonVariant,
+  CardElevation,
+  ControlSize,
+  EmptyStateSize,
+  HeadingFamily,
+  TableDensity,
+  TableDividers,
+  TextTone,
+} from '@misoto22/kioku-ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Heading,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+  Text,
+} from '@misoto22/kioku-ui';
 import {ThemeProvider} from '@misoto22/kioku-ui/theme';
 import '@misoto22/kioku-ui/reset.css';
 import '@misoto22/kioku-ui/styles.css';
 import {kiokuThemes, washiTheme} from '@misoto22/kioku-ui-theme-kioku';
 import '@misoto22/kioku-ui-theme-kioku/theme.css';
 
+const buttonSize: ControlSize = 'lg';
+const buttonVariant: ButtonVariant = 'destructive';
+const textTone: TextTone = 'secondary';
+const headingFamily: HeadingFamily = 'display';
+const cardElevation: CardElevation = 'medium';
+const emptyStateSize: EmptyStateSize = 'compact';
+const tableDensity: TableDensity = 'compact';
+const tableDividers: TableDividers = 'grid';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider themes={kiokuThemes} defaultThemeId={washiTheme.id}>
-      <Card><Button>Compiled package</Button></Card>
+      <Card elevation={cardElevation}>
+        <Button loading size={buttonSize} variant={buttonVariant}>
+          Delete release
+        </Button>
+        <Text tone={textTone}>Supporting copy</Text>
+        <Heading family={headingFamily} level={2}>Release review</Heading>
+        <EmptyState
+          detail="Create a release candidate to continue."
+          size={emptyStateSize}
+          title="No release candidates"
+          visual={<span aria-hidden>◇</span>}
+        />
+        <Table density={tableDensity} dividers={tableDividers}>
+          <TableHead>
+            <TableRow><TableHeaderCell>Status</TableHeaderCell></TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow><TableCell>Ready</TableCell></TableRow>
+          </TableBody>
+        </Table>
+      </Card>
     </ThemeProvider>
   </StrictMode>,
 );
 `,
   );
+  await writeFile(
+    join(consumerRoot, 'verify-runtime.mjs'),
+    `import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Heading,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+  Text,
+} from '@misoto22/kioku-ui';
+
+const render = (component, props, children) =>
+  renderToStaticMarkup(createElement(component, props, children));
+const markup = {
+  button: render(
+    Button,
+    {loading: true, size: 'lg', variant: 'destructive'},
+    'Delete release',
+  ),
+  text: render(Text, {tone: 'secondary'}, 'Supporting copy'),
+  heading: render(
+    Heading,
+    {family: 'display', level: 2},
+    'Release review',
+  ),
+  card: render(Card, {elevation: 'medium'}, 'Release details'),
+  emptyState: render(EmptyState, {
+    detail: 'Create a release candidate to continue.',
+    size: 'compact',
+    title: 'No release candidates',
+    visual: createElement('span', {'aria-hidden': true}, '◇'),
+  }),
+  table: render(Table, {density: 'compact', dividers: 'grid'}, [
+    createElement(
+      TableHead,
+      {key: 'head'},
+      createElement(
+        TableRow,
+        null,
+        createElement(TableHeaderCell, null, 'Status'),
+      ),
+    ),
+    createElement(
+      TableBody,
+      {key: 'body'},
+      createElement(
+        TableRow,
+        null,
+        createElement(TableCell, null, 'Ready'),
+      ),
+    ),
+  ]),
+};
+
+process.stdout.write(JSON.stringify(markup));
+`,
+  );
+  await writeFile(
+    join(consumerRoot, 'ignore-css-loader.mjs'),
+    `const emptyCssModule = new URL('./empty-css.mjs', import.meta.url).href;
+
+export async function resolve(specifier, context, nextResolve) {
+  if (specifier.endsWith('.css')) {
+    return {shortCircuit: true, url: emptyCssModule};
+  }
+  return nextResolve(specifier, context);
+}
+`,
+  );
+  await writeFile(join(consumerRoot, 'empty-css.mjs'), 'export {};\n');
   await writeFile(
     join(consumerRoot, 'vite.config.mjs'),
     `import react from '@vitejs/plugin-react';
@@ -738,6 +968,25 @@ import {defineConfig} from 'vite';
 
 export default defineConfig({plugins: [react()]});
 `,
+  );
+  await writeFile(
+    join(consumerRoot, 'tsconfig.json'),
+    `${JSON.stringify(
+      {
+        compilerOptions: {
+          jsx: 'react-jsx',
+          module: 'ESNext',
+          moduleResolution: 'Bundler',
+          noEmit: true,
+          strict: true,
+          target: 'ES2022',
+          types: ['vite/client'],
+        },
+        include: ['src/**/*.tsx'],
+      },
+      null,
+      2,
+    )}\n`,
   );
 }
 
@@ -837,16 +1086,136 @@ export default defineConfig({
 async function assertBuiltCss(consumerRoot, outputDirectory) {
   const outputRoot = join(consumerRoot, outputDirectory);
   const files = await readdir(outputRoot, {recursive: true});
-  const cssFile = files.find((file) => file.endsWith('.css'));
+  const cssFiles = files.filter((file) => file.endsWith('.css'));
 
-  if (!cssFile) {
+  if (cssFiles.length === 0) {
     throw new Error(`${outputDirectory} did not emit CSS`);
   }
 
-  const css = await readFile(join(outputRoot, cssFile), 'utf8');
+  const css = (
+    await Promise.all(
+      cssFiles.map((file) => readFile(join(outputRoot, file), 'utf8')),
+    )
+  ).join('\n');
   if (!css.includes('--kioku-ui-color-text')) {
     throw new Error(`${outputDirectory} omitted the semantic theme CSS`);
   }
+
+  return css;
+}
+
+async function readCssEntryTree(entry, visited = new Set()) {
+  if (visited.has(entry)) {
+    return '';
+  }
+  visited.add(entry);
+
+  const css = await readFile(entry, 'utf8');
+  const imports = [...css.matchAll(/@import\s+['"]([^'"]+\.css)['"]/g)];
+  const importedCss = await Promise.all(
+    imports.map((match) =>
+      readCssEntryTree(resolve(dirname(entry), match[1]), visited),
+    ),
+  );
+
+  return [css, ...importedCss].join('\n');
+}
+
+async function packedConsumerCss(consumerRoot, builtCss) {
+  const consumerRequire = createRequire(join(consumerRoot, 'package.json'));
+  const coreEntry = consumerRequire.resolve('@misoto22/kioku-ui/styles.css');
+  const themeEntry = consumerRequire.resolve(
+    '@misoto22/kioku-ui-theme-kioku/theme.css',
+  );
+  const [coreCss, themeCss] = await Promise.all([
+    readCssEntryTree(coreEntry),
+    readFile(themeEntry, 'utf8'),
+  ]);
+
+  for (const [label, css] of [
+    ['packed core CSS entry', coreCss],
+    ['packed theme CSS entry', themeCss],
+    ['packed consumer build CSS', builtCss],
+  ]) {
+    const problems = semanticCssProblems({css, label});
+    if (problems.length > 0) {
+      throw new Error(problems.join('\n'));
+    }
+  }
+
+  const omittedSemanticVariable = themeCss.replaceAll(
+    '--kioku-ui-color-accent-hover',
+    '--kioku-ui-omitted-color-accent-hover',
+  );
+  const mutationProblems = semanticCssProblems({
+    css: omittedSemanticVariable,
+    label: 'packed theme CSS mutation',
+  });
+  if (
+    !mutationProblems.includes(
+      'packed theme CSS mutation omitted --kioku-ui-color-accent-hover',
+    )
+  ) {
+    throw new Error(
+      'Packed CSS validation accepted an omitted semantic custom property',
+    );
+  }
+
+  return {
+    legacyPropertiesRejected: legacySemanticProperties.length,
+    semanticProperties: finalSemanticProperties.length,
+  };
+}
+
+async function assertMissingPublicTypeImportFails(consumerRoot) {
+  const entry = join(consumerRoot, 'src/main.tsx');
+  const source = await readFile(entry, 'utf8');
+  const mutation = source.replace('  TextTone,\n', '');
+  if (mutation === source) {
+    throw new Error('Could not create the missing TextTone import mutation');
+  }
+
+  let rejection;
+  await writeFile(entry, mutation);
+  try {
+    await runCommand(pnpm, ['exec', 'tsc', '--noEmit', '-p', 'tsconfig.json'], {
+      cwd: consumerRoot,
+    });
+  } catch (error) {
+    rejection = error;
+  } finally {
+    await writeFile(entry, source);
+  }
+
+  if (!rejection) {
+    throw new Error(
+      'Strict packed consumer typecheck accepted an omitted TextTone import',
+    );
+  }
+  if (!String(rejection.message).includes("Cannot find name 'TextTone'")) {
+    throw new Error(
+      `Missing TextTone import failed for an unexpected reason:\n${rejection.message}`,
+    );
+  }
+}
+
+async function renderPackedRuntime(consumerRoot) {
+  const {stdout} = await runCommand(
+    process.execPath,
+    [
+      '--experimental-loader',
+      pathToFileURL(join(consumerRoot, 'ignore-css-loader.mjs')).href,
+      join(consumerRoot, 'verify-runtime.mjs'),
+    ],
+    {cwd: consumerRoot},
+  );
+  const markup = JSON.parse(stdout);
+  const problems = packedRuntimeProblems(markup);
+  if (problems.length > 0) {
+    throw new Error(problems.join('\n'));
+  }
+
+  return Object.keys(markup).length;
 }
 
 async function installPackedConsumer(consumer, consumerRoot) {
@@ -895,12 +1264,18 @@ async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
     writeSourceConsumer(sourceRoot, sourceAuthoringRoot, artifacts),
   ]);
   await installPackedConsumer('compiled', compiledRoot);
+  await assertMissingPublicTypeImportFails(compiledRoot);
+  await runCommand(pnpm, ['exec', 'tsc', '--noEmit', '-p', 'tsconfig.json'], {
+    cwd: compiledRoot,
+  });
+  const runtimeComponents = await renderPackedRuntime(compiledRoot);
   await runCommand(
     pnpm,
     ['exec', 'vite', 'build', '--config', 'vite.config.mjs'],
     {cwd: compiledRoot},
   );
-  await assertBuiltCss(compiledRoot, 'dist');
+  const compiledCss = await assertBuiltCss(compiledRoot, 'dist');
+  const packedCss = await packedConsumerCss(compiledRoot, compiledCss);
 
   await installPackedConsumer('source-authoring', sourceAuthoringRoot);
   await runCommand(pnpm, ['exec', 'tsc', '--noEmit', '-p', 'tsconfig.json'], {
@@ -912,6 +1287,12 @@ async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
     {cwd: sourceAuthoringRoot},
   );
   await assertBuiltCss(sourceAuthoringRoot, 'dist');
+
+  return {
+    ...packedCss,
+    publicTypes: 8,
+    runtimeComponents,
+  };
 }
 
 async function workflow(root, filename) {
@@ -969,10 +1350,15 @@ export async function packSmoke(root = workspaceRoot) {
       throw new Error(problems.join('\n'));
     }
 
-    await buildPackedConsumers(root, consumerRoot, artifacts);
+    const packedSurface = await buildPackedConsumers(
+      root,
+      consumerRoot,
+      artifacts,
+    );
 
     return {
       consumers: ['compiled', 'source-authoring'],
+      packedSurface,
       packages: artifacts.map(({manifest}) => manifest.name).sort(),
       temporaryTraversal: ['package-boundaries', 'exports'],
     };
@@ -987,6 +1373,6 @@ export async function packSmoke(root = workspaceRoot) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const result = await packSmoke();
   console.log(
-    `Packed ${result.packages.join(', ')}; built ${result.consumers.join(' and ')} Vite consumers.`,
+    `Packed ${result.packages.join(', ')}; built ${result.consumers.join(' and ')} Vite consumers; verified ${result.packedSurface.publicTypes} public types, ${result.packedSurface.runtimeComponents} rendered components, ${result.packedSurface.semanticProperties} semantic properties, and rejected ${result.packedSurface.legacyPropertiesRejected} legacy properties.`,
   );
 }
