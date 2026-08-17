@@ -2,7 +2,16 @@ import {readFile, readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join, relative} from 'node:path';
 
-const sourceExtensions = new Set(['.js', '.jsx', '.ts', '.tsx', '.mjs', '.mts']);
+const sourceExtensions = new Set([
+  '.cjs',
+  '.cts',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.mts',
+  '.ts',
+  '.tsx',
+]);
 const forbiddenDependencies = new Set([
   '@misoto22/kioku-ui-cli',
   '@misoto22/kioku-ui-build',
@@ -10,7 +19,7 @@ const forbiddenDependencies = new Set([
   '@misoto22/kioku-ui-charts',
   '@misoto22/kioku-ui-vega',
 ]);
-const importPattern = /(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g;
+const importPattern = /(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|require\(\s*['"]([^'"]+)['"]\s*\)/g;
 
 function importProblem(file, specifier) {
   if (specifier.includes('react-router-dom')) {
@@ -89,7 +98,7 @@ export async function packageBoundaryProblems({files, packages} = {}) {
     let match;
 
     while ((match = importPattern.exec(contents)) !== null) {
-      const problem = importProblem(file, match[1] ?? match[2]);
+      const problem = importProblem(file, match[1] ?? match[2] ?? match[3]);
       if (problem) {
         problems.push(problem);
       }
