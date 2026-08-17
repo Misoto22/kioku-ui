@@ -7,6 +7,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 vi.mock('@stylexjs/stylex', () => ({
   create: <Styles,>(styles: Styles) => styles,
   defineVars: <Vars,>(variables: Vars) => variables,
+  keyframes: () => 'test-spin',
   props: (...styles: Array<Record<string, unknown> | undefined>) => {
     const appliedStyles = Object.assign({}, ...styles);
 

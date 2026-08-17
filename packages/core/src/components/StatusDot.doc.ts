@@ -10,6 +10,10 @@ export const statusDotDoc = {
       description: 'Names the represented status.',
       required: true,
     },
+    {
+      name: 'tone',
+      description: 'Selects the semantic status tone.',
+    },
   ],
   inheritedProps: [
     'HTMLAttributes<HTMLSpanElement> except aria-label, children, className, and role',

@@ -5,6 +5,10 @@ export const asyncStateDoc = {
   description: 'Renders distinct loading, empty, error, and ready states.',
   props: [
     {
+      name: 'children',
+      description: 'Renders ready data and is required for the ready state.',
+    },
+    {
       name: 'state',
       description: 'Provides the current discriminated async state.',
       required: true,

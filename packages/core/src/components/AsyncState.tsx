@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 
 import {Alert} from './Alert.js';
-import {EmptyState} from './EmptyState.js';
-import {Spinner} from './Spinner.js';
+import {EmptyStateContent} from './EmptyState.js';
+import {SpinnerVisual} from './Spinner.js';
 
 export type AsyncStateValue<T> =
   | {readonly kind: 'loading'; readonly label?: string}
@@ -20,35 +20,57 @@ export type AsyncStateValue<T> =
     }
   | {readonly kind: 'ready'; readonly data: T};
 
-export interface AsyncStateProps<T> {
-  readonly children?: (data: T) => ReactNode;
-  readonly state: AsyncStateValue<T>;
-}
+type ReadyAsyncStateValue<T> = Extract<AsyncStateValue<T>, {kind: 'ready'}>;
+type PendingAsyncStateValue<T> = Exclude<AsyncStateValue<T>, {kind: 'ready'}>;
+
+export type AsyncStateProps<T> =
+  | {
+      readonly children: (data: T) => ReactNode;
+      readonly state: ReadyAsyncStateValue<T>;
+    }
+  | {
+      readonly children?: (data: T) => ReactNode;
+      readonly state: PendingAsyncStateValue<T>;
+    };
 
 export function AsyncState<T>({children, state}: AsyncStateProps<T>) {
-  if (state.kind === 'loading') {
-    return <Spinner label={state.label ?? 'Loading'} />;
+  if (state.kind === 'ready' && !children) {
+    throw new Error('AsyncState requires a renderer for ready data');
   }
 
-  if (state.kind === 'empty') {
-    return (
-      <EmptyState
+  const loadingLabel =
+    state.kind === 'loading' ? (state.label ?? 'Loading') : undefined;
+  const statusContent =
+    state.kind === 'loading' ? (
+      <SpinnerVisual />
+    ) : state.kind === 'empty' ? (
+      <EmptyStateContent
         action={state.action}
         detail={state.detail}
         title={state.title}
       />
-    );
-  }
+    ) : state.kind === 'ready' ? (
+      children!(state.data)
+    ) : null;
 
-  if (state.kind === 'error') {
-    return (
-      <Alert tone="danger">
-        <div>{state.title}</div>
-        {state.detail ? <div>{state.detail}</div> : null}
-        {state.retry}
-      </Alert>
-    );
-  }
-
-  return children?.(state.data) ?? null;
+  return (
+    <>
+      <div
+        aria-atomic="true"
+        aria-busy={state.kind === 'loading'}
+        aria-label={loadingLabel}
+        aria-live="polite"
+        role="status"
+      >
+        {statusContent}
+      </div>
+      {state.kind === 'error' ? (
+        <Alert tone="danger">
+          <div>{state.title}</div>
+          {state.detail ? <div>{state.detail}</div> : null}
+          {state.retry}
+        </Alert>
+      ) : null}
+    </>
+  );
 }

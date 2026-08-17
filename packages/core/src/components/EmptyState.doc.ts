@@ -5,6 +5,14 @@ export const emptyStateDoc = {
   description:
     'Presents an announced empty result with optional detail and action.',
   props: [
+    {
+      name: 'action',
+      description: 'Provides an optional consumer-owned recovery action.',
+    },
+    {
+      name: 'detail',
+      description: 'Provides optional supporting empty-state content.',
+    },
     {name: 'title', description: 'Names the empty state.', required: true},
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className and title'],

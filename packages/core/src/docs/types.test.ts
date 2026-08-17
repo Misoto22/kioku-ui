@@ -7,6 +7,7 @@ describe('validateComponentDoc', () => {
     expect(validateComponentDoc({name: 'Button'})).toEqual([
       'description',
       'props',
+      'inheritedProps',
       'example',
       'storyId',
     ]);
@@ -25,5 +26,52 @@ describe('validateComponentDoc', () => {
         storyId: 'foundations-text',
       }),
     ).toEqual([]);
+  });
+
+  it('rejects blank, undocumented, and duplicate public prop entries', () => {
+    const base = {
+      name: 'Field',
+      description: 'Connects field metadata.',
+      inheritedProps: ['HTMLAttributes<HTMLDivElement> except className'],
+      example: '<Field label="Name"><TextInput /></Field>',
+      storyId: 'controls--field',
+    };
+
+    expect(
+      validateComponentDoc({
+        ...base,
+        props: [{name: '', description: 'Missing prop name.'}],
+      }),
+    ).toEqual(['props']);
+    expect(
+      validateComponentDoc({
+        ...base,
+        props: [{name: 'label', description: ''}],
+      }),
+    ).toEqual(['props']);
+    expect(
+      validateComponentDoc({
+        ...base,
+        props: [
+          {name: 'label', description: 'Names the field.'},
+          {name: 'label', description: 'Names the field again.'},
+        ],
+      }),
+    ).toEqual(['props']);
+  });
+
+  it('requires an explicit inherited native-props contract', () => {
+    const base = {
+      name: 'Field',
+      description: 'Connects field metadata.',
+      props: [{name: 'label', description: 'Names the field.'}],
+      example: '<Field label="Name"><TextInput /></Field>',
+      storyId: 'controls--field',
+    };
+
+    expect(validateComponentDoc(base)).toEqual(['inheritedProps']);
+    expect(validateComponentDoc({...base, inheritedProps: ['']})).toEqual([
+      'inheritedProps',
+    ]);
   });
 });

@@ -38,12 +38,15 @@ export interface EmptyStateProps extends Omit<
 
 export function EmptyState({action, detail, title, ...props}: EmptyStateProps) {
   return (
-    <div
-      {...props}
-      aria-live="polite"
-      role="status"
-      {...stylex.props(styles.root)}
-    >
+    <div {...props} aria-live="polite" role="status">
+      <EmptyStateContent action={action} detail={detail} title={title} />
+    </div>
+  );
+}
+
+export function EmptyStateContent({action, detail, title}: EmptyStateProps) {
+  return (
+    <div {...stylex.props(styles.root)}>
       <p {...stylex.props(styles.title)}>{title}</p>
       {detail ? <p {...stylex.props(styles.detail)}>{detail}</p> : null}
       {action}

@@ -31,6 +31,21 @@ async function runPnpm(arguments_: string[], cwd = packageRoot) {
   }
 }
 
+async function createCssIgnoringLoader(fixtureRoot: string) {
+  const loader = join(fixtureRoot, 'ignore-css.mjs');
+  await writeFile(
+    loader,
+    `export async function load(url, context, nextLoad) {
+  if (url.endsWith('.css')) {
+    return {format: 'module', shortCircuit: true, source: 'export {};'};
+  }
+  return nextLoad(url, context);
+}
+`,
+  );
+  return loader;
+}
+
 describe('published package build', () => {
   beforeAll(async () => {
     await runPnpm(['build']);
@@ -126,6 +141,51 @@ void [themeId, canvasValue];
     ]);
   });
 
+  it('emits syntax-valid JavaScript for representative public runtime components', async () => {
+    await run(process.execPath, [
+      '--check',
+      join(packageRoot, 'dist/components/Button.js'),
+    ]);
+    await run(process.execPath, [
+      '--check',
+      join(packageRoot, 'dist/components/AsyncState.js'),
+    ]);
+  });
+
+  it('loads and renders components through the public package name', async () => {
+    const fixtureRoot = await mkdtemp(join(packageRoot, '.test-runtime-'));
+    temporaryDirectories.push(fixtureRoot);
+    const loader = await createCssIgnoringLoader(fixtureRoot);
+    const runtime = join(fixtureRoot, 'consumer.mjs');
+
+    await writeFile(
+      runtime,
+      `import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {AsyncState, Button} from '${packageName}';
+
+const button = renderToStaticMarkup(createElement(Button, {variant: 'secondary'}, 'Save'));
+const ready = renderToStaticMarkup(
+  createElement(
+    AsyncState,
+    {state: {kind: 'ready', data: 3}},
+    (count) => createElement('span', null, count + ' items'),
+  ),
+);
+
+if (!button.includes('<button') || !button.includes('Save') || !ready.includes('3 items')) {
+  throw new Error('The public component runtime did not render expected markup.');
+}
+`,
+    );
+
+    await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, runtime],
+      {cwd: fixtureRoot},
+    );
+  });
+
   it('publishes typed component metadata from the public docs catalog', async () => {
     const fixtureRoot = await mkdtemp(join(packageRoot, '.test-docs-'));
     temporaryDirectories.push(fixtureRoot);
@@ -216,17 +276,7 @@ void [docs, individualDocs, textName, missing];
       source,
     ]);
 
-    const loader = join(fixtureRoot, 'ignore-css.mjs');
-    await writeFile(
-      loader,
-      `export async function load(url, context, nextLoad) {
-  if (url.endsWith('.css')) {
-    return {format: 'module', shortCircuit: true, source: 'export {};'};
-  }
-  return nextLoad(url, context);
-}
-`,
-    );
+    const loader = await createCssIgnoringLoader(fixtureRoot);
     const runtime = join(fixtureRoot, 'consumer.mjs');
     await writeFile(
       runtime,

@@ -47,12 +47,23 @@ export interface SegmentedControlOption<Value extends string = string> {
 
 type SharedSegmentedControlProps<Value extends string> = Omit<
   HTMLAttributes<HTMLDivElement>,
-  'className' | 'defaultValue' | 'onChange'
+  'aria-label' | 'aria-labelledby' | 'className' | 'defaultValue' | 'onChange'
 > & {
   readonly disabled?: boolean;
   readonly onValueChange?: (value: Value) => void;
   readonly options: readonly SegmentedControlOption<Value>[];
+  readonly orientation?: 'horizontal' | 'vertical';
 };
+
+type SegmentedControlAccessibleName =
+  | {
+      readonly 'aria-label': string;
+      readonly 'aria-labelledby'?: string;
+    }
+  | {
+      readonly 'aria-label'?: string;
+      readonly 'aria-labelledby': string;
+    };
 
 type ControlledSegmentedControlProps<Value extends string> =
   SharedSegmentedControlProps<Value> & {
@@ -67,18 +78,27 @@ type UncontrolledSegmentedControlProps<Value extends string> =
     readonly value?: never;
   };
 
-export type SegmentedControlProps<Value extends string = string> =
+export type SegmentedControlProps<Value extends string = string> = (
   | ControlledSegmentedControlProps<Value>
-  | UncontrolledSegmentedControlProps<Value>;
+  | UncontrolledSegmentedControlProps<Value>
+) &
+  SegmentedControlAccessibleName;
 
 export function SegmentedControl<Value extends string = string>({
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   defaultValue,
   disabled = false,
   onValueChange,
   options,
+  orientation = 'horizontal',
   value,
   ...props
 }: SegmentedControlProps<Value>) {
+  if (!ariaLabel?.trim() && !ariaLabelledBy?.trim()) {
+    throw new Error('SegmentedControl requires an accessible name');
+  }
+
   const firstEnabledValue = options.find((option) => !option.disabled)?.value;
   const [internalValue, setInternalValue] = useState<Value | undefined>(
     defaultValue ?? firstEnabledValue,
@@ -138,10 +158,12 @@ export function SegmentedControl<Value extends string = string>({
     event: KeyboardEvent<HTMLButtonElement>,
     currentValue: Value,
   ) {
+    const nextKey = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown';
+    const previousKey = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp';
     const direction =
-      event.key === 'ArrowRight' || event.key === 'ArrowDown'
+      event.key === nextKey
         ? 'next'
-        : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+        : event.key === previousKey
           ? 'previous'
           : event.key === 'Home'
             ? 'first'
@@ -158,8 +180,10 @@ export function SegmentedControl<Value extends string = string>({
   return (
     <div
       {...props}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       aria-disabled={disabled || undefined}
-      aria-orientation="horizontal"
+      aria-orientation={orientation}
       role="radiogroup"
       {...stylex.props(styles.root)}
     >

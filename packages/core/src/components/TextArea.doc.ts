@@ -5,8 +5,16 @@ export const textAreaDoc = {
   description: 'Collects multiple lines of controlled or uncontrolled text.',
   props: [
     {
+      name: 'defaultValue',
+      description: 'Sets the initial value for an uncontrolled text area.',
+    },
+    {
       name: 'onValueChange',
       description: 'Receives the current string value after input.',
+    },
+    {
+      name: 'value',
+      description: 'Controls the current value when onValueChange is supplied.',
     },
   ],
   inheritedProps: [

@@ -8,6 +8,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 vi.mock('@stylexjs/stylex', () => ({
   create: <Styles,>(styles: Styles) => styles,
   defineVars: <Vars,>(variables: Vars) => variables,
+  keyframes: () => 'test-spin',
   props: (...styles: Array<Record<string, unknown> | undefined | false>) => ({
     style: Object.assign({}, ...styles.filter(Boolean)),
   }),
@@ -128,6 +129,33 @@ describe('fields', () => {
     expect(onControlledChange).toHaveBeenCalledWith('Fixed!');
     expect(controlled).toHaveValue('Fixed');
   });
+
+  it('supports uncontrolled and controlled text area contracts', async () => {
+    const user = userEvent.setup();
+    const onControlledChange = vi.fn();
+    renderUi(
+      <>
+        <TextArea aria-label="Uncontrolled area" defaultValue="Start" />
+        <TextArea
+          aria-label="Controlled area"
+          onValueChange={onControlledChange}
+          value="Fixed"
+        />
+      </>,
+    );
+
+    const uncontrolled = screen.getByRole('textbox', {
+      name: 'Uncontrolled area',
+    });
+    await user.clear(uncontrolled);
+    await user.type(uncontrolled, 'Changed');
+    expect(uncontrolled).toHaveValue('Changed');
+
+    const controlled = screen.getByRole('textbox', {name: 'Controlled area'});
+    await user.type(controlled, '!');
+    expect(onControlledChange).toHaveBeenCalledWith('Fixed!');
+    expect(controlled).toHaveValue('Fixed');
+  });
 });
 
 describe('selection controls', () => {
@@ -197,7 +225,139 @@ describe('selection controls', () => {
     expect(start).toHaveFocus();
     expect(start).toBeChecked();
   });
+
+  it('rejects an unnamed segmented radiogroup and accepts aria-labelledby', () => {
+    const options = [
+      {label: 'Start', value: 'start'},
+      {label: 'End', value: 'end'},
+    ] as const;
+
+    expect(() =>
+      renderUi(
+        <SegmentedControl
+          {...({options} as unknown as Parameters<typeof SegmentedControl>[0])}
+        />,
+      ),
+    ).toThrow('SegmentedControl requires an accessible name');
+
+    renderUi(
+      <>
+        <span id="alignment-label">Alignment</span>
+        <SegmentedControl aria-labelledby="alignment-label" options={options} />
+      </>,
+    );
+    expect(screen.getByRole('radiogroup', {name: 'Alignment'})).toBeVisible();
+  });
+
+  it('keeps controlled segmented selection external while reporting keyboard intent', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const options = [
+      {label: 'Start', value: 'start'},
+      {label: 'End', value: 'end'},
+    ] as const;
+    const {rerender} = renderUi(
+      <SegmentedControl
+        aria-label="Alignment"
+        onValueChange={onValueChange}
+        options={options}
+        value="start"
+      />,
+    );
+
+    const start = screen.getByRole('radio', {name: 'Start'});
+    const end = screen.getByRole('radio', {name: 'End'});
+    start.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(onValueChange).toHaveBeenLastCalledWith('end');
+    expect(start).toBeChecked();
+    expect(end).not.toBeChecked();
+
+    rerender(
+      <SegmentedControl
+        aria-label="Alignment"
+        onValueChange={onValueChange}
+        options={options}
+        value="end"
+      />,
+    );
+    expect(end).toBeChecked();
+    expect(end).toHaveAttribute('tabindex', '0');
+  });
+
+  it('supports Home and End while preserving fully disabled segmented behavior', async () => {
+    const user = userEvent.setup();
+    const onDisabledChange = vi.fn();
+    renderUi(
+      <>
+        <SegmentedControl
+          aria-label="Alignment"
+          defaultValue="center"
+          options={[
+            {label: 'Start', value: 'start'},
+            {label: 'Center', value: 'center'},
+            {label: 'End', value: 'end'},
+          ]}
+        />
+        <SegmentedControl
+          aria-label="Disabled alignment"
+          disabled
+          onValueChange={onDisabledChange}
+          options={[
+            {label: 'Disabled start', value: 'start'},
+            {label: 'Disabled end', value: 'end'},
+          ]}
+        />
+      </>,
+    );
+
+    const center = screen.getByRole('radio', {name: 'Center'});
+    center.focus();
+    await user.keyboard('{Home}');
+    expect(screen.getByRole('radio', {name: 'Start'})).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(screen.getByRole('radio', {name: 'End'})).toHaveFocus();
+
+    const disabledStart = screen.getByRole('radio', {name: 'Disabled start'});
+    expect(disabledStart).toBeDisabled();
+    await user.click(disabledStart);
+    expect(onDisabledChange).not.toHaveBeenCalled();
+  });
+
+  it('uses vertical arrow keys only for a vertical segmented control', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    renderUi(
+      <SegmentedControl
+        aria-label="Priority"
+        defaultValue="first"
+        onValueChange={onValueChange}
+        options={[
+          {label: 'First', value: 'first'},
+          {label: 'Second', value: 'second'},
+        ]}
+        orientation="vertical"
+      />,
+    );
+
+    const first = screen.getByRole('radio', {name: 'First'});
+    first.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(first).toHaveFocus();
+    expect(onValueChange).not.toHaveBeenCalled();
+
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('radio', {name: 'Second'})).toHaveFocus();
+    expect(onValueChange).toHaveBeenLastCalledWith('second');
+  });
 });
+
+function UnnamedSegmentedControlTypeProbe() {
+  // @ts-expect-error SegmentedControl requires aria-label or aria-labelledby.
+  return <SegmentedControl options={[{label: 'Only', value: 'only'}]} />;
+}
+
+void UnnamedSegmentedControlTypeProbe;
 
 describe('compact status indicators', () => {
   it('keeps badge copy visible and gives a status dot an accessible name', () => {

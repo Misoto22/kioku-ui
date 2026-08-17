@@ -26,8 +26,19 @@ export function validateComponentDoc(
   if (!doc.description?.trim()) {
     fields.push('description');
   }
-  if (!doc.props?.length) {
+  const propNames = doc.props?.map((prop) => prop.name.trim()) ?? [];
+  const hasInvalidProps =
+    !doc.props?.length ||
+    doc.props.some((prop) => !prop.name.trim() || !prop.description.trim()) ||
+    new Set(propNames).size !== propNames.length;
+  if (hasInvalidProps) {
     fields.push('props');
+  }
+  if (
+    !doc.inheritedProps?.length ||
+    doc.inheritedProps.some((contract) => !contract.trim())
+  ) {
+    fields.push('inheritedProps');
   }
   if (!doc.example?.trim()) {
     fields.push('example');

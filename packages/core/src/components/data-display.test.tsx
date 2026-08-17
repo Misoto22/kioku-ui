@@ -8,6 +8,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 vi.mock('@stylexjs/stylex', () => ({
   create: <Styles,>(styles: Styles) => styles,
   defineVars: <Vars,>(variables: Vars) => variables,
+  keyframes: () => 'test-spin',
   props: (...styles: Array<Record<string, unknown> | undefined | false>) => ({
     style: Object.assign({}, ...styles.filter(Boolean)),
   }),
@@ -41,7 +42,7 @@ describe('async feedback', () => {
     renderUi(<AsyncState state={{kind: 'error', title: 'Request failed'}} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Request failed');
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
   it('renders progress and loading feedback with accessible state', () => {
@@ -50,13 +51,27 @@ describe('async feedback', () => {
     expect(
       screen.getByRole('status', {name: 'Loading records'}),
     ).toHaveAttribute('aria-busy', 'true');
+    const indicator = screen.getByRole('status', {
+      name: 'Loading records',
+    }).firstElementChild;
+    expect(indicator).not.toBeNull();
+    const indicatorStyle = (indicator as HTMLElement).style;
+    expect(indicatorStyle.animationDuration).toBe(
+      'var(--kioku-ui-motion-duration-slow)',
+    );
+    expect(indicatorStyle.animationIterationCount).toBe('infinite');
+    expect(indicatorStyle.animationName).toBe('test-spin');
+    expect(indicatorStyle.animationTimingFunction).toBe(
+      'var(--kioku-ui-motion-easing-standard)',
+    );
   });
 
   it('maps loading, empty, and ready async states to distinct content', () => {
     const {rerender} = renderUi(
       <AsyncState state={{kind: 'loading', label: 'Loading items'}} />,
     );
-    expect(screen.getByRole('status', {name: 'Loading items'})).toBeVisible();
+    const liveRegion = screen.getByRole('status', {name: 'Loading items'});
+    expect(liveRegion).toBeVisible();
 
     rerender(
       <AsyncState
@@ -67,15 +82,29 @@ describe('async feedback', () => {
         }}
       />,
     );
-    expect(screen.getByRole('status')).toHaveTextContent('Nothing here');
-    expect(screen.getByRole('status')).toHaveTextContent('Try another view');
+    expect(screen.getByRole('status')).toBe(liveRegion);
+    expect(liveRegion).toHaveTextContent('Nothing here');
+    expect(liveRegion).toHaveTextContent('Try another view');
 
     rerender(
       <AsyncState state={{kind: 'ready', data: 3}}>
         {(count) => <p>{count} items</p>}
       </AsyncState>,
     );
+    expect(screen.getByRole('status')).toBe(liveRegion);
     expect(screen.getByText('3 items')).toBeVisible();
+  });
+
+  it('rejects a ready state that has no data renderer', () => {
+    expect(() =>
+      renderUi(
+        <AsyncState
+          {...({state: {kind: 'ready', data: 3}} as unknown as Parameters<
+            typeof AsyncState
+          >[0])}
+        />,
+      ),
+    ).toThrow('AsyncState requires a renderer for ready data');
   });
 
   it('renders empty-state and error recovery actions as real buttons', async () => {
@@ -102,6 +131,13 @@ describe('async feedback', () => {
     expect(retry).toHaveBeenCalledOnce();
   });
 });
+
+function ReadyAsyncStateTypeProbe() {
+  // @ts-expect-error A ready AsyncState requires a child renderer.
+  return <AsyncState state={{kind: 'ready', data: 3}} />;
+}
+
+void ReadyAsyncStateTypeProbe;
 
 describe('live feedback', () => {
   it('uses assertive alert semantics only for danger feedback', () => {

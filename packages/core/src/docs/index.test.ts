@@ -38,5 +38,39 @@ describe('componentDocs', () => {
       expect(validateComponentDoc(doc)).toEqual([]);
       expect(doc.inheritedProps).toHaveLength(1);
     }
+
+    const documentedProps = Object.fromEntries(
+      componentDocs.map((doc) => [
+        doc.name,
+        doc.props.map((prop) => prop.name),
+      ]),
+    );
+    expect(documentedProps).toMatchObject({
+      Alert: ['tone'],
+      AsyncState: ['children', 'state'],
+      Badge: ['tone'],
+      Button: ['variant'],
+      EmptyState: ['action', 'detail', 'title'],
+      Field: ['controlId', 'description', 'label', 'status', 'statusTone'],
+      IconButton: ['aria-label'],
+      MetricGrid: ['items'],
+      SegmentedControl: [
+        'aria-label',
+        'aria-labelledby',
+        'defaultValue',
+        'disabled',
+        'onValueChange',
+        'options',
+        'orientation',
+        'value',
+      ],
+      Skeleton: ['label'],
+      Spinner: ['label'],
+      StatusDot: ['aria-label', 'tone'],
+      Table: ['children'],
+      TextArea: ['defaultValue', 'onValueChange', 'value'],
+      TextInput: ['defaultValue', 'onValueChange', 'value'],
+      Toggle: ['defaultPressed', 'onPressedChange', 'pressed'],
+    });
   });
 });
