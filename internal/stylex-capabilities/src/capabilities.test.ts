@@ -106,6 +106,75 @@ sx.firstThatWorks('red', 'blue');`,
     ).toEqual([]);
   });
 
+  it('rejects unsupported calls through assigned namespace and method aliases', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+let sx;
+sx = stylex;
+sx.firstThatWorks('red', 'blue');
+let choose;
+choose = sx.firstThatWorks;
+choose('red', 'blue');`,
+        'assigned.stylex.ts',
+      ),
+    ).toEqual([
+      'assigned.stylex.ts:4 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'assigned.stylex.ts:7 uses unsupported StyleX capability: stylex.firstThatWorks via choose',
+    ]);
+  });
+
+  it('keeps catch-parameter shadowing inside the catch scope', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+try {
+  throw new Error('local');
+} catch (stylex) {
+  stylex.firstThatWorks('local', 'fallback');
+}
+stylex.firstThatWorks('red', 'blue');`,
+        'catch-shadow.stylex.ts',
+      ),
+    ).toEqual([
+      'catch-shadow.stylex.ts:7 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('honors hoisted local function shadowing without hiding the imported namespace', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+function inspectLocal() {
+  stylex.firstThatWorks('local', 'fallback');
+  function stylex() {}
+}
+stylex.firstThatWorks('red', 'blue');`,
+        'function-shadow.stylex.ts',
+      ),
+    ).toEqual([
+      'function-shadow.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('resolves assignments against the nearest lexical binding identity', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+let sx;
+{
+  const stylex = {firstThatWorks: (...values: string[]) => values[0]};
+  sx = stylex;
+}
+sx.firstThatWorks('local', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'assigned-shadow.stylex.ts',
+      ),
+    ).toEqual([
+      'assigned-shadow.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
   it('keeps public core authoring within the declared capability policy', async () => {
     await expect(workspaceStylexCapabilityProblems()).resolves.toEqual([]);
   });

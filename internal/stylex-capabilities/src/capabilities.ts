@@ -47,19 +47,23 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
   );
   const problems = new Set<string>();
 
-  type Binding =
+  type BindingValue =
     | {kind: 'method'; method: string; reported: boolean}
     | {importName: string; kind: 'namespace'}
     | {kind: 'other'};
+  interface Binding {
+    value: BindingValue;
+  }
   interface Scope {
     bindings: Map<string, Binding>;
+    kind: 'block' | 'catch' | 'function' | 'source';
     parent?: Scope;
   }
 
-  const rootScope: Scope = {bindings: new Map()};
-  const otherBinding = {kind: 'other'} as const satisfies Binding;
+  const rootScope: Scope = {bindings: new Map(), kind: 'source'};
+  const otherValue = {kind: 'other'} as const satisfies BindingValue;
 
-  const resolveBinding = (scope: Scope, name: string) => {
+  const resolveBinding = (scope: Scope, name: string): Binding | undefined => {
     let current: Scope | undefined = scope;
     while (current) {
       const binding = current.bindings.get(name);
@@ -68,14 +72,81 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
   };
 
+  const declareBinding = (
+    scope: Scope,
+    name: string,
+    value: BindingValue = otherValue,
+  ) => {
+    const existing = scope.bindings.get(name);
+    if (existing) return existing;
+    const binding = {value};
+    scope.bindings.set(name, binding);
+    return binding;
+  };
+
   const bindOther = (scope: Scope, name: ts.BindingName) => {
     if (ts.isIdentifier(name)) {
-      scope.bindings.set(name.text, otherBinding);
+      declareBinding(scope, name.text);
       return;
     }
     for (const element of name.elements) {
       if (!ts.isOmittedExpression(element)) bindOther(scope, element.name);
     }
+  };
+
+  const nearestFunctionScope = (scope: Scope) => {
+    let current = scope;
+    while (current.kind !== 'function' && current.kind !== 'source') {
+      current = current.parent ?? current;
+    }
+    return current;
+  };
+
+  const variableScope = (node: ts.VariableDeclaration, scope: Scope) => {
+    const declarationList = node.parent;
+    return ts.isVariableDeclarationList(declarationList) &&
+      (declarationList.flags & ts.NodeFlags.BlockScoped) === 0
+      ? nearestFunctionScope(scope)
+      : scope;
+  };
+
+  const predeclareStatements = (
+    statements: ts.NodeArray<ts.Statement>,
+    scope: Scope,
+  ) => {
+    for (const statement of statements) {
+      if (
+        (ts.isFunctionDeclaration(statement) ||
+          ts.isClassDeclaration(statement)) &&
+        statement.name
+      ) {
+        declareBinding(scope, statement.name.text);
+      } else if (ts.isVariableStatement(statement)) {
+        const targetScope =
+          (statement.declarationList.flags & ts.NodeFlags.BlockScoped) === 0
+            ? nearestFunctionScope(scope)
+            : scope;
+        for (const declaration of statement.declarationList.declarations) {
+          bindOther(targetScope, declaration.name);
+        }
+      }
+    }
+  };
+
+  const predeclareVarBindings = (node: ts.Node, scope: Scope) => {
+    const visitVar = (child: ts.Node) => {
+      if (child !== node && ts.isFunctionLike(child)) return;
+      if (
+        ts.isVariableDeclarationList(child) &&
+        (child.flags & ts.NodeFlags.BlockScoped) === 0
+      ) {
+        for (const declaration of child.declarations) {
+          bindOther(scope, declaration.name);
+        }
+      }
+      ts.forEachChild(child, visitVar);
+    };
+    visitVar(node);
   };
 
   const report = (node: ts.Node, capability: string) => {
@@ -97,14 +168,17 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
 
       if (importClause.name) {
         report(importClause.name, `default import ${importClause.name.text}`);
-        rootScope.bindings.set(importClause.name.text, otherBinding);
+        declareBinding(rootScope, importClause.name.text);
       }
       if (
         importClause.namedBindings &&
         ts.isNamespaceImport(importClause.namedBindings)
       ) {
         const importName = importClause.namedBindings.name.text;
-        rootScope.bindings.set(importName, {importName, kind: 'namespace'});
+        declareBinding(rootScope, importName, {
+          importName,
+          kind: 'namespace',
+        });
       } else if (
         importClause.namedBindings &&
         ts.isNamedImports(importClause.namedBindings)
@@ -115,7 +189,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
               element,
               `named import ${(element.propertyName ?? element.name).text}`,
             );
-            rootScope.bindings.set(element.name.text, otherBinding);
+            declareBinding(rootScope, element.name.text);
           }
         }
       }
@@ -129,25 +203,30 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
 
   const expressionBinding = (expression: ts.Expression, scope: Scope) => {
     if (ts.isIdentifier(expression)) {
-      return resolveBinding(scope, expression.text);
+      return resolveBinding(scope, expression.text)?.value;
     }
     if (
       ts.isPropertyAccessExpression(expression) &&
       ts.isIdentifier(expression.expression)
     ) {
-      const namespace = resolveBinding(scope, expression.expression.text);
+      const namespace = resolveBinding(
+        scope,
+        expression.expression.text,
+      )?.value;
       if (namespace?.kind === 'namespace') {
         return {
           kind: 'method',
           method: expression.name.text,
           reported: false,
-        } as const satisfies Binding;
+        } as const satisfies BindingValue;
       }
     }
   };
 
   const visit = (node: ts.Node, scope: Scope) => {
     if (ts.isSourceFile(node)) {
+      predeclareStatements(node.statements, scope);
+      predeclareVarBindings(node, scope);
       for (const statement of node.statements) visit(statement, scope);
       return;
     }
@@ -155,15 +234,49 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     if (ts.isImportDeclaration(node)) return;
 
     if (ts.isBlock(node)) {
-      const blockScope: Scope = {bindings: new Map(), parent: scope};
+      const blockScope: Scope = {
+        bindings: new Map(),
+        kind: 'block',
+        parent: scope,
+      };
+      predeclareStatements(node.statements, blockScope);
       for (const statement of node.statements) visit(statement, blockScope);
       return;
     }
 
+    if (ts.isCatchClause(node)) {
+      const catchScope: Scope = {
+        bindings: new Map(),
+        kind: 'catch',
+        parent: scope,
+      };
+      if (node.variableDeclaration) {
+        bindOther(catchScope, node.variableDeclaration.name);
+      }
+      visit(node.block, catchScope);
+      return;
+    }
+
     if (ts.isFunctionLike(node)) {
-      const functionScope: Scope = {bindings: new Map(), parent: scope};
+      const functionScope: Scope = {
+        bindings: new Map(),
+        kind: 'function',
+        parent: scope,
+      };
+      if (
+        (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) &&
+        node.name
+      ) {
+        declareBinding(functionScope, node.name.text);
+      }
       for (const parameter of node.parameters) {
         bindOther(functionScope, parameter.name);
+      }
+      for (const parameter of node.parameters) {
+        if (parameter.initializer) visit(parameter.initializer, functionScope);
+      }
+      if ('body' in node && node.body) {
+        predeclareVarBindings(node.body, functionScope);
       }
       if ('body' in node && node.body) visit(node.body, functionScope);
       return;
@@ -174,23 +287,25 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       const initializer = node.initializer
         ? expressionBinding(node.initializer, scope)
         : undefined;
+      const targetScope = variableScope(node, scope);
 
       if (ts.isIdentifier(node.name)) {
-        scope.bindings.set(node.name.text, initializer ?? otherBinding);
+        const binding = declareBinding(targetScope, node.name.text);
+        if (initializer) binding.value = initializer;
       } else if (
         ts.isObjectBindingPattern(node.name) &&
         initializer?.kind === 'namespace'
       ) {
         for (const element of node.name.elements) {
           if (!ts.isIdentifier(element.name) || element.dotDotDotToken) {
-            bindOther(scope, element.name);
+            bindOther(targetScope, element.name);
             continue;
           }
           const importedName = element.propertyName
             ? propertyName(element.propertyName)
             : element.name.text;
           if (!importedName) {
-            scope.bindings.set(element.name.text, otherBinding);
+            declareBinding(targetScope, element.name.text);
             continue;
           }
           const alias =
@@ -198,14 +313,31 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
               ? ''
               : ` as ${element.name.text}`;
           report(element, `destructured stylex.${importedName}${alias}`);
-          scope.bindings.set(element.name.text, {
+          const binding = declareBinding(targetScope, element.name.text);
+          binding.value = {
             kind: 'method',
             method: importedName,
             reported: true,
-          });
+          };
         }
       } else {
-        bindOther(scope, node.name);
+        bindOther(targetScope, node.name);
+      }
+      return;
+    }
+
+    if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.EqualsToken
+    ) {
+      visit(node.right, scope);
+      if (ts.isIdentifier(node.left)) {
+        const binding = resolveBinding(scope, node.left.text);
+        if (binding) {
+          binding.value = expressionBinding(node.right, scope) ?? otherValue;
+        }
+      } else {
+        visit(node.left, scope);
       }
       return;
     }
@@ -216,7 +348,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         ts.isIdentifier(node.expression.expression)
       ) {
         const localName = node.expression.expression.text;
-        const namespace = resolveBinding(scope, localName);
+        const namespace = resolveBinding(scope, localName)?.value;
         const method = node.expression.name.text;
         if (namespace?.kind === 'namespace' && unsupportedMethod(method)) {
           const alias =
@@ -224,7 +356,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
           report(node, `stylex.${method}${alias}`);
         }
       } else if (ts.isIdentifier(node.expression)) {
-        const method = resolveBinding(scope, node.expression.text);
+        const method = resolveBinding(scope, node.expression.text)?.value;
         if (
           method?.kind === 'method' &&
           !method.reported &&
