@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex';
 
-import {semanticTokens} from '../tokens/semantic.stylex.js';
+import {semanticTokens} from '../authoring.stylex.js';
 
 export const globalStyles = stylex.create({
   document: {

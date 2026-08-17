@@ -9,5 +9,4 @@ export {
   type TokenContract,
   type TokenName,
 } from './tokens/contracts.js';
-export {semanticTokens} from './tokens/stylex.js';
 export {globalStyles} from './styles/global.stylex.js';

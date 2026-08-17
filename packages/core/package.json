@@ -4,11 +4,22 @@
   "description": "Product-neutral React design system foundations.",
   "license": "MIT",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src/authoring.stylex.ts"
   ],
   "exports": {
-    ".": "./dist/index.js",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./authoring.stylex": {
+      "types": "./dist/authoring.stylex.d.ts",
+      "import": "./src/authoring.stylex.ts",
+      "default": "./src/authoring.stylex.ts"
+    },
     "./reset.css": "./dist/styles/reset.css",
     "./styles.css": "./dist/styles/index.css",
     "./theme": "./dist/theme.js",
@@ -19,7 +30,7 @@
     "react-dom": "^19.0.0"
   },
   "scripts": {
-    "build": "stylex -i src -o dist -b styles/stylex.css --babelPresets @babel/preset-typescript",
+    "build": "stylex -i src -o dist -b styles/stylex.css --babelPresets @babel/preset-typescript && tsc -p tsconfig.build.json",
     "test": "vitest run src",
     "typecheck": "tsc --noEmit"
   },
