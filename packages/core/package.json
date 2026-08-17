@@ -27,6 +27,11 @@
       "import": "./dist/theme/index.js",
       "default": "./dist/theme/index.js"
     },
+    "./docs": {
+      "types": "./dist/docs/index.d.ts",
+      "import": "./dist/docs/index.js",
+      "default": "./dist/docs/index.js"
+    },
     "./authoring": "./dist/authoring.js"
   },
   "peerDependencies": {

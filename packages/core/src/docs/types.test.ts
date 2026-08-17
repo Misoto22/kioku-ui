@@ -17,7 +17,10 @@ describe('validateComponentDoc', () => {
       validateComponentDoc({
         name: 'Text',
         description: 'Renders readable body copy.',
-        props: ['size?: "sm" | "md" | "lg"'],
+        props: [{name: 'size', description: 'Sets the semantic text size.'}],
+        inheritedProps: [
+          'HTMLAttributes<HTMLParagraphElement> except className',
+        ],
         example: '<Text>Read me</Text>',
         storyId: 'foundations-text',
       }),

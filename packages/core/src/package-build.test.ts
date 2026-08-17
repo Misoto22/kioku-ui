@@ -125,4 +125,63 @@ void [themeId, canvasValue];
       source,
     ]);
   });
+
+  it('publishes typed component metadata from the public docs catalog', async () => {
+    const fixtureRoot = await mkdtemp(join(packageRoot, '.test-docs-'));
+    temporaryDirectories.push(fixtureRoot);
+    const source = join(fixtureRoot, 'consumer.ts');
+    await writeFile(
+      source,
+      `import {
+  cardDoc,
+  cardFooterDoc,
+  cardHeaderDoc,
+  centerDoc,
+  componentDocs,
+  dividerDoc,
+  gridDoc,
+  headingDoc,
+  sectionDoc,
+  stackDoc,
+  textDoc,
+  validateComponentDoc,
+  visuallyHiddenDoc,
+  type ComponentDoc,
+} from '${packageName}/docs';
+
+const docs: readonly ComponentDoc[] = componentDocs;
+const individualDocs: readonly ComponentDoc[] = [
+  textDoc,
+  headingDoc,
+  stackDoc,
+  gridDoc,
+  sectionDoc,
+  cardDoc,
+  cardHeaderDoc,
+  cardFooterDoc,
+  dividerDoc,
+  centerDoc,
+  visuallyHiddenDoc,
+];
+const textName: string = textDoc.name;
+const missing = validateComponentDoc(textDoc);
+void [docs, individualDocs, textName, missing];
+`,
+    );
+
+    await runPnpm([
+      'exec',
+      'tsc',
+      '--ignoreConfig',
+      '--noEmit',
+      '--strict',
+      '--module',
+      'NodeNext',
+      '--moduleResolution',
+      'NodeNext',
+      '--target',
+      'ES2024',
+      source,
+    ]);
+  });
 });
