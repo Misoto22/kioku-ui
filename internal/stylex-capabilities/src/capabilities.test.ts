@@ -306,6 +306,140 @@ stylex.firstThatWorks('red', 'blue');`,
     ]);
   });
 
+  it('retains StyleX aliases supplied by default parameters and nested captures', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+function use(sx = stylex) {
+  sx.firstThatWorks('red', 'blue');
+}
+function outer(sx = stylex) {
+  function nestedCapture() {
+    sx.firstThatWorks('red', 'blue');
+  }
+}`,
+        'default-parameter.stylex.ts',
+      ),
+    ).toEqual([
+      'default-parameter.stylex.ts:3 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'default-parameter.stylex.ts:7 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('keeps local defaults and parameter shadows unrelated to StyleX', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+function useLocal(sx = local) {
+  sx.firstThatWorks('local', 'fallback');
+}
+function outer(stylex = local) {
+  function nestedLocal() {
+    stylex.firstThatWorks('local', 'fallback');
+  }
+}
+stylex.firstThatWorks('red', 'blue');`,
+        'default-parameter-shadow.stylex.ts',
+      ),
+    ).toEqual([
+      'default-parameter-shadow.stylex.ts:11 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('visits a for body with pre-increment alias state', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = stylex;
+for (; ready; sx = local) {
+  sx.firstThatWorks('first', 'fallback');
+}
+sx.firstThatWorks('after-update', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'for-phase.stylex.ts',
+      ),
+    ).toEqual([
+      'for-phase.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'for-phase.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('writes iteration values through identifier and binding-pattern targets', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+const rows = [];
+let inAlias = stylex;
+for (inAlias in local) {
+  inAlias.firstThatWorks('local', 'fallback');
+}
+inAlias.firstThatWorks('after', 'fallback');
+let ofAlias = stylex;
+for ({item: ofAlias} of rows) {
+  ofAlias.firstThatWorks('local', 'fallback');
+}
+ofAlias.firstThatWorks('after', 'fallback');
+let choose = stylex.firstThatWorks;
+for ([choose] of rows) {
+  choose('local', 'fallback');
+}
+choose('after', 'fallback');
+for (const loopAlias of rows) {
+  loopAlias.firstThatWorks('local', 'fallback');
+}
+loopAlias.firstThatWorks('outside', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'iteration-target.stylex.ts',
+      ),
+    ).toEqual([
+      'iteration-target.stylex.ts:23 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('resolves string-literal computed StyleX members and destructuring keys', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+stylex['firstThatWorks']('red', 'blue');
+const sx = stylex;
+sx['firstThatWorks']('red', 'blue');
+let choose;
+({['firstThatWorks']: choose} = stylex);
+choose('red', 'blue');
+const {['firstThatWorks']: pick} = stylex;
+pick('red', 'blue');`,
+        'computed-member.stylex.ts',
+      ),
+    ).toEqual([
+      'computed-member.stylex.ts:2 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'computed-member.stylex.ts:4 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'computed-member.stylex.ts:6 uses unsupported StyleX capability: destructured stylex.firstThatWorks as choose',
+      'computed-member.stylex.ts:8 uses unsupported StyleX capability: destructured stylex.firstThatWorks as pick',
+    ]);
+  });
+
+  it('does not guess dynamic computed StyleX keys or unrelated local members', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+const key = getKey();
+stylex[key]('unknown', 'fallback');
+let choose = stylex.firstThatWorks;
+({[key]: choose} = stylex);
+choose('unknown', 'fallback');
+local['firstThatWorks']('local', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'dynamic-computed.stylex.ts',
+      ),
+    ).toEqual([
+      'dynamic-computed.stylex.ts:9 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
   it('keeps public core authoring within the declared capability policy', async () => {
     await expect(workspaceStylexCapabilityProblems()).resolves.toEqual([]);
   });
