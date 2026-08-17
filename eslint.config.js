@@ -5,6 +5,8 @@ export default [
     ignores: [
       '.changeset/**',
       '.github/**',
+      'apps/example-*/.next/**',
+      'apps/example-*/dist/**',
       'node_modules/**',
       'packages/*/dist/**',
     ],

@@ -7,13 +7,19 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "src/authoring.stylex.ts"
+    "src"
   ],
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./source": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./authoring.stylex": {
       "types": "./dist/authoring.stylex.d.ts",
