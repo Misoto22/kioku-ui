@@ -12,5 +12,5 @@ export const gridDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className'],
   example: '<Grid columns={2}><Text>First</Text><Text>Second</Text></Grid>',
-  storyId: 'foundations--grid',
+  storyId: 'core-grid--default',
 } satisfies ComponentDoc;

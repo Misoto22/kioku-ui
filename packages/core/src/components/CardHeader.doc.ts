@@ -8,5 +8,5 @@ export const cardHeaderDoc = {
   inheritedProps: ['HTMLAttributes<HTMLElement> except className and children'],
   example:
     '<Card><CardHeader><Heading level={2}>Card title</Heading></CardHeader><Text>Content</Text></Card>',
-  storyId: 'foundations--card-header',
+  storyId: 'core-card--card-header',
 } satisfies ComponentDoc;

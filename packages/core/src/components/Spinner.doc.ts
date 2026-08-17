@@ -15,5 +15,5 @@ export const spinnerDoc = {
     'HTMLAttributes<HTMLSpanElement> except aria-label, children, className, and role',
   ],
   example: '<Spinner label="Loading items" />',
-  storyId: 'data-display--spinner',
+  storyId: 'core-spinner--default',
 } satisfies ComponentDoc;

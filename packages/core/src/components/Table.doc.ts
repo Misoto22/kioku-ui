@@ -23,7 +23,7 @@ export const tableDoc = {
   inheritedProps: ['TableHTMLAttributes<HTMLTableElement> except className'],
   example:
     '<Table density="compact" dividers="grid"><TableCaption>Values</TableCaption><TableBody /></Table>',
-  storyId: 'data-display--table',
+  storyId: 'core-table--default',
 } satisfies ComponentDoc;
 
 export const tableCaptionDoc = {
@@ -38,7 +38,7 @@ export const tableCaptionDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLTableCaptionElement> except className'],
   example: '<TableCaption>Quarterly values</TableCaption>',
-  storyId: 'data-display--table-caption',
+  storyId: 'core-table--table-caption',
 } satisfies ComponentDoc;
 
 export const tableHeadDoc = {
@@ -53,7 +53,7 @@ export const tableHeadDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLTableSectionElement> except className'],
   example: '<TableHead><TableRow /></TableHead>',
-  storyId: 'data-display--table-head',
+  storyId: 'core-table--table-head',
 } satisfies ComponentDoc;
 
 export const tableBodyDoc = {
@@ -64,7 +64,7 @@ export const tableBodyDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLTableSectionElement> except className'],
   example: '<TableBody><TableRow /></TableBody>',
-  storyId: 'data-display--table-body',
+  storyId: 'core-table--table-body',
 } satisfies ComponentDoc;
 
 export const tableRowDoc = {
@@ -73,7 +73,7 @@ export const tableRowDoc = {
   props: [{name: 'children', description: 'Supplies cells.', required: true}],
   inheritedProps: ['HTMLAttributes<HTMLTableRowElement> except className'],
   example: '<TableRow><TableCell>Value</TableCell></TableRow>',
-  storyId: 'data-display--table-row',
+  storyId: 'core-table--table-row',
 } satisfies ComponentDoc;
 
 export const tableHeaderCellDoc = {
@@ -89,7 +89,7 @@ export const tableHeaderCellDoc = {
   ],
   inheritedProps: ['ThHTMLAttributes<HTMLTableCellElement> except className'],
   example: '<TableHeaderCell scope="col">Name</TableHeaderCell>',
-  storyId: 'data-display--table-header-cell',
+  storyId: 'core-table--table-header-cell',
 } satisfies ComponentDoc;
 
 export const tableCellDoc = {
@@ -100,5 +100,5 @@ export const tableCellDoc = {
   ],
   inheritedProps: ['TdHTMLAttributes<HTMLTableCellElement> except className'],
   example: '<TableCell>24</TableCell>',
-  storyId: 'data-display--table-cell',
+  storyId: 'core-table--table-cell',
 } satisfies ComponentDoc;

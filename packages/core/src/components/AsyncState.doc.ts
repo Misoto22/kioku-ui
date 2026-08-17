@@ -17,5 +17,5 @@ export const asyncStateDoc = {
   inheritedProps: ['No inherited DOM attributes'],
   example:
     '<AsyncState state={{kind: "ready", data}}>{renderData}</AsyncState>',
-  storyId: 'data-display--async-state',
+  storyId: 'core-async-state--default',
 } satisfies ComponentDoc;

@@ -11,6 +11,9 @@ const config: StorybookConfig = {
   stories: ['../stories/**/*.stories.@(ts|tsx)'],
   async viteFinal(baseConfig) {
     return mergeConfig(baseConfig, {
+      build: {
+        cssTarget: ['chrome123', 'firefox120', 'safari17.5'],
+      },
       plugins: [...kiokuUiVitePlugin({rootDir: import.meta.dirname})],
     });
   },

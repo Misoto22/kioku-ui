@@ -26,5 +26,5 @@ export const toggleDoc = {
     'ButtonHTMLAttributes<HTMLButtonElement> except aria-checked, aria-pressed, className, onChange, and role',
   ],
   example: '<Toggle aria-label="Enable option" defaultPressed />',
-  storyId: 'controls--toggle',
+  storyId: 'core-toggle--default',
 } satisfies ComponentDoc;

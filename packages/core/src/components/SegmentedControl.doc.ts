@@ -47,5 +47,5 @@ export const segmentedControlDoc = {
     'HTMLAttributes<HTMLDivElement> except aria-label, aria-labelledby, className, defaultValue, and onChange',
   ],
   example: '<SegmentedControl aria-label="Alignment" options={options} />',
-  storyId: 'controls--segmented-control',
+  storyId: 'core-segmented-control--default',
 } satisfies ComponentDoc;

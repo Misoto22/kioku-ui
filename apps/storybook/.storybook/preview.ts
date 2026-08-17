@@ -24,19 +24,19 @@ const preview: Preview = {
       const mode = context.globals.mode === 'dark' ? 'dark' : 'light';
 
       return createElement(
-        'div',
-        {
-          'data-story-mode': mode,
-          style: {
-            background: 'var(--kioku-ui-color-canvas)',
-            colorScheme: mode,
-            minHeight: '100vh',
-            padding: 24,
-          },
-        },
+        ThemeProvider,
+        {defaultThemeId: theme.id, themes: kiokuThemes},
         createElement(
-          ThemeProvider,
-          {defaultThemeId: theme.id, themes: kiokuThemes},
+          'div',
+          {
+            'data-story-mode': mode,
+            style: {
+              background: 'var(--kioku-ui-color-canvas)',
+              color: 'var(--kioku-ui-color-text)',
+              colorScheme: mode,
+              minHeight: '100vh',
+            },
+          },
           createElement(Story),
         ),
       );
@@ -47,7 +47,7 @@ const preview: Preview = {
   parameters: {
     a11y: {test: 'error'},
     controls: {expanded: true},
-    layout: 'fullscreen',
+    layout: 'padded',
   },
 };
 

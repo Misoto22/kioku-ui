@@ -20,5 +20,5 @@ export const iconButtonDoc = {
     'ButtonHTMLAttributes<HTMLButtonElement> except aria-label and className',
   ],
   example: '<IconButton aria-label="Close"><CloseIcon /></IconButton>',
-  storyId: 'controls--icon-button',
+  storyId: 'core-icon-button--default',
 } satisfies ComponentDoc;

@@ -13,5 +13,5 @@ export const buttonDoc = {
   ],
   inheritedProps: ['ButtonHTMLAttributes<HTMLButtonElement> except className'],
   example: '<Button onClick={save}>Save</Button>',
-  storyId: 'controls--button',
+  storyId: 'core-button--default',
 } satisfies ComponentDoc;

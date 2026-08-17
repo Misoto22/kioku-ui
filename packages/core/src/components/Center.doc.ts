@@ -8,5 +8,5 @@ export const centerDoc = {
     'HTMLAttributes<HTMLDivElement> except className and children',
   ],
   example: '<Center><Text>Centered content</Text></Center>',
-  storyId: 'foundations--center',
+  storyId: 'core-center--default',
 } satisfies ComponentDoc;

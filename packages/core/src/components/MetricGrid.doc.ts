@@ -15,5 +15,5 @@ export const metricGridDoc = {
     'HTMLAttributes<HTMLDListElement> except children and className',
   ],
   example: '<MetricGrid items={[{label: "Total", value: "24"}]} />',
-  storyId: 'data-display--metric-grid',
+  storyId: 'core-metric-grid--default',
 } satisfies ComponentDoc;

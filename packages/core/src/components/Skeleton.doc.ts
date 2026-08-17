@@ -11,5 +11,5 @@ export const skeletonDoc = {
     'HTMLAttributes<HTMLDivElement> except aria-label, children, className, and role',
   ],
   example: '<Skeleton label="Loading summary" />',
-  storyId: 'data-display--skeleton',
+  storyId: 'core-skeleton--default',
 } satisfies ComponentDoc;

@@ -7,7 +7,7 @@ export const linkDoc = {
   props: [{name: 'href', description: 'Sets the navigation destination.'}],
   inheritedProps: ['AnchorHTMLAttributes<HTMLAnchorElement>'],
   example: '<Link href="/records">Records</Link>',
-  storyId: 'navigation--link',
+  storyId: 'core-link--default',
 } satisfies ComponentDoc;
 
 export const linkProviderDoc = {
@@ -28,5 +28,5 @@ export const linkProviderDoc = {
   inheritedProps: ['No inherited DOM attributes'],
   example:
     '<LinkProvider renderLink={renderLink}><Link href="/records">Records</Link></LinkProvider>',
-  storyId: 'navigation--link-provider',
+  storyId: 'core-link-provider--default',
 } satisfies ComponentDoc;

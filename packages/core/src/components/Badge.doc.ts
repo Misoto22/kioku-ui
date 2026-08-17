@@ -11,5 +11,5 @@ export const badgeDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLSpanElement> except className'],
   example: '<Badge tone="success">Available</Badge>',
-  storyId: 'controls--badge',
+  storyId: 'core-badge--default',
 } satisfies ComponentDoc;

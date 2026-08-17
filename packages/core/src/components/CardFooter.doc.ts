@@ -8,5 +8,5 @@ export const cardFooterDoc = {
   inheritedProps: ['HTMLAttributes<HTMLElement> except className and children'],
   example:
     '<Card><Text>Content</Text><CardFooter><Text>Updated now</Text></CardFooter></Card>',
-  storyId: 'foundations--card-footer',
+  storyId: 'core-card--card-footer',
 } satisfies ComponentDoc;

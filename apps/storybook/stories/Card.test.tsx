@@ -1,7 +1,7 @@
 import {renderToStaticMarkup} from 'react-dom/server';
 import {describe, expect, it} from 'vitest';
 
-import {Card, CardFooter, CardHeader} from './foundations.stories.js';
+import {CardFooter, CardHeader, Default as Card} from './Card.stories.js';
 
 function renderStory(story: typeof Card) {
   const render = story.render;
@@ -10,7 +10,7 @@ function renderStory(story: typeof Card) {
   return renderToStaticMarkup(render?.({}, {} as never) ?? null);
 }
 
-describe('foundation Card stories', () => {
+describe('Card stories', () => {
   it.each([
     ['Card', Card],
     ['CardHeader', CardHeader],

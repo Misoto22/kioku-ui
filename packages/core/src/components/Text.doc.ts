@@ -13,5 +13,5 @@ export const textDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLParagraphElement> except className'],
   example: '<Text size="md" tone="secondary">Supporting copy.</Text>',
-  storyId: 'foundations--text',
+  storyId: 'core-text--default',
 } satisfies ComponentDoc;

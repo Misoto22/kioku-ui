@@ -30,5 +30,5 @@ export const fieldDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className'],
   example: '<Field label="Email" necessity="required"><TextInput /></Field>',
-  storyId: 'controls--field',
+  storyId: 'core-field--default',
 } satisfies ComponentDoc;

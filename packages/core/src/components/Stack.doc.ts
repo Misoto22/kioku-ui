@@ -9,5 +9,5 @@ export const stackDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className'],
   example: '<Stack gap="md"><Text>First</Text><Text>Second</Text></Stack>',
-  storyId: 'foundations--stack',
+  storyId: 'core-stack--default',
 } satisfies ComponentDoc;

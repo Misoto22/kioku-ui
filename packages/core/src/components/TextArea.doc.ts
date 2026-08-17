@@ -39,5 +39,5 @@ export const textAreaDoc = {
     'TextareaHTMLAttributes<HTMLTextAreaElement> except children, className, defaultValue, onChange, and value',
   ],
   example: '<Field label="Notes"><TextArea /></Field>',
-  storyId: 'controls--text-area',
+  storyId: 'core-text-area--default',
 } satisfies ComponentDoc;

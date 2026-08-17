@@ -19,5 +19,5 @@ export const statusDotDoc = {
     'HTMLAttributes<HTMLSpanElement> except aria-label, children, className, and role',
   ],
   example: '<StatusDot aria-label="Service available" tone="success" />',
-  storyId: 'controls--status-dot',
+  storyId: 'core-status-dot--default',
 } satisfies ComponentDoc;

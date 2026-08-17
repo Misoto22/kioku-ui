@@ -27,5 +27,5 @@ export const emptyStateDoc = {
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className and title'],
   example:
     '<EmptyState title="No results" detail="Try another query." size="compact" />',
-  storyId: 'data-display--empty-state',
+  storyId: 'core-empty-state--default',
 } satisfies ComponentDoc;

@@ -8,5 +8,5 @@ export const dividerDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLHRElement> except className'],
   example: '<Divider aria-label="Separates summary from details" />',
-  storyId: 'foundations--divider',
+  storyId: 'core-divider--default',
 } satisfies ComponentDoc;

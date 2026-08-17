@@ -22,5 +22,5 @@ export const headingDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLHeadingElement> except className'],
   example: '<Heading level={2} size="section">Section title</Heading>',
-  storyId: 'foundations--heading',
+  storyId: 'core-heading--default',
 } satisfies ComponentDoc;

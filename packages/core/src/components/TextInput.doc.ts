@@ -39,5 +39,5 @@ export const textInputDoc = {
     'InputHTMLAttributes<HTMLInputElement> except children, className, defaultValue, onChange, and value',
   ],
   example: '<Field label="Name"><TextInput defaultValue="" /></Field>',
-  storyId: 'controls--text-input',
+  storyId: 'core-text-input--default',
 } satisfies ComponentDoc;

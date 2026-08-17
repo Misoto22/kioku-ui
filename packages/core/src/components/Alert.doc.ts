@@ -12,5 +12,5 @@ export const alertDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className and role'],
   example: '<Alert tone="danger">Unable to save.</Alert>',
-  storyId: 'data-display--alert',
+  storyId: 'core-alert--default',
 } satisfies ComponentDoc;

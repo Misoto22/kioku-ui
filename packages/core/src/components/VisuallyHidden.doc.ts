@@ -14,5 +14,5 @@ export const visuallyHiddenDoc = {
     'HTMLAttributes<HTMLSpanElement> except className and children',
   ],
   example: '<button><VisuallyHidden>Open navigation</VisuallyHidden></button>',
-  storyId: 'foundations--visually-hidden',
+  storyId: 'core-visually-hidden--default',
 } satisfies ComponentDoc;

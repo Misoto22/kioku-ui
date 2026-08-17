@@ -8,5 +8,5 @@ export const sectionDoc = {
   ],
   inheritedProps: ['HTMLAttributes<HTMLElement> except className'],
   example: '<Section aria-label="Preferences"><Text>Content</Text></Section>',
-  storyId: 'foundations--section',
+  storyId: 'core-section--default',
 } satisfies ComponentDoc;

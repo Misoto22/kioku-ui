@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
+import ts from 'typescript';
 
 const repositoryRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -12,32 +13,87 @@ const previewPath = resolve(
   repositoryRoot,
   'apps/storybook/.storybook/preview.ts',
 );
-const foundationStoriesPath = resolve(
-  repositoryRoot,
-  'apps/storybook/stories/foundations.stories.tsx',
-);
 
-test('Storybook preview loads the public core stylesheet that contains extracted StyleX rules', async () => {
-  const preview = await readFile(previewPath, 'utf8');
+function unwrap(expression) {
+  if (
+    ts.isAsExpression(expression) ||
+    ts.isParenthesizedExpression(expression) ||
+    ts.isSatisfiesExpression(expression)
+  ) {
+    return unwrap(expression.expression);
+  }
+  return expression;
+}
 
-  assert.match(preview, /import '@misoto22\/kioku-ui\/styles\.css';/);
+function property(object, name) {
+  return object.properties.find(
+    (candidate) =>
+      ts.isPropertyAssignment(candidate) &&
+      ((ts.isIdentifier(candidate.name) && candidate.name.text === name) ||
+        (ts.isStringLiteral(candidate.name) && candidate.name.text === name)),
+  );
+}
+
+async function previewSource() {
+  const source = ts.createSourceFile(
+    previewPath,
+    await readFile(previewPath, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+  const declaration = source.statements
+    .filter(ts.isVariableStatement)
+    .flatMap((statement) => [...statement.declarationList.declarations])
+    .find(
+      (candidate) =>
+        ts.isIdentifier(candidate.name) && candidate.name.text === 'preview',
+    );
+  const initializer =
+    declaration?.initializer && unwrap(declaration.initializer);
+  assert.ok(initializer && ts.isObjectLiteralExpression(initializer));
+  return initializer;
+}
+
+test('Storybook preview defaults component stories to padded layout', async () => {
+  const preview = await previewSource();
+  const parameters = property(preview, 'parameters');
+  const parametersValue = parameters && unwrap(parameters.initializer);
+  assert.ok(parametersValue && ts.isObjectLiteralExpression(parametersValue));
+  const layout = property(parametersValue, 'layout');
+  const layoutValue = layout && unwrap(layout.initializer);
+
+  assert.ok(layoutValue && ts.isStringLiteral(layoutValue));
+  assert.equal(layoutValue.text, 'padded');
 });
 
-test('structural Card stories render their components in a complete Card context', async () => {
-  const stories = await readFile(foundationStoriesPath, 'utf8');
+test('Storybook preview keeps theme ownership without global decorator padding', async () => {
+  const preview = await previewSource();
+  let themeProviderCall = false;
+  let paddingProperty = false;
 
-  assert.match(stories, /function CardFixture\(\)/);
-  assert.match(stories, /<CardComponent style=\{\{maxWidth: '34rem'\}\}>/);
-  assert.match(stories, /<CardHeaderComponent>/);
-  assert.match(stories, /<CardFooterComponent>/);
-  assert.match(stories, /<DividerComponent \/>/);
-
-  for (const name of ['Card', 'CardHeader', 'CardFooter']) {
-    assert.match(
-      stories,
-      new RegExp(
-        `export const ${name}: Story = \\{\\s*parameters: \\{controls: \\{disable: true\\}\\},\\s*render: \\(\\) => <CardFixture \\/>,\\s*\\};`,
-      ),
-    );
+  function visit(node) {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'createElement' &&
+      node.arguments[0] &&
+      ts.isIdentifier(node.arguments[0]) &&
+      node.arguments[0].text === 'ThemeProvider'
+    ) {
+      themeProviderCall = true;
+    }
+    if (
+      ts.isPropertyAssignment(node) &&
+      ((ts.isIdentifier(node.name) && node.name.text === 'padding') ||
+        (ts.isStringLiteral(node.name) && node.name.text === 'padding'))
+    ) {
+      paddingProperty = true;
+    }
+    ts.forEachChild(node, visit);
   }
+
+  visit(preview);
+  assert.equal(themeProviderCall, true);
+  assert.equal(paddingProperty, false);
 });

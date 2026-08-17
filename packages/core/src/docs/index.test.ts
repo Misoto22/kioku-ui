@@ -131,6 +131,6 @@ describe('componentDocs', () => {
   it('links ThemeProvider metadata to a product-neutral Storybook fixture', () => {
     expect(
       componentDocs.find(({name}) => name === 'ThemeProvider')?.storyId,
-    ).toBe('themes--theme-provider');
+    ).toBe('core-theme-provider--default');
   });
 });

@@ -18,5 +18,5 @@ export const cardDoc = {
   inheritedProps: ['HTMLAttributes<HTMLElement> except className and children'],
   example:
     '<Card aria-label="Summary" elevation="none"><Text>Content</Text></Card>',
-  storyId: 'foundations--card',
+  storyId: 'core-card--default',
 } satisfies ComponentDoc;

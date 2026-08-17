@@ -29,5 +29,5 @@ export const themeProviderDoc = {
   inheritedProps: ['No inherited DOM attributes'],
   example:
     '<ThemeProvider defaultThemeId={hostDefaultThemeId} themes={hostThemes}>...</ThemeProvider>',
-  storyId: 'themes--theme-provider',
+  storyId: 'core-theme-provider--default',
 } satisfies ComponentDoc;
