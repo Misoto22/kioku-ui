@@ -26,9 +26,11 @@ export const States: Story = {
     <StateGrid
       items={[
         {
-          label: 'Off',
+          label: 'Rest · off',
           content: (
-            <Toggle aria-label="Delivery alerts off">Delivery alerts</Toggle>
+            <Toggle aria-label="Delivery alerts off" data-story-state="rest">
+              Delivery alerts
+            </Toggle>
           ),
         },
         {
@@ -40,9 +42,35 @@ export const States: Story = {
           ),
         },
         {
+          label: 'Pointer hover',
+          content: (
+            <Toggle
+              aria-label="Hovered delivery alerts"
+              data-story-state="hover"
+            >
+              Delivery alerts
+            </Toggle>
+          ),
+        },
+        {
           label: 'Keyboard focus',
           content: (
-            <Toggle aria-label="Focused activity digest" autoFocus>
+            <Toggle
+              aria-label="Focused activity digest"
+              data-story-state="focus"
+            >
+              Activity digest
+            </Toggle>
+          ),
+        },
+        {
+          label: 'Pointer active',
+          content: (
+            <Toggle
+              aria-label="Active activity digest"
+              data-story-state="active"
+              onMouseDown={(event) => event.preventDefault()}
+            >
               Activity digest
             </Toggle>
           ),
@@ -50,6 +78,24 @@ export const States: Story = {
       ]}
     />
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const focusTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="focus"]',
+    );
+    const activeTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="active"]',
+    );
+    const hoverTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="hover"]',
+    );
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('Toggle state targets are missing');
+    }
+
+    focusTarget.focus();
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const Disabled: Story = {

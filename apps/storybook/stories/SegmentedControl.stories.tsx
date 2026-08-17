@@ -39,41 +39,70 @@ export const States: Story = {
     <StateGrid
       items={[
         {
-          label: 'Horizontal',
+          label: 'Rest',
           content: (
             <SegmentedControl
               aria-label="Delivery range"
+              data-story-state="rest"
+              defaultValue="month"
               options={rangeOptions}
             />
           ),
         },
         {
-          label: 'Vertical',
+          label: 'Pointer hover',
           content: (
             <SegmentedControl
-              aria-label="Workspace range"
-              defaultValue="quarter"
+              aria-label="Hovered delivery range"
+              data-story-state="hover"
+              defaultValue="month"
               options={rangeOptions}
-              orientation="vertical"
             />
           ),
         },
         {
-          label: 'Option unavailable',
+          label: 'Keyboard focus',
           content: (
             <SegmentedControl
-              aria-label="Report range"
-              options={[
-                {label: 'Week', value: 'week'},
-                {label: 'Month', value: 'month'},
-                {disabled: true, label: 'Year', value: 'year'},
-              ]}
+              aria-label="Focused delivery range"
+              data-story-state="focus"
+              defaultValue="month"
+              options={rangeOptions}
+            />
+          ),
+        },
+        {
+          label: 'Pointer active',
+          content: (
+            <SegmentedControl
+              aria-label="Active delivery range"
+              data-story-state="active"
+              defaultValue="month"
+              options={rangeOptions}
             />
           ),
         },
       ]}
     />
   ),
+  play: async ({canvasElement, userEvent}) => {
+    function target(state: string) {
+      return canvasElement.querySelector<HTMLElement>(
+        `[data-story-state="${state}"] [role="radio"]:not([aria-checked="true"])`,
+      );
+    }
+
+    const focusTarget = target('focus');
+    const activeTarget = target('active');
+    const hoverTarget = target('hover');
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('SegmentedControl state targets are missing');
+    }
+
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    focusTarget.focus();
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const Disabled: Story = {

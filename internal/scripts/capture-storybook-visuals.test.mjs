@@ -17,7 +17,9 @@ const storyIds = [
   'core-metric-grid--composition',
   'core-segmented-control--states',
   'core-table--composition',
+  'core-text-area--states',
   'core-text-input--states',
+  'core-theme-provider--states',
   'core-toggle--states',
 ];
 const modes = ['light', 'dark'];
@@ -31,7 +33,7 @@ test('visual capture matrix covers the approved stories, themes, modes, and view
   const cases = visualCaptureCases({storyIds, themes, modes, viewports});
   const filenames = cases.map(({filename}) => filename);
 
-  assert.equal(cases.length, 68);
+  assert.equal(cases.length, 84);
   assert.equal(new Set(filenames).size, filenames.length);
   assert.deepEqual(
     filenames,
@@ -60,6 +62,7 @@ test('visual capture matrix covers the approved stories, themes, modes, and view
     'core-button--states',
     'core-card--composition',
     'core-table--composition',
+    'core-theme-provider--states',
   ]) {
     for (const theme of ['muji', 'sumi']) {
       for (const mode of modes) {
@@ -150,15 +153,40 @@ test('visual capture matrix rejects colliding output filenames', () => {
 });
 
 test('visual captures force simultaneous inspectable interaction states', () => {
-  assert.deepEqual(forcedPseudoStateTargets(), [
-    {pseudoClasses: ['hover'], selector: '[data-story-state="hover"]'},
+  for (const storyId of [
+    'core-button--states',
+    'core-text-area--states',
+    'core-text-input--states',
+    'core-toggle--states',
+  ]) {
+    assert.deepEqual(forcedPseudoStateTargets(storyId), [
+      {pseudoClasses: ['hover'], selector: '[data-story-state="hover"]'},
+      {
+        pseudoClasses: ['hover', 'active'],
+        selector: '[data-story-state="active"]',
+      },
+      {
+        pseudoClasses: ['focus', 'focus-visible'],
+        selector: '[data-story-state="focus"]',
+      },
+    ]);
+  }
+
+  assert.deepEqual(forcedPseudoStateTargets('core-segmented-control--states'), [
+    {
+      pseudoClasses: ['hover'],
+      selector:
+        '[data-story-state="hover"] [role="radio"]:not([aria-checked="true"])',
+    },
     {
       pseudoClasses: ['hover', 'active'],
-      selector: '[data-story-state="active"]',
+      selector:
+        '[data-story-state="active"] [role="radio"]:not([aria-checked="true"])',
     },
     {
       pseudoClasses: ['focus', 'focus-visible'],
-      selector: '[data-story-state="focus"]',
+      selector:
+        '[data-story-state="focus"] [role="radio"]:not([aria-checked="true"])',
     },
   ]);
 });
@@ -169,13 +197,32 @@ test('visual capture rejects near-miss pseudo-state markers for required stories
     'function',
   );
 
+  for (const storyId of [
+    'core-button--states',
+    'core-text-area--states',
+    'core-text-input--states',
+    'core-toggle--states',
+  ]) {
+    assert.throws(
+      () =>
+        captureModule.assertRequiredPseudoStateTargets(storyId, [
+          '[data-story-state="hover"]',
+          '[data-story-state="focus"]',
+          '[data-story-state="pressed"]',
+        ]),
+      /Missing required pseudo-state target.*data-story-state="active"/,
+    );
+  }
+
   assert.throws(
     () =>
-      captureModule.assertRequiredPseudoStateTargets('core-button--states', [
-        '[data-story-state="hover"]',
-        '[data-story-state="focus"]',
-        '[data-story-state="pressed"]',
-      ]),
+      captureModule.assertRequiredPseudoStateTargets(
+        'core-segmented-control--states',
+        [
+          '[data-story-state="hover"] [role="radio"]:not([aria-checked="true"])',
+          '[data-story-state="focus"] [role="radio"]:not([aria-checked="true"])',
+        ],
+      ),
     /Missing required pseudo-state target.*data-story-state="active"/,
   );
 });

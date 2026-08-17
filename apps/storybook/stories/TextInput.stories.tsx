@@ -46,14 +46,40 @@ export const States: Story = {
             content: (
               <TextInput
                 aria-label="Workspace name"
+                data-story-state="rest"
                 defaultValue="Operations"
+              />
+            ),
+          },
+          {
+            label: 'Pointer hover',
+            content: (
+              <TextInput
+                aria-label="Hovered workspace name"
+                data-story-state="hover"
+                defaultValue="Delivery overview"
               />
             ),
           },
           {
             label: 'Keyboard focus',
             content: (
-              <TextInput aria-label="Focused workspace name" autoFocus />
+              <TextInput
+                aria-label="Focused workspace name"
+                data-story-state="focus"
+                defaultValue="Operations"
+              />
+            ),
+          },
+          {
+            label: 'Pointer active',
+            content: (
+              <TextInput
+                aria-label="Active workspace name"
+                data-story-state="active"
+                defaultValue="Delivery operations"
+                onMouseDown={(event) => event.preventDefault()}
+              />
             ),
           },
           {
@@ -81,6 +107,24 @@ export const States: Story = {
       />
     </DemoFrame>
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const focusTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="focus"]',
+    );
+    const activeTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="active"]',
+    );
+    const hoverTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="hover"]',
+    );
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('TextInput state targets are missing');
+    }
+
+    focusTarget.focus();
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const Disabled: Story = {

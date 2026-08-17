@@ -15,37 +15,53 @@ const visualStoryIds = [
   'core-metric-grid--composition',
   'core-card--composition',
   'core-grid--composition',
+  'core-text-area--states',
+  'core-theme-provider--states',
 ];
 const fullThemeStoryIds = new Set([
   'core-button--states',
   'core-card--composition',
   'core-table--composition',
+  'core-theme-provider--states',
 ]);
 const requiredModes = ['light', 'dark'];
 const requiredThemes = ['washi', 'muji', 'sumi'];
-const pseudoStateStoryIds = new Set(['core-button--states']);
-const visualCaptureCaseCount = 68;
+const pseudoStateStoryIds = new Set([
+  'core-button--states',
+  'core-segmented-control--states',
+  'core-text-area--states',
+  'core-text-input--states',
+  'core-toggle--states',
+]);
+const visualCaptureCaseCount = 84;
 const viewports = [
   {height: 900, name: 'desktop-1440x900', width: 1440},
   {height: 844, name: 'narrow-390x844', width: 390},
 ];
 
-export function forcedPseudoStateTargets() {
+export function forcedPseudoStateTargets(storyId) {
+  const target = (state) =>
+    storyId === 'core-segmented-control--states'
+      ? `[data-story-state="${state}"] [role="radio"]:not([aria-checked="true"])`
+      : `[data-story-state="${state}"]`;
+
   return [
-    {pseudoClasses: ['hover'], selector: '[data-story-state="hover"]'},
+    {pseudoClasses: ['hover'], selector: target('hover')},
     {
       pseudoClasses: ['hover', 'active'],
-      selector: '[data-story-state="active"]',
+      selector: target('active'),
     },
     {
       pseudoClasses: ['focus', 'focus-visible'],
-      selector: '[data-story-state="focus"]',
+      selector: target('focus'),
     },
   ];
 }
 
 function requiredPseudoStateTargets(storyId) {
-  return pseudoStateStoryIds.has(storyId) ? forcedPseudoStateTargets() : [];
+  return pseudoStateStoryIds.has(storyId)
+    ? forcedPseudoStateTargets(storyId)
+    : [];
 }
 
 export function assertRequiredPseudoStateTargets(storyId, foundSelectors) {
@@ -219,6 +235,146 @@ async function waitForReadyStory(page) {
   });
 }
 
+function storyUrl(baseUrl, storyId, globals) {
+  const url = new URL('/iframe.html', baseUrl);
+  url.searchParams.set('id', storyId);
+  url.searchParams.set('viewMode', 'story');
+  url.searchParams.set('globals', globals);
+  return url.href;
+}
+
+async function hostThemeCardSignature(page, themeId) {
+  return page.locator(`[data-theme="${themeId}"] article`).evaluate((card) => {
+    const style = getComputedStyle(card);
+    return {
+      backgroundColor: style.backgroundColor,
+      borderColor: style.borderColor,
+      color: style.color,
+    };
+  });
+}
+
+async function cardSignatureWithin(root) {
+  return root.locator('article').evaluate((card) => {
+    const style = getComputedStyle(card);
+    return {
+      backgroundColor: style.backgroundColor,
+      borderColor: style.borderColor,
+      color: style.color,
+    };
+  });
+}
+
+function assertPaintedHostTheme(themeId, outerTheme, mode, signature) {
+  if (
+    signature.backgroundColor === 'transparent' ||
+    signature.backgroundColor === 'rgba(0, 0, 0, 0)' ||
+    signature.color === 'transparent' ||
+    signature.color === 'rgba(0, 0, 0, 0)'
+  ) {
+    throw new Error(
+      `Host theme ${themeId} is unresolved under ${outerTheme}/${mode}: ${JSON.stringify(signature)}`,
+    );
+  }
+}
+
+async function verifyThemeProviderRuntime({baseUrl, page}) {
+  const signaturesByMode = new Map();
+
+  for (const mode of requiredModes) {
+    for (const outerTheme of requiredThemes) {
+      const globals = `theme:${outerTheme};mode:${mode}`;
+      await page.goto(
+        storyUrl(baseUrl, 'core-theme-provider--states', globals),
+        {waitUntil: 'networkidle'},
+      );
+      await waitForReadyStory(page);
+      await page
+        .locator('[data-theme^="host-theme-"]')
+        .nth(1)
+        .waitFor({state: 'visible'});
+
+      const stateSignatures = {};
+      for (const hostThemeId of ['host-theme-1', 'host-theme-2']) {
+        const signature = await hostThemeCardSignature(page, hostThemeId);
+        assertPaintedHostTheme(hostThemeId, outerTheme, mode, signature);
+        stateSignatures[hostThemeId] = signature;
+      }
+      if (
+        JSON.stringify(stateSignatures['host-theme-1']) ===
+        JSON.stringify(stateSignatures['host-theme-2'])
+      ) {
+        throw new Error(
+          `Host theme states are visually indistinguishable under ${outerTheme}/${mode}`,
+        );
+      }
+
+      const modeSignatures = signaturesByMode.get(mode);
+      if (modeSignatures) {
+        if (
+          JSON.stringify(modeSignatures) !== JSON.stringify(stateSignatures)
+        ) {
+          throw new Error(
+            `Host theme rendering depends on the outer ${outerTheme} registry under ${mode}`,
+          );
+        }
+      } else {
+        signaturesByMode.set(mode, stateSignatures);
+      }
+
+      await page.goto(
+        storyUrl(baseUrl, 'core-theme-provider--composition', globals),
+        {waitUntil: 'networkidle'},
+      );
+      await waitForReadyStory(page);
+      const switchButton = page.getByRole('button', {
+        name: 'Apply alternate host theme',
+      });
+      await switchButton.waitFor({state: 'visible'});
+      const compositionRoot = switchButton.locator(
+        'xpath=ancestor::div[starts-with(@data-theme, "host-theme-")][1]',
+      );
+      if (
+        (await compositionRoot.getAttribute('data-theme')) !== 'host-theme-1'
+      ) {
+        throw new Error(
+          `ThemeProvider composition did not initialize host-theme-1 under ${outerTheme}/${mode}`,
+        );
+      }
+      const initialSignature = await cardSignatureWithin(compositionRoot);
+      const compositionRootHandle = await compositionRoot.elementHandle();
+      if (!compositionRootHandle) {
+        throw new Error('ThemeProvider composition root is missing');
+      }
+      await switchButton.click();
+      await page.waitForFunction(
+        (root) => root.getAttribute('data-theme') === 'host-theme-2',
+        compositionRootHandle,
+      );
+      await page.evaluate(
+        () =>
+          new Promise((resolveFrame) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolveFrame)),
+          ),
+      );
+      const switchedSignature = await cardSignatureWithin(compositionRoot);
+      assertPaintedHostTheme(
+        'host-theme-2',
+        outerTheme,
+        mode,
+        switchedSignature,
+      );
+      if (
+        JSON.stringify(initialSignature) === JSON.stringify(switchedSignature)
+      ) {
+        throw new Error(
+          `Host theme switch produced no visual change under ${outerTheme}/${mode}: ${JSON.stringify({initialSignature, switchedSignature})}`,
+        );
+      }
+    }
+  }
+}
+
 async function screenshotHasVariation(page, screenshot) {
   return page.evaluate(
     async (dataUrl) => {
@@ -299,11 +455,9 @@ async function forceInspectablePseudoStates(page, storyId) {
 async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
   const {filename, globals, storyId, viewport} = captureCase;
   await page.setViewportSize(viewport);
-  const url = new URL('/iframe.html', baseUrl);
-  url.searchParams.set('id', storyId);
-  url.searchParams.set('viewMode', 'story');
-  url.searchParams.set('globals', globals);
-  await page.goto(url.href, {waitUntil: 'networkidle'});
+  await page.goto(storyUrl(baseUrl, storyId, globals), {
+    waitUntil: 'networkidle',
+  });
   await waitForReadyStory(page);
 
   const pseudoStateSession = await forceInspectablePseudoStates(page, storyId);
@@ -328,6 +482,7 @@ async function captureVisuals({baseUrl, cases, outputDirectory}) {
   const page = await context.newPage();
 
   try {
+    await verifyThemeProviderRuntime({baseUrl, page});
     for (const captureCase of cases) {
       await captureStory({baseUrl, captureCase, outputDirectory, page});
     }

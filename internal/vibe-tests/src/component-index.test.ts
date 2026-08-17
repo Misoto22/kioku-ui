@@ -390,27 +390,36 @@ export const Default = {render: (args) => <Button {...args} />};
     );
   });
 
-  it('requires interactive state stories to drive focus and pointer state', async () => {
+  it('requires every interactive control state story to drive focus and pointer state', async () => {
     const {storySourceProblems} = await architecturePolicy();
 
-    const problems = storySourceProblems(
-      `
-import {Button} from '@misoto22/kioku-ui';
-const meta = {title: 'Core/Button', component: Button};
+    for (const component of [
+      'Button',
+      'IconButton',
+      'TextInput',
+      'TextArea',
+      'Toggle',
+      'SegmentedControl',
+    ]) {
+      const problems = storySourceProblems(
+        `
+import {${component}} from '@misoto22/kioku-ui';
+const meta = {title: 'Core/${component}', component: ${component}};
 export default meta;
 export const States = {
-  render: () => <Button data-story-state="rest">Rest only</Button>,
+  render: () => <${component} data-story-state="rest" />,
 };
 `,
-      'Button.stories.tsx',
-    );
+        `${component}.stories.tsx`,
+      );
 
-    expect(problems).toEqual(
-      expect.arrayContaining([
-        'Button.stories.tsx story States must expose rest, hover, focus, and active state targets',
-        'Button.stories.tsx story States must drive its targets with a play function',
-      ]),
-    );
+      expect(problems).toEqual(
+        expect.arrayContaining([
+          `${component}.stories.tsx story States must expose rest, hover, focus, and active state targets`,
+          `${component}.stories.tsx story States must drive its targets with a play function`,
+        ]),
+      );
+    }
   });
 
   it('requires every Table state row to contain interactive content', async () => {

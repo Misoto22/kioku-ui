@@ -42,13 +42,41 @@ export const States: Story = {
             content: (
               <TextArea
                 aria-label="Activity note"
+                data-story-state="rest"
                 defaultValue="Delivery schedule confirmed."
               />
             ),
           },
           {
+            label: 'Pointer hover',
+            content: (
+              <TextArea
+                aria-label="Hovered activity note"
+                data-story-state="hover"
+                defaultValue="Workspace access review is ready."
+              />
+            ),
+          },
+          {
             label: 'Keyboard focus',
-            content: <TextArea aria-label="Focused activity note" autoFocus />,
+            content: (
+              <TextArea
+                aria-label="Focused activity note"
+                data-story-state="focus"
+                defaultValue="Delivery schedule confirmed."
+              />
+            ),
+          },
+          {
+            label: 'Pointer active',
+            content: (
+              <TextArea
+                aria-label="Active activity note"
+                data-story-state="active"
+                defaultValue="Publish the delivery summary."
+                onMouseDown={(event) => event.preventDefault()}
+              />
+            ),
           },
           {
             label: 'Read only',
@@ -75,6 +103,24 @@ export const States: Story = {
       />
     </DemoFrame>
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const focusTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="focus"]',
+    );
+    const activeTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="active"]',
+    );
+    const hoverTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="hover"]',
+    );
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('TextArea state targets are missing');
+    }
+
+    focusTarget.focus();
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const Disabled: Story = {

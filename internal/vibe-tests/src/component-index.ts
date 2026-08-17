@@ -878,7 +878,15 @@ export function storySourceProblems(
     if (
       storyName === 'States' &&
       componentName &&
-      ['Button', 'IconButton', 'Table'].includes(componentName)
+      [
+        'Button',
+        'IconButton',
+        'SegmentedControl',
+        'Table',
+        'TextArea',
+        'TextInput',
+        'Toggle',
+      ].includes(componentName)
     ) {
       const targets = storyStateTargets(initializer, declarations);
       if (
