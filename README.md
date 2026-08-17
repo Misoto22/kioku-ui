@@ -42,9 +42,11 @@ pnpm check
 pnpm pack:smoke
 ```
 
-Every public-package change requires a Changeset. `pnpm pack:smoke` builds and
-packs every public package from a fresh temporary workspace, inspects the
-tarballs, and builds standalone compiled and source-authoring Vite consumers.
+Every public-package change requires a Changeset, enforced by the ordinary-PR
+CI comparison with its base branch. `pnpm pack:smoke` builds and packs every
+public package from a fresh temporary workspace, inspects the tarballs, and
+builds separately installed compiled and source-authoring Vite consumers. The
+source consumer runs strict TypeScript resolution before its Vite build.
 
 Publishing is restricted to the protected-main Changesets workflow using npm
 trusted publishing and OIDC provenance. No repository `NPM_TOKEN` is used. The

@@ -25,6 +25,15 @@ causes the next protected-main run to publish the approved versions. The
 workflow is not triggered by pull requests and does not store or read an
 `NPM_TOKEN`.
 
+For an ordinary pull request, CI fetches full Git history and runs Changesets
+status against `origin/${base_ref}`. The only exception is the same-repository
+`changeset-release/main` pull request authored by `github-actions[bot]`: that
+PR has already consumed the pending Changeset files into versions and
+changelogs, so repeating the pending-file check would be self-contradictory.
+All other CI gates still run on that release PR. `release:verify` deliberately
+remains a generic artifact and quality command so operators can run it after
+Changesets have been consumed.
+
 ## External setup
 
 Configure these controls outside the repository before the first stable

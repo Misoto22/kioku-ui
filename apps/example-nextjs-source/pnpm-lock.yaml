@@ -14,6 +14,9 @@ importers:
       '@misoto22/kioku-ui-theme-kioku':
         specifier: file:../../packages/themes/kioku
         version: file:../../packages/themes/kioku(@misoto22/kioku-ui@file:../../packages/core(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@stylexjs/stylex':
+        specifier: 0.19.0
+        version: 0.19.0
       next:
         specifier: ^16.1.6
         version: 16.3.1(@babel/core@7.29.7)(@types/node@24.13.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -26,7 +29,7 @@ importers:
     devDependencies:
       '@misoto22/kioku-ui-build':
         specifier: file:../../packages/build
-        version: file:../../packages/build(unplugin@2.3.11)
+        version: file:../../packages/build
       '@types/node':
         specifier: ^24.10.1
         version: 24.13.3
@@ -317,6 +320,7 @@ packages:
 
   '@misoto22/kioku-ui-build@file:../../packages/build':
     resolution: {directory: ../../packages/build, type: directory}
+    engines: {node: '>=24'}
     peerDependencies:
       vite: ^8.0.0
     peerDependenciesMeta:
@@ -1038,7 +1042,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@misoto22/kioku-ui-build@file:../../packages/build(unplugin@2.3.11)':
+  '@misoto22/kioku-ui-build@file:../../packages/build':
     dependencies:
       '@babel/core': 7.29.7
       '@stylexjs/babel-plugin': 0.19.0
@@ -1047,9 +1051,9 @@ snapshots:
       '@types/babel__core': 7.20.5
       '@types/babel__traverse': 7.28.0
       postcss: 8.5.26
+      unplugin: 2.3.11
     transitivePeerDependencies:
       - supports-color
-      - unplugin
 
   '@misoto22/kioku-ui-theme-kioku@file:../../packages/themes/kioku(@misoto22/kioku-ui@file:../../packages/core(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:

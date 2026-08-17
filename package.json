@@ -18,7 +18,7 @@
     "check:package-boundaries": "node internal/scripts/check-package-boundaries.mjs",
     "check:repo": "node internal/scripts/check-workspace.mjs",
     "docsite": "pnpm --dir apps/docsite dev",
-    "examples:build": "pnpm --dir apps/example-vite install --frozen-lockfile && pnpm --dir apps/example-vite build && pnpm --dir apps/example-nextjs install --frozen-lockfile && pnpm --dir apps/example-nextjs build && pnpm --dir apps/example-vite-source install --frozen-lockfile && pnpm --dir apps/example-vite-source build && pnpm --dir apps/example-nextjs-source install --frozen-lockfile && pnpm --dir apps/example-nextjs-source build",
+    "examples:build": "pnpm --dir apps/example-vite install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-vite build && pnpm --dir apps/example-nextjs install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-nextjs build && pnpm --dir apps/example-vite-source install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-vite-source build && pnpm --dir apps/example-nextjs-source install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-nextjs-source build",
     "format": "prettier --check .",
     "lint": "eslint .",
     "pack:smoke": "node internal/scripts/pack-smoke.mjs",

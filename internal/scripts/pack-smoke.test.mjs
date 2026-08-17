@@ -1,14 +1,25 @@
 import assert from 'node:assert/strict';
+import {execFile} from 'node:child_process';
+import {mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {test} from 'node:test';
+import {promisify} from 'node:util';
 
 import {
   artifactProblems,
+  changesetWorkflowProblems,
   consumerInstallProblems,
+  exampleBuildScriptProblems,
   packSmoke,
   packedFiles,
   publishablePackageNames,
   releaseWorkflowProblems,
+  repositoryWorkflowProblems,
 } from './pack-smoke.mjs';
+
+const run = promisify(execFile);
+const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
 test('rejects workspace aliases and unlocked standalone consumer installs', () => {
   assert.deepEqual(
@@ -26,7 +37,91 @@ test('rejects workspace aliases and unlocked standalone consumer installs', () =
       'consumer install is missing @misoto22/kioku-ui-build',
       'consumer install is missing @misoto22/kioku-ui-theme-kioku',
       'consumer install is missing pnpm-lock.yaml',
+      'consumer install must pin pnpm@11.10.0',
     ],
+  );
+});
+
+test('compiled consumers do not require source-authoring tooling', () => {
+  assert.deepEqual(
+    consumerInstallProblems({
+      consumer: 'compiled',
+      manifest: {
+        packageManager: 'pnpm@11.10.0',
+        dependencies: {
+          '@misoto22/kioku-ui': 'file:/tmp/kioku-ui.tgz',
+          '@misoto22/kioku-ui-theme-kioku':
+            'file:/tmp/kioku-ui-theme-kioku.tgz',
+          react: '19.2.4',
+        },
+      },
+      lockfile: 'lockfileVersion: 9.0',
+    }),
+    [],
+  );
+});
+
+test('compiled consumers reject source-authoring tooling', () => {
+  assert.deepEqual(
+    consumerInstallProblems({
+      consumer: 'compiled',
+      manifest: {
+        packageManager: 'pnpm@11.10.0',
+        dependencies: {
+          '@misoto22/kioku-ui': 'file:/tmp/kioku-ui.tgz',
+          '@misoto22/kioku-ui-build': 'file:/tmp/kioku-ui-build.tgz',
+          '@misoto22/kioku-ui-theme-kioku':
+            'file:/tmp/kioku-ui-theme-kioku.tgz',
+          '@stylexjs/stylex': '0.19.0',
+          react: '19.2.4',
+        },
+      },
+      lockfile: 'lockfileVersion: 9.0',
+    }),
+    [
+      'compiled consumer must not depend on @misoto22/kioku-ui-build',
+      'compiled consumer must not depend on @stylexjs/stylex',
+    ],
+  );
+});
+
+test('source-authoring consumers require an exact direct StyleX dependency', () => {
+  assert.deepEqual(
+    consumerInstallProblems({
+      consumer: 'source-authoring',
+      manifest: {
+        packageManager: 'pnpm@11.10.0',
+        dependencies: {
+          '@misoto22/kioku-ui': 'file:/tmp/kioku-ui.tgz',
+          '@misoto22/kioku-ui-build': 'file:/tmp/kioku-ui-build.tgz',
+          '@misoto22/kioku-ui-theme-kioku':
+            'file:/tmp/kioku-ui-theme-kioku.tgz',
+          react: '19.2.4',
+        },
+      },
+      lockfile: 'lockfileVersion: 9.0',
+    }),
+    ['source-authoring consumer must declare @stylexjs/stylex@0.19.0 directly'],
+  );
+});
+
+test('first-party source examples declare the StyleX authoring dependency', async () => {
+  for (const directory of [
+    'apps/example-vite-source',
+    'apps/example-nextjs-source',
+  ]) {
+    const manifest = JSON.parse(
+      await readFile(join(directory, 'package.json'), 'utf8'),
+    );
+    assert.equal(manifest.dependencies['@stylexjs/stylex'], '0.19.0');
+  }
+});
+
+test('checked-in reference builds install their standalone frozen locks', async () => {
+  const manifest = JSON.parse(await readFile('package.json', 'utf8'));
+  assert.deepEqual(
+    exampleBuildScriptProblems(manifest.scripts['examples:build']),
+    [],
   );
 });
 
@@ -108,6 +203,85 @@ test('requires typed runtime exports and real CSS targets', () => {
   ]);
 });
 
+test('rejects modules under conventional test directories', () => {
+  const problems = artifactProblems({
+    manifest: {
+      name: '@misoto22/example',
+      license: 'MIT',
+      repository: {
+        type: 'git',
+        url: 'https://github.com/Misoto22/kioku-ui.git',
+      },
+      publishConfig: {access: 'public'},
+      exports: {},
+    },
+    files: new Set([
+      'LICENSE',
+      'README.md',
+      'package.json',
+      'src/__tests__/owner-data.ts',
+      'dist/test/owner-data.js',
+      'dist/tests/owner-data.js',
+    ]),
+  });
+
+  assert.deepEqual(problems, [
+    '@misoto22/example: published test directory module: dist/test/owner-data.js',
+    '@misoto22/example: published test directory module: dist/tests/owner-data.js',
+    '@misoto22/example: published test directory module: src/__tests__/owner-data.ts',
+  ]);
+});
+
+test('core package files exclude conventional test directories', async () => {
+  const packageRoot = await mkdtemp(join(tmpdir(), 'kioku-ui-pack-files-'));
+  const destination = join(packageRoot, 'artifacts');
+
+  try {
+    const manifest = JSON.parse(
+      await readFile('packages/core/package.json', 'utf8'),
+    );
+    manifest.name = '@misoto22/kioku-ui-pack-pattern-test';
+    delete manifest.devDependencies;
+    await writeFile(
+      join(packageRoot, 'package.json'),
+      `${JSON.stringify(manifest, null, 2)}\n`,
+    );
+    await writeFile(join(packageRoot, 'README.md'), '# Pack pattern test\n');
+    await writeFile(join(packageRoot, 'LICENSE'), 'MIT\n');
+
+    for (const file of [
+      'dist/__tests__/owner-data.js',
+      'dist/test/owner-data.js',
+      'dist/tests/owner-data.js',
+      'src/__tests__/owner-data.ts',
+      'src/test/owner-data.ts',
+      'src/tests/owner-data.ts',
+    ]) {
+      await mkdir(join(packageRoot, file, '..'), {recursive: true});
+      await writeFile(join(packageRoot, file), 'export {};\n');
+    }
+
+    await mkdir(destination);
+    const {stdout} = await run(
+      pnpm,
+      ['pack', '--json', '--pack-destination', destination],
+      {cwd: packageRoot},
+    );
+    const result = JSON.parse(stdout);
+    const {filename} = Array.isArray(result) ? result[0] : result;
+    const {stdout: listing} = await run('tar', ['-tzf', filename]);
+
+    assert.equal(
+      listing
+        .split('\n')
+        .some((file) => /(?:^|\/)(?:__tests__|tests?)(?:\/|$)/.test(file)),
+      false,
+    );
+  } finally {
+    await rm(packageRoot, {force: true, recursive: true});
+  }
+});
+
 test('rejects release workflows that can publish pull requests or use npm tokens', () => {
   const problems = releaseWorkflowProblems({
     on: {pull_request: {}, push: {branches: ['main']}},
@@ -141,6 +315,87 @@ test('rejects release workflows that can publish pull requests or use npm tokens
     'release workflow must use changesets/action with pnpm release',
     'release workflow top-level permissions must be contents: read only',
   ]);
+});
+
+test('requires a PR-only Changeset gate without blocking the trusted release PR', () => {
+  const problems = changesetWorkflowProblems({
+    on: {pull_request: null, push: {branches: ['main']}},
+    jobs: {
+      check: {
+        steps: [{uses: 'actions/checkout@v5'}, {run: 'pnpm changeset status'}],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'CI Changeset gate must compare the pull request with its base branch',
+    'CI Changeset gate must exempt only the trusted Changesets release PR',
+    'CI checkout must fetch full history for Changeset comparison',
+  ]);
+});
+
+test('rejects a Changeset exception whose trust checks use the wrong boolean logic', () => {
+  const problems = changesetWorkflowProblems({
+    on: {pull_request: null},
+    jobs: {
+      check: {
+        steps: [
+          {uses: 'actions/checkout@v5', with: {'fetch-depth': 0}},
+          {
+            if: "github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name != github.repository && github.head_ref != 'changeset-release/main'",
+            run: 'pnpm changeset status --since=origin/${{ github.base_ref }}',
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'CI Changeset gate must exempt only the trusted Changesets release PR',
+  ]);
+});
+
+test('trusts the Changesets release PR author rather than the workflow trigger actor', () => {
+  const problems = changesetWorkflowProblems({
+    on: {pull_request: null},
+    jobs: {
+      check: {
+        steps: [
+          {uses: 'actions/checkout@v5', with: {'fetch-depth': 0}},
+          {
+            if: "github.event_name == 'pull_request' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.repo.full_name != github.repository || github.head_ref != 'changeset-release/main')",
+            run: 'pnpm changeset status --since=origin/${{ github.base_ref }}',
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, []);
+});
+
+test('requires CI to trigger the Changeset gate for pull requests', () => {
+  const problems = changesetWorkflowProblems({
+    jobs: {
+      check: {
+        steps: [
+          {uses: 'actions/checkout@v5', with: {'fetch-depth': 0}},
+          {
+            if: "github.event_name == 'pull_request' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.repo.full_name != github.repository || github.head_ref != 'changeset-release/main')",
+            run: 'pnpm changeset status --since=origin/${{ github.base_ref }}',
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'CI workflow must trigger the Changeset gate for pull requests',
+  ]);
+});
+
+test('checked-in workflows enforce the release and Changeset topology', async () => {
+  assert.deepEqual(await repositoryWorkflowProblems(process.cwd()), []);
 });
 
 test('packed core contains public runtime and CSS exports without test modules', async () => {

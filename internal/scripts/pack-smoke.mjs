@@ -122,7 +122,9 @@ export function artifactProblems({manifest, files}) {
   }
 
   for (const file of files) {
-    if (/(?:^|\/)[^/]+\.(?:spec|test)\.[^.]+$/.test(file)) {
+    if (/(?:^|\/)(?:__tests__|tests?)(?:\/|$)/.test(file)) {
+      problems.push(`${name}: published test directory module: ${file}`);
+    } else if (/(?:^|\/)[^/]+\.(?:spec|test)\.[^.]+$/.test(file)) {
       problems.push(`${name}: published test module: ${file}`);
     } else if (
       /(?:^|\/)(?:__fixtures__|fixtures?|private-fixtures)(?:\/|$)/.test(file)
@@ -223,11 +225,69 @@ export function releaseWorkflowProblems(workflow) {
   return problems.sort();
 }
 
-export function consumerInstallProblems({manifest, lockfile}) {
+export function changesetWorkflowProblems(workflow) {
+  const problems = [];
+  const steps = workflow.jobs?.check?.steps ?? [];
+  const checkoutStep = steps.find(
+    (step) =>
+      typeof step.uses === 'string' &&
+      step.uses.startsWith('actions/checkout@'),
+  );
+  const changesetStep = steps.find(
+    (step) =>
+      typeof step.run === 'string' && step.run.includes('changeset status'),
+  );
+  const condition = String(changesetStep?.if ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const trustedReleaseCondition =
+    "github.event_name == 'pull_request' && " +
+    "(github.event.pull_request.user.login != 'github-actions[bot]' || " +
+    'github.event.pull_request.head.repo.full_name != github.repository || ' +
+    "github.head_ref != 'changeset-release/main')";
+
+  if (workflow.on?.pull_request === undefined) {
+    problems.push(
+      'CI workflow must trigger the Changeset gate for pull requests',
+    );
+  }
+  if (Number(checkoutStep?.with?.['fetch-depth']) !== 0) {
+    problems.push(
+      'CI checkout must fetch full history for Changeset comparison',
+    );
+  }
+  if (
+    changesetStep?.run !==
+    'pnpm changeset status --since=origin/${{ github.base_ref }}'
+  ) {
+    problems.push(
+      'CI Changeset gate must compare the pull request with its base branch',
+    );
+  }
+  if (condition !== trustedReleaseCondition) {
+    problems.push(
+      'CI Changeset gate must exempt only the trusted Changesets release PR',
+    );
+  }
+
+  return problems.sort();
+}
+
+export function consumerInstallProblems({consumer, manifest, lockfile}) {
   const problems = [];
   const dependencies = manifest.dependencies ?? {};
+  const requiredPackages =
+    consumer === 'compiled'
+      ? publicPackageNames.filter(
+          (packageName) => packageName !== '@misoto22/kioku-ui-build',
+        )
+      : publicPackageNames;
 
-  for (const packageName of publicPackageNames) {
+  if (manifest.packageManager !== 'pnpm@11.10.0') {
+    problems.push('consumer install must pin pnpm@11.10.0');
+  }
+
+  for (const packageName of requiredPackages) {
     const specifier = dependencies[packageName];
     if (specifier === undefined) {
       problems.push(`consumer install is missing ${packageName}`);
@@ -236,6 +296,26 @@ export function consumerInstallProblems({manifest, lockfile}) {
         `consumer dependency ${packageName} must reference a packed tarball`,
       );
     }
+  }
+
+  if (consumer === 'compiled') {
+    for (const sourceDependency of [
+      '@misoto22/kioku-ui-build',
+      '@stylexjs/stylex',
+    ]) {
+      if (dependencies[sourceDependency] !== undefined) {
+        problems.push(
+          `compiled consumer must not depend on ${sourceDependency}`,
+        );
+      }
+    }
+  } else if (
+    consumer === 'source-authoring' &&
+    dependencies['@stylexjs/stylex'] !== '0.19.0'
+  ) {
+    problems.push(
+      'source-authoring consumer must declare @stylexjs/stylex@0.19.0 directly',
+    );
   }
 
   for (const [dependency, specifier] of Object.entries(dependencies)) {
@@ -251,6 +331,35 @@ export function consumerInstallProblems({manifest, lockfile}) {
 
   if (!lockfile) {
     problems.push('consumer install is missing pnpm-lock.yaml');
+  }
+
+  return problems.sort();
+}
+
+export function exampleBuildScriptProblems(script) {
+  const expectedDirectories = [
+    'apps/example-vite',
+    'apps/example-nextjs',
+    'apps/example-vite-source',
+    'apps/example-nextjs-source',
+  ];
+  const commands = String(script)
+    .split('&&')
+    .map((command) => command.trim());
+  const problems = [];
+
+  for (const directory of expectedDirectories) {
+    const install = commands.find((command) =>
+      command.startsWith(`pnpm --dir ${directory} install`),
+    );
+    if (
+      !install?.includes('--ignore-workspace') ||
+      !install.includes('--frozen-lockfile')
+    ) {
+      problems.push(
+        `${directory}: reference install must use its standalone frozen lock`,
+      );
+    }
   }
 
   return problems.sort();
@@ -471,37 +580,62 @@ async function packPublicPackages(stagedRoot, destination) {
   return artifacts;
 }
 
-function exactVersion(range) {
-  return range.replace(/^[~^]/, '');
+function lockedVersion(importer, dependency) {
+  const entry =
+    importer.dependencies?.[dependency] ??
+    importer.devDependencies?.[dependency];
+  const version = typeof entry === 'string' ? entry : entry?.version;
+  const exact = String(version).replace(/\(.*/, '');
+
+  if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(exact)) {
+    throw new Error(`Missing exact locked version for ${dependency}`);
+  }
+
+  return exact;
 }
 
-async function writeConsumer(sourceRoot, consumerRoot, artifacts) {
-  const exampleManifest = JSON.parse(
-    await readFile(join(sourceRoot, 'apps/example-vite/package.json'), 'utf8'),
+async function exampleVersions(sourceRoot, directory) {
+  const lockfile = parseYaml(
+    await readFile(join(sourceRoot, directory, 'pnpm-lock.yaml'), 'utf8'),
   );
-  const tarballs = Object.fromEntries(
-    artifacts.map(({filename, manifest}) => [
-      manifest.name,
-      `file:${resolve(filename)}`,
-    ]),
+  return lockfile.importers['.'];
+}
+
+function tarballDependencies(artifacts, packageNames) {
+  return Object.fromEntries(
+    artifacts
+      .filter(({manifest}) => packageNames.includes(manifest.name))
+      .map(({filename, manifest}) => [
+        manifest.name,
+        `file:${resolve(filename)}`,
+      ]),
   );
+}
+
+async function writeCompiledConsumer(sourceRoot, consumerRoot, artifacts) {
+  const versions = await exampleVersions(sourceRoot, 'apps/example-vite');
 
   await mkdir(join(consumerRoot, 'src'), {recursive: true});
   await writeFile(
     join(consumerRoot, 'package.json'),
     `${JSON.stringify(
       {
-        name: 'kioku-ui-packed-vite-consumer',
+        name: 'kioku-ui-packed-compiled-vite-consumer',
+        packageManager: 'pnpm@11.10.0',
         private: true,
         type: 'module',
         dependencies: {
-          ...tarballs,
-          '@vitejs/plugin-react': exactVersion(
-            exampleManifest.devDependencies['@vitejs/plugin-react'],
+          ...tarballDependencies(artifacts, [
+            '@misoto22/kioku-ui',
+            '@misoto22/kioku-ui-theme-kioku',
+          ]),
+          '@vitejs/plugin-react': lockedVersion(
+            versions,
+            '@vitejs/plugin-react',
           ),
-          react: exactVersion(exampleManifest.dependencies.react),
-          'react-dom': exactVersion(exampleManifest.dependencies['react-dom']),
-          vite: exactVersion(exampleManifest.devDependencies.vite),
+          react: lockedVersion(versions, 'react'),
+          'react-dom': lockedVersion(versions, 'react-dom'),
+          vite: lockedVersion(versions, 'vite'),
         },
       },
       null,
@@ -509,15 +643,11 @@ async function writeConsumer(sourceRoot, consumerRoot, artifacts) {
     )}\n`,
   );
   await writeFile(
-    join(consumerRoot, 'compiled.html'),
-    '<main id="root"></main><script type="module" src="/src/compiled.tsx"></script>\n',
+    join(consumerRoot, 'index.html'),
+    '<main id="root"></main><script type="module" src="/src/main.tsx"></script>\n',
   );
   await writeFile(
-    join(consumerRoot, 'source.html'),
-    '<main id="root"></main><script type="module" src="/src/source.tsx"></script>\n',
-  );
-  await writeFile(
-    join(consumerRoot, 'src/compiled.tsx'),
+    join(consumerRoot, 'src/main.tsx'),
     `import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Button, Card} from '@misoto22/kioku-ui';
@@ -537,7 +667,55 @@ createRoot(document.getElementById('root')!).render(
 `,
   );
   await writeFile(
-    join(consumerRoot, 'src/source.tsx'),
+    join(consumerRoot, 'vite.config.mjs'),
+    `import react from '@vitejs/plugin-react';
+import {defineConfig} from 'vite';
+
+export default defineConfig({plugins: [react()]});
+`,
+  );
+}
+
+async function writeSourceConsumer(sourceRoot, consumerRoot, artifacts) {
+  const versions = await exampleVersions(
+    sourceRoot,
+    'apps/example-vite-source',
+  );
+
+  await mkdir(join(consumerRoot, 'src'), {recursive: true});
+  await writeFile(
+    join(consumerRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'kioku-ui-packed-source-vite-consumer',
+        packageManager: 'pnpm@11.10.0',
+        private: true,
+        type: 'module',
+        dependencies: {
+          ...tarballDependencies(artifacts, publicPackageNames),
+          '@stylexjs/stylex': lockedVersion(versions, '@stylexjs/stylex'),
+          '@types/react': lockedVersion(versions, '@types/react'),
+          '@types/react-dom': lockedVersion(versions, '@types/react-dom'),
+          '@vitejs/plugin-react': lockedVersion(
+            versions,
+            '@vitejs/plugin-react',
+          ),
+          react: lockedVersion(versions, 'react'),
+          'react-dom': lockedVersion(versions, 'react-dom'),
+          typescript: lockedVersion(versions, 'typescript'),
+          vite: lockedVersion(versions, 'vite'),
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writeFile(
+    join(consumerRoot, 'index.html'),
+    '<main id="root"></main><script type="module" src="/src/main.tsx"></script>\n',
+  );
+  await writeFile(
+    join(consumerRoot, 'src/main.tsx'),
     `import * as stylex from '@stylexjs/stylex';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
@@ -560,35 +738,34 @@ createRoot(document.getElementById('root')!).render(
 `,
   );
   await writeFile(
-    join(consumerRoot, 'vite.compiled.config.mjs'),
-    `import react from '@vitejs/plugin-react';
-import {resolve} from 'node:path';
-import {defineConfig} from 'vite';
-
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: 'dist-compiled',
-    rollupOptions: {input: resolve(import.meta.dirname, 'compiled.html')},
-  },
-});
-`,
-  );
-  await writeFile(
-    join(consumerRoot, 'vite.source.config.mjs'),
+    join(consumerRoot, 'vite.config.mjs'),
     `import {kiokuUiVitePlugin} from '@misoto22/kioku-ui-build/vite';
 import react from '@vitejs/plugin-react';
-import {resolve} from 'node:path';
 import {defineConfig} from 'vite';
 
 export default defineConfig({
   plugins: [...kiokuUiVitePlugin({rootDir: import.meta.dirname}), react()],
-  build: {
-    outDir: 'dist-source',
-    rollupOptions: {input: resolve(import.meta.dirname, 'source.html')},
-  },
 });
 `,
+  );
+  await writeFile(
+    join(consumerRoot, 'tsconfig.json'),
+    `${JSON.stringify(
+      {
+        compilerOptions: {
+          jsx: 'react-jsx',
+          module: 'ESNext',
+          moduleResolution: 'Bundler',
+          noEmit: true,
+          strict: true,
+          target: 'ES2022',
+          types: ['vite/client'],
+        },
+        include: ['src/**/*.tsx'],
+      },
+      null,
+      2,
+    )}\n`,
   );
 }
 
@@ -607,8 +784,7 @@ async function assertBuiltCss(consumerRoot, outputDirectory) {
   }
 }
 
-async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
-  await writeConsumer(sourceRoot, consumerRoot, artifacts);
+async function installPackedConsumer(consumer, consumerRoot) {
   await runCommand(
     pnpm,
     [
@@ -622,6 +798,7 @@ async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
     {cwd: consumerRoot},
   );
   const installProblems = consumerInstallProblems({
+    consumer,
     manifest: JSON.parse(
       await readFile(join(consumerRoot, 'package.json'), 'utf8'),
     ),
@@ -642,26 +819,53 @@ async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
     ],
     {cwd: consumerRoot},
   );
-  await runCommand(
-    pnpm,
-    ['exec', 'vite', 'build', '--config', 'vite.compiled.config.mjs'],
-    {cwd: consumerRoot},
-  );
-  await assertBuiltCss(consumerRoot, 'dist-compiled');
-  await runCommand(
-    pnpm,
-    ['exec', 'vite', 'build', '--config', 'vite.source.config.mjs'],
-    {cwd: consumerRoot},
-  );
-  await assertBuiltCss(consumerRoot, 'dist-source');
 }
 
-async function releaseWorkflow(root) {
+async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
+  const compiledRoot = join(consumerRoot, 'compiled');
+  const sourceAuthoringRoot = join(consumerRoot, 'source-authoring');
+
+  await Promise.all([
+    writeCompiledConsumer(sourceRoot, compiledRoot, artifacts),
+    writeSourceConsumer(sourceRoot, sourceAuthoringRoot, artifacts),
+  ]);
+  await installPackedConsumer('compiled', compiledRoot);
+  await runCommand(
+    pnpm,
+    ['exec', 'vite', 'build', '--config', 'vite.config.mjs'],
+    {cwd: compiledRoot},
+  );
+  await assertBuiltCss(compiledRoot, 'dist');
+
+  await installPackedConsumer('source-authoring', sourceAuthoringRoot);
+  await runCommand(pnpm, ['exec', 'tsc', '--noEmit', '-p', 'tsconfig.json'], {
+    cwd: sourceAuthoringRoot,
+  });
+  await runCommand(
+    pnpm,
+    ['exec', 'vite', 'build', '--config', 'vite.config.mjs'],
+    {cwd: sourceAuthoringRoot},
+  );
+  await assertBuiltCss(sourceAuthoringRoot, 'dist');
+}
+
+async function workflow(root, filename) {
   const source = await readFile(
-    join(root, '.github/workflows/release.yml'),
+    join(root, '.github/workflows', filename),
     'utf8',
   );
   return parseYaml(source);
+}
+
+export async function repositoryWorkflowProblems(root) {
+  const [release, ci] = await Promise.all([
+    workflow(root, 'release.yml'),
+    workflow(root, 'ci.yml'),
+  ]);
+  return [
+    ...releaseWorkflowProblems(release),
+    ...changesetWorkflowProblems(ci),
+  ].sort();
 }
 
 export async function packSmoke(root = workspaceRoot) {
@@ -671,9 +875,7 @@ export async function packSmoke(root = workspaceRoot) {
   const consumerRoot = await mkdtemp(join(tmpdir(), 'kioku-ui-vite-consumer-'));
 
   try {
-    const workflowProblems = releaseWorkflowProblems(
-      await releaseWorkflow(root),
-    );
+    const workflowProblems = await repositoryWorkflowProblems(root);
     if (workflowProblems.length > 0) {
       throw new Error(workflowProblems.join('\n'));
     }
