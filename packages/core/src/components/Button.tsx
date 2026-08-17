@@ -87,10 +87,10 @@ const styles = stylex.create({
     borderColor: semanticTokens.statusDangerText,
     color: semanticTokens.statusDangerText,
     ':active:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayActive,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
     },
     ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
   },
   loading: {cursor: 'progress'},

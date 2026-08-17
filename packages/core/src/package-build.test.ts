@@ -88,6 +88,24 @@ function expectRenderedRule(
   expect(matched, `Missing ${state ?? 'rest'} rule: ${declaration}`).toBe(true);
 }
 
+function expectNoRenderedRule(
+  packageCss: string,
+  markup: string,
+  declaration: string,
+  state: ':hover' | ':active',
+) {
+  const matched = packageCss.split('}').some((rule) => {
+    const [selector = ''] = rule.split('{');
+    return (
+      selector.includes(state) &&
+      rule.includes(declaration) &&
+      classNames(markup).some((className) => selector.includes(`.${className}`))
+    );
+  });
+
+  expect(matched, `Unexpected ${state} rule: ${declaration}`).toBe(false);
+}
+
 describe('published package build', () => {
   beforeAll(async () => {
     await runPnpm(['build']);
@@ -363,16 +381,28 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+        `background-image:linear-gradient(var(${variable('--kioku-ui-color-overlay-hover')}),var(${variable('--kioku-ui-color-overlay-hover')}))`,
         ':hover',
         true,
+      );
+      expectNoRenderedRule(
+        packageCss,
+        markup[name],
+        'background-color:',
+        ':hover',
       );
       expectRenderedRule(
         packageCss,
         markup[name],
-        `background-color:var(${variable('--kioku-ui-color-overlay-active')})`,
+        `background-image:linear-gradient(var(${variable('--kioku-ui-color-overlay-active')}),var(${variable('--kioku-ui-color-overlay-active')}))`,
         ':active',
         true,
+      );
+      expectNoRenderedRule(
+        packageCss,
+        markup[name],
+        'background-color:',
+        ':active',
       );
     }
     expectRenderedRule(
