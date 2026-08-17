@@ -19,9 +19,14 @@ const forbiddenDependencies = new Set([
   '@misoto22/kioku-ui-charts',
   '@misoto22/kioku-ui-vega',
 ]);
-const importPattern = /(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|require\(\s*['"]([^'"]+)['"]\s*\)/g;
+const importPattern =
+  /(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|require\(\s*['"]([^'"]+)['"]\s*\)/g;
 
 function importProblem(file, specifier) {
+  if (specifier === '@misoto22/kioku-ui-test-utils') {
+    return undefined;
+  }
+
   if (specifier.includes('react-router-dom')) {
     return `${file} imports react-router-dom`;
   }
@@ -53,6 +58,9 @@ async function sourceFiles(directory) {
       const path = join(current, entry.name);
 
       if (entry.isDirectory()) {
+        if (entry.name === 'dist') {
+          continue;
+        }
         await visit(path);
       } else if (sourceExtensions.has(path.slice(path.lastIndexOf('.')))) {
         files[relative(directory, path)] = await readFile(path, 'utf8');

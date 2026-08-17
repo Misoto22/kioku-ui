@@ -2,7 +2,12 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['.changeset/**', '.github/**', 'node_modules/**'],
+    ignores: [
+      '.changeset/**',
+      '.github/**',
+      'node_modules/**',
+      'packages/*/dist/**',
+    ],
   },
   {
     files: ['**/*.{js,mjs,cjs}'],
