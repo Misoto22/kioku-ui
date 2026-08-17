@@ -89,10 +89,7 @@ export function ThemeProvider({
     },
     [persistence, themes],
   );
-  const value = useMemo(
-    () => ({setThemeId, theme}),
-    [setThemeId, theme],
-  );
+  const value = useMemo(() => ({setThemeId, theme}), [setThemeId, theme]);
 
   return (
     <ThemeContext value={value}>

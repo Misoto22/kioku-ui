@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    "allowJs": false,
     "lib": ["ESNext"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,
     "strict": true,
     "target": "ES2024",
-    "types": ["node"]
+    "types": ["node", "vitest/globals"]
   },
-  "files": ["internal/types/node-stream-web.d.ts"],
-  "include": ["vitest.config.ts"]
+  "include": ["src"]
 }

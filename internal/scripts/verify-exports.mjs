@@ -66,7 +66,9 @@ export async function workspaceExportProblems(root) {
   const problems = [];
 
   for (const directory of await packageDirectories(root)) {
-    const manifest = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'));
+    const manifest = JSON.parse(
+      await readFile(join(directory, 'package.json'), 'utf8'),
+    );
     if (manifest.private || !manifest.exports) {
       continue;
     }
@@ -75,7 +77,9 @@ export async function workspaceExportProblems(root) {
       exports: manifest.exports,
       files: await packageFiles(directory),
     });
-    problems.push(...packageProblems.map((problem) => `${manifest.name}: ${problem}`));
+    problems.push(
+      ...packageProblems.map((problem) => `${manifest.name}: ${problem}`),
+    );
   }
 
   return problems.sort();

@@ -23,7 +23,9 @@ test('rejects core imports from the Kioku host application', async () => {
 test('rejects forbidden core package dependencies', async () => {
   const problems = await packageBoundaryProblems({
     packages: {
-      '@misoto22/kioku-ui': {dependencies: {'@misoto22/kioku-ui-cli': 'workspace:*'}},
+      '@misoto22/kioku-ui': {
+        dependencies: {'@misoto22/kioku-ui-cli': 'workspace:*'},
+      },
     },
   });
 

@@ -1,0 +1,9 @@
+{
+  "scope": {
+    "modes": ["light", "dark"],
+    "storyCount": 34,
+    "themes": ["washi", "muji", "sumi"]
+  },
+  "version": 1,
+  "violations": []
+}

@@ -20,10 +20,10 @@ import {
 const meta = {
   title: 'Data Display',
   component: EmptyStateComponent,
-} satisfies Meta<typeof EmptyStateComponent>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 export const EmptyState: Story = {
   render: () => (
@@ -74,6 +74,33 @@ export const Table: Story = {
     </TableComponent>
   ),
 };
+
+function TableFixture() {
+  return (
+    <TableComponent>
+      <TableCaptionComponent>Example values</TableCaptionComponent>
+      <TableHeadComponent>
+        <TableRowComponent>
+          <TableHeaderCellComponent>Label</TableHeaderCellComponent>
+          <TableHeaderCellComponent>Value</TableHeaderCellComponent>
+        </TableRowComponent>
+      </TableHeadComponent>
+      <TableBodyComponent>
+        <TableRowComponent>
+          <TableCellComponent>Alpha</TableCellComponent>
+          <TableCellComponent>24</TableCellComponent>
+        </TableRowComponent>
+      </TableBodyComponent>
+    </TableComponent>
+  );
+}
+
+export const TableCaption: Story = {render: () => <TableFixture />};
+export const TableHead: Story = {render: () => <TableFixture />};
+export const TableBody: Story = {render: () => <TableFixture />};
+export const TableRow: Story = {render: () => <TableFixture />};
+export const TableHeaderCell: Story = {render: () => <TableFixture />};
+export const TableCell: Story = {render: () => <TableFixture />};
 
 export const MetricGrid: Story = {
   render: () => (

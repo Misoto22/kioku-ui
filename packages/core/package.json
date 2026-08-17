@@ -66,6 +66,6 @@
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-typescript": "7.28.5",
     "@stylexjs/cli": "0.19.0",
-    "happy-dom": "^20.0.11"
+    "jsdom": "^29.1.1"
   }
 }

@@ -52,12 +52,11 @@ describe('published package build', () => {
   });
 
   afterAll(async () => {
-    await Promise.all([
-      rm(join(packageRoot, 'dist'), {force: true, recursive: true}),
-      ...temporaryDirectories.map((directory) =>
+    await Promise.all(
+      temporaryDirectories.map((directory) =>
         rm(directory, {force: true, recursive: true}),
       ),
-    ]);
+    );
   });
 
   it('compiles a StyleX recipe through the stable public authoring module', async () => {
@@ -283,6 +282,12 @@ if (!button.includes('<button') || !button.includes('Save') || !ready.includes('
   stackDoc,
   statusDotDoc,
   tableDoc,
+  tableCaptionDoc,
+  tableHeadDoc,
+  tableBodyDoc,
+  tableRowDoc,
+  tableHeaderCellDoc,
+  tableCellDoc,
   textAreaDoc,
   textDoc,
   textInputDoc,
@@ -320,6 +325,12 @@ const individualDocs: readonly ComponentDoc[] = [
   skeletonDoc,
   alertDoc,
   tableDoc,
+  tableCaptionDoc,
+  tableHeadDoc,
+  tableBodyDoc,
+  tableRowDoc,
+  tableHeaderCellDoc,
+  tableCellDoc,
   metricGridDoc,
 ];
 const textName: string = textDoc.name;
@@ -362,7 +373,8 @@ const expectedNames = [
   'CardFooter', 'Divider', 'Center', 'VisuallyHidden',
   'Button', 'IconButton', 'Badge', 'StatusDot', 'Field', 'TextInput',
   'TextArea', 'Toggle', 'SegmentedControl', 'EmptyState', 'AsyncState',
-  'Spinner', 'Skeleton', 'Alert', 'Table', 'MetricGrid',
+  'Spinner', 'Skeleton', 'Alert', 'Table', 'TableCaption', 'TableHead',
+  'TableBody', 'TableRow', 'TableHeaderCell', 'TableCell', 'MetricGrid',
 ];
 
 if (componentDocs.map(({name}) => name).join(',') !== expectedNames.join(',')) {

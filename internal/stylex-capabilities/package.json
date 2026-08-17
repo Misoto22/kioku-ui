@@ -1,0 +1,14 @@
+{
+  "name": "@misoto22/kioku-ui-stylex-capabilities",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0",
+    "vitest": "^4.1.10"
+  }
+}

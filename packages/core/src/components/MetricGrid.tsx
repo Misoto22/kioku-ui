@@ -55,9 +55,9 @@ export interface MetricGridProps extends Omit<
 
 export function MetricGrid({items, ...props}: MetricGridProps) {
   return (
-    <dl {...props} role="list" {...stylex.props(styles.root)}>
+    <dl {...props} {...stylex.props(styles.root)}>
       {items.map((item, index) => (
-        <div key={index} role="listitem" {...stylex.props(styles.item)}>
+        <div key={index} {...stylex.props(styles.item)}>
           <dt {...stylex.props(styles.label)}>{item.label}</dt>
           <dd {...stylex.props(styles.value)}>{item.value}</dd>
           {item.detail ? (

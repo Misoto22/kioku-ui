@@ -1,4 +1,4 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 
 import {cleanup, screen} from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';

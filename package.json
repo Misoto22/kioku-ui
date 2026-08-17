@@ -10,6 +10,8 @@
     "node": ">=24"
   },
   "scripts": {
+    "a11y:audit": "pnpm storybook:build && node .github/scripts/accessibility-audit.js",
+    "a11y:baseline": "pnpm storybook:build && node .github/scripts/accessibility-audit.js --update-baseline",
     "build": "pnpm -r --if-present build",
     "changeset": "changeset",
     "check": "pnpm check:repo && pnpm check:package-boundaries && pnpm lint && pnpm typecheck && pnpm test",
@@ -19,13 +21,17 @@
     "format": "prettier --check .",
     "lint": "eslint .",
     "release": "changeset publish",
+    "sandbox:build": "pnpm --dir apps/sandbox build",
     "storybook": "pnpm --dir apps/storybook storybook",
+    "storybook:build": "pnpm --dir apps/storybook build",
     "sync:exports": "pnpm verify-exports",
-    "test": "node --test internal/scripts/**/*.test.mjs",
-    "typecheck": "tsc --noEmit",
-    "verify-exports": "node internal/scripts/verify-exports.mjs"
+    "test": "node --test internal/scripts/**/*.test.mjs && pnpm -r --workspace-concurrency=1 --if-present test",
+    "typecheck": "tsc --noEmit && pnpm -r --workspace-concurrency=1 --if-present typecheck",
+    "verify-exports": "pnpm --filter './packages/**' --if-present build && node internal/scripts/verify-exports.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^24.10.1",
     "@changesets/cli": "^2.29.7",
     "eslint": "^10.8.1",

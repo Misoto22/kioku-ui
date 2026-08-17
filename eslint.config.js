@@ -4,9 +4,11 @@ export default [
   {
     ignores: [
       '.changeset/**',
-      '.github/**',
+      '.github/workflows/**',
+      'apps/*/dist/**',
       'apps/example-*/.next/**',
       'apps/example-*/dist/**',
+      'apps/storybook/storybook-static/**',
       'node_modules/**',
       'packages/*/dist/**',
     ],

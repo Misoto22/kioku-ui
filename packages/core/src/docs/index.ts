@@ -19,7 +19,15 @@ import {skeletonDoc} from '../components/Skeleton.doc.js';
 import {spinnerDoc} from '../components/Spinner.doc.js';
 import {stackDoc} from '../components/Stack.doc.js';
 import {statusDotDoc} from '../components/StatusDot.doc.js';
-import {tableDoc} from '../components/Table.doc.js';
+import {
+  tableBodyDoc,
+  tableCaptionDoc,
+  tableCellDoc,
+  tableDoc,
+  tableHeadDoc,
+  tableHeaderCellDoc,
+  tableRowDoc,
+} from '../components/Table.doc.js';
 import {textAreaDoc} from '../components/TextArea.doc.js';
 import {textDoc} from '../components/Text.doc.js';
 import {textInputDoc} from '../components/TextInput.doc.js';
@@ -52,6 +60,12 @@ export {
   spinnerDoc,
   statusDotDoc,
   tableDoc,
+  tableCaptionDoc,
+  tableHeadDoc,
+  tableBodyDoc,
+  tableRowDoc,
+  tableHeaderCellDoc,
+  tableCellDoc,
   textAreaDoc,
   textInputDoc,
   toggleDoc,
@@ -90,5 +104,11 @@ export const componentDocs: readonly ComponentDoc[] = Object.freeze([
   skeletonDoc,
   alertDoc,
   tableDoc,
+  tableCaptionDoc,
+  tableHeadDoc,
+  tableBodyDoc,
+  tableRowDoc,
+  tableHeaderCellDoc,
+  tableCellDoc,
   metricGridDoc,
 ]);

@@ -1,10 +1,14 @@
-// @vitest-environment happy-dom
+// @vitest-environment jsdom
 
 import {act, type ReactNode} from 'react';
 import {cleanup, render as renderUi} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 
-import {type ThemeDefinition, tokenCustomProperties, tokenNames} from '../tokens/contracts.js';
+import {
+  type ThemeDefinition,
+  tokenCustomProperties,
+  tokenNames,
+} from '../tokens/contracts.js';
 import {ThemeProvider, useTheme} from './Theme.js';
 
 afterEach(() => {
@@ -41,7 +45,11 @@ function Probe() {
   );
 }
 
-function provider(children: ReactNode, themes = [paper], defaultThemeId = 'paper') {
+function provider(
+  children: ReactNode,
+  themes = [paper],
+  defaultThemeId = 'paper',
+) {
   return (
     <ThemeProvider defaultThemeId={defaultThemeId} themes={themes}>
       {children}
@@ -61,9 +69,9 @@ describe('ThemeProvider', () => {
     const root = getByTestId('theme').parentElement;
 
     expect(root?.getAttribute('data-theme')).toBe('paper');
-    expect(root?.style.getPropertyValue(tokenCustomProperties['color.canvas'])).toBe(
-      'paper-color.canvas',
-    );
+    expect(
+      root?.style.getPropertyValue(tokenCustomProperties['color.canvas']),
+    ).toBe('paper-color.canvas');
   });
 
   it('uses a host persistence adapter and writes later selections through it', () => {
