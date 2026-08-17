@@ -40,7 +40,7 @@ function themeSelector(id: string) {
 function declarationsFor(
   blocks: readonly CssBlock[],
   id: string,
-  options: {density?: 'standard'; language?: 'zh'} = {},
+  options: {language?: 'zh'} = {},
 ) {
   const declarations = new Map<string, string>();
 
@@ -48,9 +48,6 @@ function declarationsFor(
     const applies = block.selectors.some((selector) => {
       if (!themeSelector(id).test(selector)) {
         return false;
-      }
-      if (selector.includes('[data-density=')) {
-        return options.density === 'standard';
       }
       if (selector.includes(':lang(zh)')) {
         return options.language === 'zh';

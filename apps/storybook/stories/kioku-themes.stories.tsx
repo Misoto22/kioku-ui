@@ -15,16 +15,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 function ThemeSpecimen({
-  density,
   mode,
   theme,
 }: {
-  density: 'compact' | 'standard';
   mode: 'light' | 'dark';
   theme: ThemeDefinition;
 }) {
   return (
-    <div data-density={density} style={{colorScheme: mode}}>
+    <div style={{colorScheme: mode}}>
       <ThemeProviderComponent defaultThemeId={theme.id} themes={[theme]}>
         <div
           style={{
@@ -36,9 +34,7 @@ function ThemeSpecimen({
             <div style={{padding: 'var(--kioku-ui-spacing-lg)'}}>
               <Stack gap="lg">
                 <Stack gap="xs">
-                  <Text size="sm">
-                    {mode} · {density}
-                  </Text>
+                  <Text size="sm">{mode} mode</Text>
                   <Heading level={2} size="page">
                     {theme.label}
                   </Heading>
@@ -51,7 +47,7 @@ function ThemeSpecimen({
                   style={{
                     display: 'flex',
                     flexWrap: 'wrap',
-                    gap: 'var(--kioku-ui-density-item-gap)',
+                    gap: 'var(--kioku-ui-spacing-sm)',
                   }}
                 >
                   <Badge tone="info">Recorded</Badge>
@@ -63,7 +59,7 @@ function ThemeSpecimen({
                   style={{
                     display: 'flex',
                     flexWrap: 'wrap',
-                    gap: 'var(--kioku-ui-density-item-gap)',
+                    gap: 'var(--kioku-ui-spacing-sm)',
                   }}
                 >
                   <Button>Open record</Button>
@@ -83,14 +79,13 @@ export const ThemeMatrix: Story = {
     <div
       style={{
         display: 'grid',
-        gap: 24,
+        gap: 'var(--kioku-ui-spacing-xl)',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
       }}
     >
       {kiokuThemes.flatMap((theme) =>
         (['light', 'dark'] as const).map((mode) => (
           <ThemeSpecimen
-            density={mode === 'light' ? 'compact' : 'standard'}
             key={`${theme.id}-${mode}`}
             mode={mode}
             theme={theme}
