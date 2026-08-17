@@ -55,7 +55,7 @@ describe('componentDocs', () => {
       ]),
     );
     expect(documentedProps).toMatchObject({
-      Alert: ['tone'],
+      Alert: ['icon', 'tone'],
       AsyncState: ['children', 'state'],
       Badge: ['tone'],
       Button: ['loading', 'size', 'variant'],

@@ -164,6 +164,42 @@ describe('live feedback', () => {
     expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'assertive');
   });
 
+  it('pairs every Alert tone with a stable hidden default icon', () => {
+    renderUi(
+      <>
+        {(['info', 'success', 'warning', 'danger'] as const).map((tone) => (
+          <Alert data-testid={`alert-${tone}`} key={tone} tone={tone}>
+            {tone} feedback
+          </Alert>
+        ))}
+      </>,
+    );
+
+    for (const tone of ['info', 'success', 'warning', 'danger'] as const) {
+      const alert = screen.getByTestId(`alert-${tone}`);
+      const icon = alert.querySelector(`[data-alert-icon="${tone}"]`);
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+      expect(icon?.querySelector('svg')).toBeInTheDocument();
+    }
+  });
+
+  it('keeps a custom Alert icon decorative without a duplicate live region', () => {
+    renderUi(
+      <Alert
+        data-testid="custom-alert"
+        icon={<span role="status">Custom status artwork</span>}
+      >
+        Workspace settings were updated.
+      </Alert>,
+    );
+
+    const alert = screen.getByTestId('custom-alert');
+    const icon = alert.querySelector('[data-alert-icon="custom"]');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toHaveTextContent('Custom status artwork');
+    expect(screen.getAllByRole('status')).toEqual([alert]);
+  });
+
   it('keeps decorative skeletons hidden and labels announced loading placeholders', () => {
     renderUi(
       <>

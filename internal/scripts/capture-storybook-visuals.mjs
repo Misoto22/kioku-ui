@@ -21,6 +21,10 @@ const fullThemeStoryIds = new Set([
   'core-card--composition',
   'core-table--composition',
 ]);
+const requiredModes = ['light', 'dark'];
+const requiredThemes = ['washi', 'muji', 'sumi'];
+const pseudoStateStoryIds = new Set(['core-button--states']);
+const visualCaptureCaseCount = 68;
 const viewports = [
   {height: 900, name: 'desktop-1440x900', width: 1440},
   {height: 844, name: 'narrow-390x844', width: 390},
@@ -40,6 +44,32 @@ export function forcedPseudoStateTargets() {
   ];
 }
 
+function requiredPseudoStateTargets(storyId) {
+  return pseudoStateStoryIds.has(storyId) ? forcedPseudoStateTargets() : [];
+}
+
+export function assertRequiredPseudoStateTargets(storyId, foundSelectors) {
+  const found = new Set(foundSelectors);
+  for (const {selector} of requiredPseudoStateTargets(storyId)) {
+    if (!found.has(selector)) {
+      throw new Error(
+        `Missing required pseudo-state target for ${storyId}: ${selector}`,
+      );
+    }
+  }
+}
+
+function assertExactToolbarValues(name, values, requiredValues) {
+  if (
+    values.length !== requiredValues.length ||
+    requiredValues.some((requiredValue) => !values.includes(requiredValue))
+  ) {
+    throw new Error(
+      `Storybook ${name} toolbar must expose exactly: ${requiredValues.join(', ')}`,
+    );
+  }
+}
+
 function assertUniqueFilenames(cases) {
   const filenames = new Set();
   for (const captureCase of cases) {
@@ -53,6 +83,8 @@ function assertUniqueFilenames(cases) {
 }
 
 export function visualCaptureCases({storyIds, themes, modes, viewports}) {
+  assertExactToolbarValues('theme', themes, requiredThemes);
+  assertExactToolbarValues('mode', modes, requiredModes);
   const available = new Set(storyIds);
   const cases = [];
 
@@ -80,6 +112,11 @@ export function visualCaptureCases({storyIds, themes, modes, viewports}) {
   }
 
   assertUniqueFilenames(cases);
+  if (cases.length !== visualCaptureCaseCount) {
+    throw new Error(
+      `Visual capture matrix must contain exactly ${visualCaptureCaseCount} cases; received ${cases.length}`,
+    );
+  }
   return cases.sort((left, right) =>
     left.filename.localeCompare(right.filename),
   );
@@ -220,24 +257,43 @@ async function screenshotHasVariation(page, screenshot) {
   );
 }
 
-async function forceInspectablePseudoStates(page) {
-  const session = await page.context().newCDPSession(page);
-  await Promise.all([session.send('DOM.enable'), session.send('CSS.enable')]);
-  const {root} = await session.send('DOM.getDocument');
+async function forceInspectablePseudoStates(page, storyId) {
+  const targets = requiredPseudoStateTargets(storyId);
+  if (targets.length === 0) {
+    return undefined;
+  }
 
-  for (const {pseudoClasses, selector} of forcedPseudoStateTargets()) {
-    const {nodeId} = await session.send('DOM.querySelector', {
-      nodeId: root.nodeId,
-      selector,
-    });
-    if (nodeId !== 0) {
+  const session = await page.context().newCDPSession(page);
+  try {
+    await Promise.all([session.send('DOM.enable'), session.send('CSS.enable')]);
+    const {root} = await session.send('DOM.getDocument');
+    const targetNodes = [];
+
+    for (const target of targets) {
+      const {nodeId} = await session.send('DOM.querySelector', {
+        nodeId: root.nodeId,
+        selector: target.selector,
+      });
+      targetNodes.push({...target, nodeId});
+    }
+    assertRequiredPseudoStateTargets(
+      storyId,
+      targetNodes
+        .filter(({nodeId}) => nodeId !== 0)
+        .map(({selector}) => selector),
+    );
+
+    for (const {nodeId, pseudoClasses} of targetNodes) {
       await session.send('CSS.forcePseudoState', {
         forcedPseudoClasses: pseudoClasses,
         nodeId,
       });
     }
+    return session;
+  } catch (error) {
+    await session.detach();
+    throw error;
   }
-  return session;
 }
 
 async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
@@ -250,7 +306,7 @@ async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
   await page.goto(url.href, {waitUntil: 'networkidle'});
   await waitForReadyStory(page);
 
-  const pseudoStateSession = await forceInspectablePseudoStates(page);
+  const pseudoStateSession = await forceInspectablePseudoStates(page, storyId);
   try {
     const screenshot = await page.screenshot({animations: 'disabled'});
     if (
@@ -261,7 +317,7 @@ async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
     }
     await writeFile(join(outputDirectory, filename), screenshot);
   } finally {
-    await pseudoStateSession.detach();
+    await pseudoStateSession?.detach();
   }
 }
 

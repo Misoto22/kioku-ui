@@ -6,6 +6,11 @@ export const alertDoc = {
     'Announces feedback with a quiet status boundary and polite or assertive live semantics.',
   props: [
     {
+      name: 'icon',
+      description:
+        'Overrides the tone-specific decorative status icon without adding an announcement.',
+    },
+    {
       name: 'tone',
       description: 'Selects the semantic status tone and live behavior.',
     },

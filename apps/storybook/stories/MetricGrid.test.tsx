@@ -1,5 +1,16 @@
+import type {PropsWithChildren} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
+
+vi.mock('@misoto22/kioku-ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@misoto22/kioku-ui')>();
+  return {
+    ...actual,
+    Card: ({children}: PropsWithChildren) => (
+      <div data-card-boundary="instrumented">{children}</div>
+    ),
+  };
+});
 
 import {Composition} from './MetricGrid.stories.js';
 
@@ -13,6 +24,6 @@ describe('MetricGrid stories', () => {
     );
 
     expect(markup).toContain('<dl');
-    expect(markup).not.toContain('<article');
+    expect(markup).not.toContain('data-card-boundary="instrumented"');
   });
 });

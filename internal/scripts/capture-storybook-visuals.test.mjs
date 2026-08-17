@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import * as captureModule from './capture-storybook-visuals.mjs';
 import {
   forcedPseudoStateTargets,
   visualCaptureCases,
@@ -89,14 +90,60 @@ test('visual capture matrix rejects a missing canonical story ID', () => {
   );
 });
 
+test('visual capture matrix rejects missing required live toolbar values', () => {
+  assert.throws(
+    () =>
+      visualCaptureCases({
+        storyIds,
+        themes: ['washi', 'muji'],
+        modes,
+        viewports,
+      }),
+    /Storybook theme toolbar must expose exactly: washi, muji, sumi/,
+  );
+  assert.throws(
+    () =>
+      visualCaptureCases({
+        storyIds,
+        themes,
+        modes: ['light'],
+        viewports,
+      }),
+    /Storybook mode toolbar must expose exactly: light, dark/,
+  );
+});
+
+test('visual capture matrix rejects unhandled extra live toolbar values', () => {
+  assert.throws(
+    () =>
+      visualCaptureCases({
+        storyIds,
+        themes: [...themes, 'seasonal'],
+        modes,
+        viewports,
+      }),
+    /Storybook theme toolbar must expose exactly: washi, muji, sumi/,
+  );
+  assert.throws(
+    () =>
+      visualCaptureCases({
+        storyIds,
+        themes,
+        modes: [...modes, 'system'],
+        viewports,
+      }),
+    /Storybook mode toolbar must expose exactly: light, dark/,
+  );
+});
+
 test('visual capture matrix rejects colliding output filenames', () => {
   assert.throws(
     () =>
       visualCaptureCases({
         storyIds,
-        themes: ['washi', 'washi'],
+        themes,
         modes,
-        viewports,
+        viewports: [viewports[0], viewports[0]],
       }),
     /Visual capture filename collision: core-button--states-washi-light-desktop-1440x900.png/,
   );
@@ -114,4 +161,21 @@ test('visual captures force simultaneous inspectable interaction states', () => 
       selector: '[data-story-state="focus"]',
     },
   ]);
+});
+
+test('visual capture rejects near-miss pseudo-state markers for required stories', () => {
+  assert.equal(
+    typeof captureModule.assertRequiredPseudoStateTargets,
+    'function',
+  );
+
+  assert.throws(
+    () =>
+      captureModule.assertRequiredPseudoStateTargets('core-button--states', [
+        '[data-story-state="hover"]',
+        '[data-story-state="focus"]',
+        '[data-story-state="pressed"]',
+      ]),
+    /Missing required pseudo-state target.*data-story-state="active"/,
+  );
 });

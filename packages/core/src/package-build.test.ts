@@ -1205,14 +1205,16 @@ process.stdout.write(JSON.stringify({
     const variable = (customProperty: string) =>
       semanticVariable(packageCss, customProperty);
 
-    for (const [name, surface, text] of [
+    for (const [name, tone, surface, text] of [
       [
         'alertInfo',
+        'info',
         '--kioku-ui-status-info-surface',
         '--kioku-ui-status-info-text',
       ],
       [
         'alertDanger',
+        'danger',
         '--kioku-ui-status-danger-surface',
         '--kioku-ui-status-danger-text',
       ],
@@ -1252,6 +1254,20 @@ process.stdout.write(JSON.stringify({
         markup[name],
         `padding:var(${variable('--kioku-ui-spacing-md')})`,
       );
+      expect(markup[name]).toContain(`data-alert-icon="${tone}"`);
+      const alertIcon = elementMarkup(markup[name], 'span');
+      expect(alertIcon).toContain('aria-hidden="true"');
+      expectRenderedRule(
+        packageCss,
+        alertIcon,
+        `height:var(${variable('--kioku-ui-spacing-lg')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        alertIcon,
+        `width:var(${variable('--kioku-ui-spacing-lg')})`,
+      );
+      expectRenderedRule(packageCss, alertIcon, 'flex-shrink:0');
     }
 
     const emptyDefault = elementMarkup(markup.emptyDefault, 'div', 1);
@@ -1535,6 +1551,7 @@ if (!/^var\\(--[^)]+\\)$/.test(semanticTokens.colorText)) {
     await writeFile(
       source,
       `import type {
+  AlertProps,
   AsyncStateProps,
   AsyncStateValue,
   BadgeTone,
@@ -1592,7 +1609,13 @@ const asyncProps: AsyncStateProps<number> = {
   state,
   children: (count) => count + 1,
 };
+const alertProps: AlertProps = {
+  children: 'Review required',
+  icon: '!',
+  tone: 'warning',
+};
 void [
+  alertProps,
   themeId,
   canvasValue,
   asyncProps,
@@ -1647,9 +1670,17 @@ void [
       runtime,
       `import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {AsyncState, Button} from '${packageName}';
+import {Alert, AsyncState, Button} from '${packageName}';
 
 const button = renderToStaticMarkup(createElement(Button, {variant: 'secondary'}, 'Save'));
+const alert = renderToStaticMarkup(createElement(Alert, {tone: 'success'}, 'Saved'));
+const customAlert = renderToStaticMarkup(
+  createElement(
+    Alert,
+    {icon: createElement('span', null, 'Custom mark')},
+    'Needs review',
+  ),
+);
 const ready = renderToStaticMarkup(
   createElement(
     AsyncState,
@@ -1658,7 +1689,13 @@ const ready = renderToStaticMarkup(
   ),
 );
 
-if (!button.includes('<button') || !button.includes('Save') || !ready.includes('3 items')) {
+if (
+  !button.includes('<button') ||
+  !button.includes('Save') ||
+  !alert.includes('data-alert-icon="success"') ||
+  !customAlert.includes('data-alert-icon="custom"') ||
+  !ready.includes('3 items')
+) {
   throw new Error('The public component runtime did not render expected markup.');
 }
 `,

@@ -60,7 +60,7 @@ export const Composition: Story = {
       <Card>
         <Stack gap="md">
           <Text>Workspace access</Text>
-          <Alert tone="warning">
+          <Alert icon={<span>!</span>} tone="warning">
             <Stack gap="xs">
               <Text>Review pending invitations</Text>
               <Text size="sm">
