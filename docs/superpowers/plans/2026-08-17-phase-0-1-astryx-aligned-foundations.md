@@ -733,6 +733,12 @@ Represent each lexical binding as one of `other`, `namespace`, `member(name)`, o
 
 Visit computed property-name expressions before extracting a static key. Continue resolving static string-literal keys for member and binding-pattern aliases; retain conservative diagnostics for dynamic keys that might carry StyleX capability flow.
 
+- [ ] **Step 3A: Model completions, callable captures, and remaining evaluated syntax**
+
+Do not use a single sequential state to represent a statement list. Model normal, `break`, `continue`, `return`, and throw completions so loop exits join zero, body, and back-edge paths correctly; a `do` body executes at least once. Direct calls to locally declared functions must conservatively apply their captured-binding effects at the call site (or report an ambiguity), while dormant functions must not mutate outer state. Traverse getter/setter bodies and computed accessor names, establish class/static-block scopes, and avoid expression-recursion cycles. Array/aggregate binding patterns must retain exact StyleX flow when their source tuple is statically known. Only update bindings for mutating unary/update operators; non-mutating unary reads cannot clear flow.
+
+Add RED fixtures for: direct captured assignment, a late-mutated capture, break-before-unreachable-clear, mandatory `do` clear, computed getter/setter calls, static-block shadows, ordinary class expressions, aggregate array aliases, and non-mutating unary reads. Each dynamic/path-dependent case must produce an explicit ambiguity rather than silently pass.
+
 - [ ] **Step 4: Verify the complete policy and release matrix**
 
 Run the focused capability suite, strict typecheck, `pnpm check`, two plain `pnpm -r test` runs, `pnpm build`, `pnpm verify-exports`, sandbox and four frozen consumer builds, plus normal `pnpm a11y:audit`. Commit as a separately reviewed escalation task.
