@@ -86,6 +86,25 @@ const styles = sx.create({root: {color: 'red'}});
 sx.props(styles.root);
 ```
 
-Within `create`, `:focus-visible` is the supported pseudo-class selector.
-Arbitrary global selectors, other pseudo-class selectors, and authored
-at-rules are rejected. Similar keys on unrelated local objects are ignored.
+Within `create`, only the interaction and structural selector spellings used by
+the public core recipes are supported:
+
+```text
+:disabled
+:active:not(:disabled)
+:hover:not(:disabled)
+::before
+::placeholder
+:active:not(:disabled):not(:read-only):not(:focus-visible)
+:hover:not(:disabled):not(:read-only):not(:focus-visible)
+:active
+:focus-within
+:hover
+:not(:last-child)
+:focus-visible
+```
+
+The only authored at-rule spelling is
+`@media (prefers-reduced-motion: reduce)`. Arbitrary global selectors, unknown
+or dynamic style keys, selector near-misses, and all other at-rules remain
+rejected. Similar keys on unrelated local objects are ignored.

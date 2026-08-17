@@ -35,6 +35,35 @@ const object = {get value() { return sx.props(styles.root); }};`,
     ).toEqual([]);
   });
 
+  it('accepts only the exact interaction selectors and reduced-motion condition used by core', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+export const styles = stylex.create({
+  control: {
+    ':disabled': {color: 'gray'},
+    ':active:not(:disabled)': {color: 'red'},
+    ':hover:not(:disabled)': {color: 'blue'},
+    '::before': {content: ''},
+    '::placeholder': {color: 'gray'},
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {color: 'red'},
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {color: 'blue'},
+    ':active': {color: 'red'},
+    ':focus-within': {color: 'blue'},
+    ':hover': {color: 'blue'},
+    ':not(:last-child)': {borderBottomWidth: 1},
+    ':focus-visible': {outlineStyle: 'solid'},
+    animationName: {
+      default: 'spin',
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+  },
+});`,
+        'approved-interactions.stylex.ts',
+      ),
+    ).toEqual([]);
+  });
+
   it('rejects unsupported selectors only inside direct StyleX declarations', () => {
     expect(
       stylexSourceProblems(
@@ -49,8 +78,30 @@ export const styles = stylex.create({
       ),
     ).toEqual([
       'unsupported-selectors.stylex.ts:4 uses unsupported StyleX capability: arbitrary-global-selector',
-      'unsupported-selectors.stylex.ts:5 uses unsupported StyleX capability: selector :hover',
       'unsupported-selectors.stylex.ts:6 uses unsupported StyleX capability: at-rule',
+    ]);
+  });
+
+  it('rejects selector and media near-misses plus dynamic style keys', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const dynamicSelector = ':hover';
+export const styles = stylex.create({
+  visited: {':visited': {color: 'purple'}},
+  relational: {':has(.child)': {color: 'purple'}},
+  print: {'@media print': {color: 'black'}},
+  motion: {'@media (prefers-reduced-motion: no-preference)': {color: 'black'}},
+  dynamic: {[dynamicSelector]: {color: 'purple'}},
+});`,
+        'selector-near-misses.stylex.ts',
+      ),
+    ).toEqual([
+      'selector-near-misses.stylex.ts:4 uses unsupported StyleX capability: selector :visited',
+      'selector-near-misses.stylex.ts:5 uses unsupported StyleX capability: selector :has(.child)',
+      'selector-near-misses.stylex.ts:6 uses unsupported StyleX capability: at-rule',
+      'selector-near-misses.stylex.ts:7 uses unsupported StyleX capability: at-rule',
+      'selector-near-misses.stylex.ts:8 uses unsupported StyleX capability: dynamic style key',
     ]);
   });
 

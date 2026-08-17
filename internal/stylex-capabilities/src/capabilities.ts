@@ -9,7 +9,10 @@ export const stylexCapabilityPolicy = Object.freeze({
   'style-props': 'stylex.props composition at render time',
   'design-tokens': 'stylex.defineVars token contracts',
   keyframes: 'stylex.keyframes static animation definitions',
-  'focus-visible-selector': 'the :focus-visible pseudo-class selector',
+  'interaction-selectors':
+    'the exact interaction and structural selectors used by core components',
+  'reduced-motion-condition':
+    'the @media (prefers-reduced-motion: reduce) condition',
 });
 
 export type SupportedStylexCapability = keyof typeof stylexCapabilityPolicy;
@@ -20,6 +23,23 @@ const methodCapabilities = new Map<string, SupportedStylexCapability>([
   ['defineVars', 'design-tokens'],
   ['keyframes', 'keyframes'],
   ['props', 'style-props'],
+]);
+const supportedStyleSelectors = new Set([
+  ':disabled',
+  ':active:not(:disabled)',
+  ':hover:not(:disabled)',
+  '::before',
+  '::placeholder',
+  ':active:not(:disabled):not(:read-only):not(:focus-visible)',
+  ':hover:not(:disabled):not(:read-only):not(:focus-visible)',
+  ':active',
+  ':focus-within',
+  ':hover',
+  ':not(:last-child)',
+  ':focus-visible',
+]);
+const supportedStyleAtRules = new Set([
+  '@media (prefers-reduced-motion: reduce)',
 ]);
 
 export function isSupportedStylexCapability(
@@ -331,11 +351,13 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       node.name
     ) {
       const name = propertyName(node.name);
-      if (name?.startsWith(':global(')) {
+      if (ts.isComputedPropertyName(node.name) && name === undefined) {
+        report(node, 'dynamic style key');
+      } else if (name?.startsWith(':global(')) {
         report(node, 'arbitrary-global-selector');
-      } else if (name?.startsWith('@')) {
+      } else if (name?.startsWith('@') && !supportedStyleAtRules.has(name)) {
         report(node, 'at-rule');
-      } else if (name?.startsWith(':') && name !== ':focus-visible') {
+      } else if (name?.startsWith(':') && !supportedStyleSelectors.has(name)) {
         report(node, `selector ${name}`);
       }
     }
