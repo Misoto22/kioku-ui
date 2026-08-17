@@ -743,6 +743,37 @@ Add RED fixtures for: direct captured assignment, a late-mutated capture, break-
 
 Run the focused capability suite, strict typecheck, `pnpm check`, two plain `pnpm -r test` runs, `pnpm build`, `pnpm verify-exports`, sandbox and four frozen consumer builds, plus normal `pnpm a11y:audit`. Commit as a separately reviewed escalation task.
 
+### Task 9B: Replace capability flow simulation with a scope-aware direct-use policy
+
+**Why this is an escalation:**
+
+Task 9A demonstrated that simulating JavaScript runtime flow for the entire TypeScript syntax surface (closures, async/generators, calls, accessors, classes, labels, completion states, and aggregates) cannot make the required no-silent-acceptance guarantee with a bounded static analyzer. The policy must therefore restrict the supported authoring subset instead of approximating arbitrary runtime execution.
+
+**Files:**
+- Modify: `internal/stylex-capabilities/src/capabilities.ts`
+- Modify: `internal/stylex-capabilities/src/capabilities.test.ts`
+- Modify: `internal/stylex-capabilities/README.md`
+
+**Interfaces:**
+- Consumes: TypeScript AST and the StyleX namespace import binding.
+- Produces: a scope-aware direct-use policy. It permits a direct supported method on the imported StyleX namespace (including a namespace import alias) and rejects unsupported methods, indirect invocation, dynamic keys, namespace/member aliasing, capture/return/default-parameter flow, aggregate/spread flow, and every other escape of the imported namespace with a deterministic diagnostic. It distinguishes those imports from local bindings that merely share the same spelling.
+
+- [ ] **Step 1: Write failing direct-use policy fixtures**
+
+Add RED cases for every previously discovered flow escape as a direct-use rejection: zero-iteration loop alias, computed destructuring key expression, function return/capture/default parameter, object/array spread and aggregate access, async/generator/class/accessor timing, labels/completion, indirect `.call`/`new`/tagged invocation, and computed/dynamic members. Add negative controls for local, parameter, catch, loop, class-name, and static-block shadows.
+
+- [ ] **Step 2: Implement a lexical direct-use resolver**
+
+Remove runtime-state simulation from the decision path. Build stable lexical scopes/bindings sufficient to identify the actual StyleX namespace import. Accept only `importedNamespace.allowedCapability(...)`; the imported namespace used anywhere else produces an explicit unsupported-flow diagnostic. A static computed method name is equivalent to a dot method for policy purposes; a dynamic key is rejected. Do not flag ordinary local shadows or dynamically unrelated local objects.
+
+- [ ] **Step 3: Document the supported StyleX authoring subset**
+
+Explain that the build integration supports direct static StyleX calls only. Show allowed and rejected examples, the reason for deterministic rejection, and how consumers should rewrite an alias/capture into a direct supported call.
+
+- [ ] **Step 4: Verify focused policy and the release matrix**
+
+Run strict capability typecheck, focused policy tests, `pnpm check`, two plain `pnpm -r test` runs, `pnpm build`, `pnpm verify-exports`, sandbox and four frozen consumer builds, plus normal `pnpm a11y:audit`. Commit as a separately reviewed escalation task.
+
 ### Task 10: Prove package release readiness without publishing
 
 **Files:**
