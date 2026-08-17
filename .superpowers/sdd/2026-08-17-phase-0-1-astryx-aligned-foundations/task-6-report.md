@@ -42,8 +42,6 @@ Covered behavior includes:
 - `pnpm lint`: exit 0.
 - `pnpm check:package-boundaries`: exit 0.
 - `pnpm check:repo`: exit 0.
-- Scoped Prettier check for every changed source, test, catalog, build configuration, and this report: exit 0.
-- `git diff --check`: exit 0.
 - Scoped Prettier check for Task 6 source, tests, docs, stories, and package configuration plus `git diff --check`: exit 0. The pnpm-managed lockfile is covered by lockfile installation and diff checks rather than Prettier because the repository's existing pnpm lock format differs from the configured Prettier YAML output.
 - Neutrality audit found no router imports, request codes, domain data, product analytics labels, private URLs, or product defaults in Task 6 source and stories. Component styles consume the existing semantic StyleX token contract for visual values.
 
@@ -86,3 +84,33 @@ No Task 6 blocker. Storybook build and axe gates remain intentionally deferred t
 - `pnpm lint`: exit 0.
 - `pnpm check:package-boundaries`: exit 0.
 - `pnpm check:repo`: exit 0.
+- Scoped Prettier check for every changed source, test, catalog, build configuration, and this report: exit 0.
+- `git diff --check`: exit 0.
+
+## Focused fix round 2
+
+### Corrected contracts
+
+- Changed `AsyncStateProps<T>` so supplying a renderer accepts the complete `AsyncStateValue<T>` union, including values that are narrowed only at runtime, while renderer-free props remain limited to loading, empty, and error states.
+- Made `ComponentDoc.inheritedProps` statically required to match its validator contract. Every typed catalog record continues to satisfy `ComponentDoc`.
+- Added public-package declaration probes for both contracts: a positive `AsyncStateValue<number>` plus renderer assignment through `AsyncStateProps<number>`, and a negative omitted-`inheritedProps` `ComponentDoc` assignment.
+
+### RED evidence
+
+`pnpm -F @misoto22/kioku-ui exec vitest run src/package-build.test.ts --reporter=verbose` exited 1 with 2 failed and 3 passed:
+
+- The root-package declaration consumer produced TS2322 because `{state: AsyncStateValue<number>; children: ...}` was not assignable to `AsyncStateProps<number>`.
+- The docs-package declaration consumer produced TS2578 because the omission regression's `@ts-expect-error` was unused while `inheritedProps` remained optional.
+
+### GREEN and verification evidence
+
+- `pnpm -F @misoto22/kioku-ui exec vitest run src/package-build.test.ts --reporter=verbose`: exit 0; all 5 package build, public declaration, emitted syntax, runtime import/render, and docs catalog tests passed.
+- `pnpm -F @misoto22/kioku-ui exec vitest run src/components/data-display.test.tsx src/docs/types.test.ts src/docs/index.test.ts --reporter=verbose`: exit 0; 3 files and 14 focused runtime/catalog tests passed.
+- `pnpm -F @misoto22/kioku-ui typecheck`: exit 0.
+- `pnpm -F @misoto22/kioku-ui build`: exit 0.
+- `node --check packages/core/dist/components/AsyncState.js && node --check packages/core/dist/docs/types.js`: exit 0.
+- `pnpm lint`: exit 0.
+- `pnpm check:package-boundaries`: exit 0.
+- `pnpm check:repo`: exit 0.
+- Scoped Prettier check for the four focused fix files: exit 0.
+- `git diff --check`: exit 0.

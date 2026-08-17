@@ -8,7 +8,7 @@ export interface ComponentDoc {
   readonly name: string;
   readonly description: string;
   readonly props: readonly ComponentDocProp[];
-  readonly inheritedProps?: readonly string[];
+  readonly inheritedProps: readonly string[];
   readonly example: string;
   readonly storyId: string;
 }

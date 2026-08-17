@@ -20,16 +20,15 @@ export type AsyncStateValue<T> =
     }
   | {readonly kind: 'ready'; readonly data: T};
 
-type ReadyAsyncStateValue<T> = Extract<AsyncStateValue<T>, {kind: 'ready'}>;
 type PendingAsyncStateValue<T> = Exclude<AsyncStateValue<T>, {kind: 'ready'}>;
 
 export type AsyncStateProps<T> =
   | {
       readonly children: (data: T) => ReactNode;
-      readonly state: ReadyAsyncStateValue<T>;
+      readonly state: AsyncStateValue<T>;
     }
   | {
-      readonly children?: (data: T) => ReactNode;
+      readonly children?: never;
       readonly state: PendingAsyncStateValue<T>;
     };
 

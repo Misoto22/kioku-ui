@@ -114,14 +114,24 @@ export const consumerStyles = stylex.create({
     const source = join(fixtureRoot, 'consumer.ts');
     await writeFile(
       source,
-      `import type {ThemeDefinition, TokenContract} from '${packageName}';
+      `import type {
+  AsyncStateProps,
+  AsyncStateValue,
+  ThemeDefinition,
+  TokenContract,
+} from '${packageName}';
 
 declare const contract: TokenContract;
 declare const theme: ThemeDefinition;
+declare const state: AsyncStateValue<number>;
 
 const themeId: string = theme.id;
 const canvasValue: string = theme.tokens[contract.color.canvas];
-void [themeId, canvasValue];
+const asyncProps: AsyncStateProps<number> = {
+  state,
+  children: (count) => count + 1,
+};
+void [themeId, canvasValue, asyncProps];
 `,
     );
 
@@ -257,7 +267,15 @@ const individualDocs: readonly ComponentDoc[] = [
 ];
 const textName: string = textDoc.name;
 const missing = validateComponentDoc(textDoc);
-void [docs, individualDocs, textName, missing];
+// @ts-expect-error ComponentDoc requires an inherited native-props contract.
+const incompleteDoc: ComponentDoc = {
+  name: 'Incomplete',
+  description: 'Missing its inherited contract.',
+  props: [{name: 'value', description: 'Supplies a value.'}],
+  example: '<Incomplete value="example" />',
+  storyId: 'test--incomplete',
+};
+void [docs, individualDocs, textName, missing, incompleteDoc];
 `,
     );
 
