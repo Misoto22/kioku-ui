@@ -4,7 +4,7 @@
 
 **A product-neutral React design system**
 
-Accessible components, semantic theme contracts, and StyleX build integrations — with no application routes, APIs, data, or business logic.
+React 19 components, semantic tokens, and StyleX build tooling.
 
 <br />
 
@@ -21,6 +21,9 @@ Accessible components, semantic theme contracts, and StyleX build integrations �
 </div>
 
 ---
+
+Kioku UI ships components, tokens, themes, and build integrations. It ships no
+application routes, APIs, data, or business logic — see [Boundaries](#boundaries).
 
 > [!NOTE]
 > No version has been published to npm yet. The `pnpm add` commands below describe
