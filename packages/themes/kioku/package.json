@@ -38,7 +38,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
-    "@misoto22/kioku-ui": "workspace:*",
+    "@misoto22/kioku-ui": "workspace:>=0.0.0 <0.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   }

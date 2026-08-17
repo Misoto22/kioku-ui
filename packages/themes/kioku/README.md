@@ -22,3 +22,6 @@ CSS `light-dark()`, so they follow the host's inherited `color-scheme`. The
 default density is compact; place `data-density="standard"` on the provider root
 or an ancestor to opt into the roomier control roles. The stylesheet never
 targets `:root`, `html`, or `body`.
+
+The initial theme release supports core `>=0.0.0 <0.2.0`. A later pre-1 core
+minor must be compatibility-reviewed before this peer range is widened.

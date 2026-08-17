@@ -273,6 +273,71 @@ export function changesetWorkflowProblems(workflow) {
   return problems.sort();
 }
 
+export function changesetPolicyWorkflowProblems(workflow) {
+  const problems = [];
+  const job = workflow.jobs?.['changeset-policy'];
+  const steps = job?.steps ?? [];
+  const checkoutStep = steps.find(
+    (step) =>
+      typeof step.uses === 'string' &&
+      step.uses.startsWith('actions/checkout@'),
+  );
+  const policyStep = steps.find(
+    (step) => step.run === 'node internal/scripts/check-changeset-policy.mjs',
+  );
+  const events = Object.keys(workflow.on ?? {}).sort();
+  const permissions = workflow.permissions ?? {};
+
+  if (events.length !== 1 || events[0] !== 'pull_request_target') {
+    problems.push(
+      'Changeset policy workflow must use pull_request_target only',
+    );
+  }
+  if (
+    workflow.on?.pull_request_target !== undefined &&
+    JSON.stringify(workflow.on?.pull_request_target?.branches) !==
+      JSON.stringify(['main'])
+  ) {
+    problems.push('Changeset policy workflow must target protected main');
+  }
+  if (
+    permissions.contents !== 'read' ||
+    permissions['pull-requests'] !== 'read' ||
+    Object.keys(permissions).length !== 2 ||
+    job?.permissions !== undefined
+  ) {
+    problems.push(
+      'Changeset policy permissions must be contents: read and pull-requests: read only',
+    );
+  }
+  if (job?.['runs-on'] !== 'ubuntu-latest') {
+    problems.push('Changeset policy job must use a GitHub-hosted runner');
+  }
+  if (
+    checkoutStep?.with?.ref !== '${{ github.event.repository.default_branch }}'
+  ) {
+    problems.push(
+      'Changeset policy checkout must use the trusted default branch',
+    );
+  }
+  if (String(checkoutStep?.with?.['persist-credentials']) !== 'false') {
+    problems.push(
+      'Changeset policy checkout must disable persisted credentials',
+    );
+  }
+  if (
+    steps.length !== 2 ||
+    !policyStep ||
+    policyStep.env?.GITHUB_TOKEN !== '${{ github.token }}'
+  ) {
+    problems.push(
+      'Changeset policy job must run the read-only policy script only',
+    );
+  }
+
+  return problems.sort();
+}
+
 export function consumerInstallProblems({consumer, manifest, lockfile}) {
   const problems = [];
   const dependencies = manifest.dependencies ?? {};
@@ -850,21 +915,30 @@ async function buildPackedConsumers(sourceRoot, consumerRoot, artifacts) {
 }
 
 async function workflow(root, filename) {
-  const source = await readFile(
-    join(root, '.github/workflows', filename),
-    'utf8',
-  );
-  return parseYaml(source);
+  try {
+    const source = await readFile(
+      join(root, '.github/workflows', filename),
+      'utf8',
+    );
+    return parseYaml(source);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return {};
+    }
+    throw error;
+  }
 }
 
 export async function repositoryWorkflowProblems(root) {
-  const [release, ci] = await Promise.all([
+  const [release, ci, changesetPolicy] = await Promise.all([
     workflow(root, 'release.yml'),
     workflow(root, 'ci.yml'),
+    workflow(root, 'changeset-policy.yml'),
   ]);
   return [
     ...releaseWorkflowProblems(release),
     ...changesetWorkflowProblems(ci),
+    ...changesetPolicyWorkflowProblems(changesetPolicy),
   ].sort();
 }
 

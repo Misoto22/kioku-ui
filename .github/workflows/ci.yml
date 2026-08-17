@@ -41,11 +41,11 @@ jobs:
       - run: pnpm storybook:build
       - run: pnpm sandbox:build
       - run: pnpm verify-exports
-      - run: pnpm --dir apps/example-vite install --frozen-lockfile
+      - run: pnpm --dir apps/example-vite install --ignore-workspace --frozen-lockfile
       - run: pnpm --dir apps/example-vite build
-      - run: pnpm --dir apps/example-nextjs install --frozen-lockfile
+      - run: pnpm --dir apps/example-nextjs install --ignore-workspace --frozen-lockfile
       - run: pnpm --dir apps/example-nextjs build
-      - run: pnpm --dir apps/example-vite-source install --frozen-lockfile
+      - run: pnpm --dir apps/example-vite-source install --ignore-workspace --frozen-lockfile
       - run: pnpm --dir apps/example-vite-source build
-      - run: pnpm --dir apps/example-nextjs-source install --frozen-lockfile
+      - run: pnpm --dir apps/example-nextjs-source install --ignore-workspace --frozen-lockfile
       - run: pnpm --dir apps/example-nextjs-source build

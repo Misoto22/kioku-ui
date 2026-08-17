@@ -5,7 +5,9 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
 import {promisify} from 'node:util';
+import {load as parseYaml} from 'js-yaml';
 
+import * as packSmokeContract from './pack-smoke.mjs';
 import {
   artifactProblems,
   changesetWorkflowProblems,
@@ -123,6 +125,117 @@ test('checked-in reference builds install their standalone frozen locks', async 
     exampleBuildScriptProblems(manifest.scripts['examples:build']),
     [],
   );
+});
+
+test('CI reference builds install their standalone frozen locks', async () => {
+  const workflow = parseYaml(
+    await readFile('.github/workflows/ci.yml', 'utf8'),
+  );
+  const script = workflow.jobs.check.steps
+    .map((step) => step.run)
+    .filter(Boolean)
+    .join(' && ');
+
+  assert.deepEqual(exampleBuildScriptProblems(script), []);
+});
+
+test('the initial Changeset plan releases every public package at 0.1.0', async () => {
+  const releaseRoot = await mkdtemp(join(tmpdir(), 'kioku-ui-release-plan-'));
+
+  try {
+    await mkdir(join(releaseRoot, '.changeset'), {recursive: true});
+    await writeFile(
+      join(releaseRoot, 'package.json'),
+      `${JSON.stringify({private: true}, null, 2)}\n`,
+    );
+    await writeFile(
+      join(releaseRoot, 'pnpm-workspace.yaml'),
+      "packages:\n  - 'packages/*'\n  - 'packages/themes/*'\n",
+    );
+    await writeFile(
+      join(releaseRoot, '.changeset/config.json'),
+      `${JSON.stringify(
+        {
+          ...JSON.parse(await readFile('.changeset/config.json', 'utf8')),
+          changelog: false,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    for (const directory of [
+      'packages/core',
+      'packages/build',
+      'packages/themes/kioku',
+    ]) {
+      const sourceManifest = JSON.parse(
+        await readFile(join(directory, 'package.json'), 'utf8'),
+      );
+      const manifest = {
+        name: sourceManifest.name,
+        peerDependencies: sourceManifest.peerDependencies,
+        version: '0.0.0',
+      };
+      await mkdir(join(releaseRoot, directory), {recursive: true});
+      await writeFile(
+        join(releaseRoot, directory, 'package.json'),
+        `${JSON.stringify(manifest, null, 2)}\n`,
+      );
+    }
+
+    await run('git', ['init', '-b', 'main'], {cwd: releaseRoot});
+    await run('git', ['config', 'user.email', 'test@example.invalid'], {
+      cwd: releaseRoot,
+    });
+    await run('git', ['config', 'user.name', 'Release plan test'], {
+      cwd: releaseRoot,
+    });
+    await run('git', ['add', '.'], {cwd: releaseRoot});
+    await run('git', ['commit', '-m', 'test: establish release baseline'], {
+      cwd: releaseRoot,
+    });
+    await writeFile(
+      join(releaseRoot, '.changeset/initial.md'),
+      "---\n'@misoto22/kioku-ui': minor\n'@misoto22/kioku-ui-build': minor\n'@misoto22/kioku-ui-theme-kioku': minor\n---\n\nInitial public release.\n",
+    );
+    await run('git', ['add', '.changeset/initial.md'], {cwd: releaseRoot});
+    await run(
+      join(process.cwd(), 'node_modules/.bin/changeset'),
+      ['status', '--since=HEAD', '--output=release-plan.json'],
+      {cwd: releaseRoot},
+    );
+
+    const plan = JSON.parse(
+      await readFile(join(releaseRoot, 'release-plan.json'), 'utf8'),
+    );
+    assert.deepEqual(
+      plan.releases.map(({name, newVersion, type}) => ({
+        name,
+        newVersion,
+        type,
+      })),
+      [
+        {
+          name: '@misoto22/kioku-ui',
+          newVersion: '0.1.0',
+          type: 'minor',
+        },
+        {
+          name: '@misoto22/kioku-ui-build',
+          newVersion: '0.1.0',
+          type: 'minor',
+        },
+        {
+          name: '@misoto22/kioku-ui-theme-kioku',
+          newVersion: '0.1.0',
+          type: 'minor',
+        },
+      ],
+    );
+  } finally {
+    await rm(releaseRoot, {force: true, recursive: true});
+  }
 });
 
 test('discovers every actual publishable package and excludes placeholders', async () => {
@@ -314,6 +427,64 @@ test('rejects release workflows that can publish pull requests or use npm tokens
     'release workflow must set up Node 24 for the npm registry without caching',
     'release workflow must use changesets/action with pnpm release',
     'release workflow top-level permissions must be contents: read only',
+  ]);
+});
+
+test('rejects a Changeset policy workflow that can execute pull request code', () => {
+  const problems =
+    packSmokeContract.changesetPolicyWorkflowProblems?.({
+      on: {pull_request: null},
+      permissions: {contents: 'write'},
+      jobs: {
+        'changeset-policy': {
+          'runs-on': 'self-hosted',
+          steps: [
+            {
+              uses: 'actions/checkout@v5',
+              with: {ref: '${{ github.event.pull_request.head.sha }}'},
+            },
+            {run: 'pnpm install && pnpm changeset status'},
+          ],
+        },
+      },
+    }) ?? [];
+
+  assert.deepEqual(problems, [
+    'Changeset policy checkout must disable persisted credentials',
+    'Changeset policy checkout must use the trusted default branch',
+    'Changeset policy job must run the read-only policy script only',
+    'Changeset policy job must use a GitHub-hosted runner',
+    'Changeset policy permissions must be contents: read and pull-requests: read only',
+    'Changeset policy workflow must use pull_request_target only',
+  ]);
+});
+
+test('requires the independent Changeset policy to target protected main', () => {
+  const problems = packSmokeContract.changesetPolicyWorkflowProblems({
+    on: {pull_request_target: {types: ['opened', 'synchronize']}},
+    permissions: {contents: 'read', 'pull-requests': 'read'},
+    jobs: {
+      'changeset-policy': {
+        'runs-on': 'ubuntu-latest',
+        steps: [
+          {
+            uses: 'actions/checkout@v5',
+            with: {
+              ref: '${{ github.event.repository.default_branch }}',
+              'persist-credentials': false,
+            },
+          },
+          {
+            run: 'node internal/scripts/check-changeset-policy.mjs',
+            env: {GITHUB_TOKEN: '${{ github.token }}'},
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'Changeset policy workflow must target protected main',
   ]);
 });
 

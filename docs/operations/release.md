@@ -25,14 +25,23 @@ causes the next protected-main run to publish the approved versions. The
 workflow is not triggered by pull requests and does not store or read an
 `NPM_TOKEN`.
 
-For an ordinary pull request, CI fetches full Git history and runs Changesets
-status against `origin/${base_ref}`. The only exception is the same-repository
-`changeset-release/main` pull request authored by `github-actions[bot]`: that
-PR has already consumed the pending Changeset files into versions and
-changelogs, so repeating the pending-file check would be self-contradictory.
-All other CI gates still run on that release PR. `release:verify` deliberately
-remains a generic artifact and quality command so operators can run it after
-Changesets have been consumed.
+The independent `Changeset Policy / changeset-policy` required check is the
+authoritative pull-request gate. Its `pull_request_target` workflow and policy
+script come from the default branch, use read-only repository and pull-request
+permissions, and compare the PR's file list through the GitHub API. It checks
+for public-package changes and an added `.changeset/*.md` without checking out
+or executing pull-request code. An incomplete GitHub file comparison fails
+closed.
+
+Ordinary PR CI also fetches full history and runs Changesets status against
+`origin/${base_ref}` as defense in depth. The only exception in both checks is
+the same-repository `changeset-release/main` pull request authored by
+`github-actions[bot]`: that PR has already consumed the pending Changeset files
+into versions and changelogs, so repeating the pending-file check would be
+self-contradictory. Bot identity, source repository, and exact branch name must
+all match. All other CI gates still run on that release PR. `release:verify`
+deliberately remains a generic artifact and quality command so operators can
+run it after Changesets have been consumed.
 
 ## External setup
 
@@ -43,8 +52,10 @@ repository.
 ### GitHub
 
 1. Keep `Misoto22/kioku-ui` public so public npm packages can receive provenance.
-2. Protect `main`: require pull requests, approvals, and the CI check; block
-   force pushes and branch deletion.
+2. Protect `main`: require pull requests, approvals, and both exact status
+   checks `CI / check` and `Changeset Policy / changeset-policy`; block force
+   pushes and branch deletion. Requiring the independent default-branch policy
+   check prevents a PR from bypassing the Changeset rule by editing `ci.yml`.
 3. Create an environment named `npm`. Restrict deployments to `main` and add
    the release authority as a required reviewer.
 4. Allow GitHub Actions to create pull requests so Changesets can maintain its
@@ -123,6 +134,12 @@ does not publish or contact npm for a write.
 Review the pending Changesets release PR after the dry run. Package versions,
 dependency ranges, changelogs, and the intended stable or canary channel must
 all be explicit before merge.
+
+For the initial release, core, build, and the Kioku theme are all classified as
+minor releases from `0.0.0` to `0.1.0`. The theme's core peer range is
+`>=0.0.0 <0.2.0`, so Changesets updates peer dependents only when a planned core
+version leaves that reviewed compatibility range. Do not widen the range to
+silence a release-plan bump; confirm runtime compatibility first.
 
 ## Canary release
 
