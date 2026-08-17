@@ -4,11 +4,13 @@
   "description": "Product-neutral React design system foundations.",
   "license": "MIT",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./dist/index.js",
-    "./reset.css": "./dist/reset.css",
-    "./styles.css": "./dist/styles.css",
+    "./reset.css": "./dist/styles/reset.css",
+    "./styles.css": "./dist/styles/index.css",
     "./theme": "./dist/theme.js",
     "./authoring": "./dist/authoring.js"
   },
@@ -17,6 +19,15 @@
     "react-dom": "^19.0.0"
   },
   "scripts": {
+    "build": "stylex -i src -o dist -b styles/stylex.css --babelPresets @babel/preset-typescript",
+    "test": "vitest run src",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stylexjs/stylex": "0.19.0"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "7.28.5",
+    "@stylexjs/cli": "0.19.0"
   }
 }
