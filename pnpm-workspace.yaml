@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+  - '!apps/example-*'
+  - packages/*
+  - packages/themes/*
+  - internal/*

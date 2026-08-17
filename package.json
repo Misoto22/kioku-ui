@@ -1,0 +1,36 @@
+{
+  "name": "kioku-ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A public, product-neutral React design system.",
+  "license": "MIT",
+  "packageManager": "pnpm@11.10.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "changeset": "changeset",
+    "check": "pnpm check:repo && pnpm lint && pnpm typecheck && pnpm test",
+    "check:package-boundaries": "pnpm check:repo",
+    "check:repo": "node internal/scripts/check-workspace.mjs",
+    "docsite": "pnpm --dir apps/docsite dev",
+    "format": "prettier --check .",
+    "lint": "eslint .",
+    "release": "changeset publish",
+    "storybook": "pnpm --dir apps/storybook storybook",
+    "sync:exports": "pnpm check:repo",
+    "test": "node --test internal/scripts/**/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "verify-exports": "pnpm check:repo"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@changesets/cli": "^2.29.7",
+    "eslint": "^10.8.1",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.0",
+    "vitest": "^4.1.10"
+  }
+}
