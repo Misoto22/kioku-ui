@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {rm, writeFile} from 'node:fs/promises';
+import {mkdir, mkdtemp, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
 import {
@@ -63,27 +64,41 @@ test('accepts host-supplied theme registry, default, and persistence adapters', 
 });
 
 test('rejects a host application import in a CommonJS core file', async () => {
-  const file = join(process.cwd(), 'packages/core/src/boundary-regression.cjs');
+  const root = await mkdtemp(join(tmpdir(), 'kioku-ui-boundary-'));
+  const source = join(root, 'packages/core/src');
 
   try {
+    await mkdir(source, {recursive: true});
+    await writeFile(
+      join(root, 'packages/core/package.json'),
+      '{"name":"@misoto22/kioku-ui"}\n',
+    );
+    const file = join(source, 'boundary-regression.cjs');
     await writeFile(file, "require('../../../kioku/web/src/lib/api');\n");
-    assert.deepEqual(await workspacePackageBoundaryProblems(process.cwd()), [
+    assert.deepEqual(await workspacePackageBoundaryProblems(root), [
       'packages/core/src/boundary-regression.cjs imports a host application path',
     ]);
   } finally {
-    await rm(file, {force: true});
+    await rm(root, {force: true, recursive: true});
   }
 });
 
 test('rejects a router import in a CommonJS TypeScript core file', async () => {
-  const file = join(process.cwd(), 'packages/core/src/boundary-regression.cts');
+  const root = await mkdtemp(join(tmpdir(), 'kioku-ui-boundary-'));
+  const source = join(root, 'packages/core/src');
 
   try {
+    await mkdir(source, {recursive: true});
+    await writeFile(
+      join(root, 'packages/core/package.json'),
+      '{"name":"@misoto22/kioku-ui"}\n',
+    );
+    const file = join(source, 'boundary-regression.cts');
     await writeFile(file, "import {Link} from 'react-router-dom';\n");
-    assert.deepEqual(await workspacePackageBoundaryProblems(process.cwd()), [
+    assert.deepEqual(await workspacePackageBoundaryProblems(root), [
       'packages/core/src/boundary-regression.cts imports react-router-dom',
     ]);
   } finally {
-    await rm(file, {force: true});
+    await rm(root, {force: true, recursive: true});
   }
 });

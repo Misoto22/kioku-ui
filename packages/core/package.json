@@ -3,11 +3,29 @@
   "version": "0.0.0",
   "description": "Product-neutral React design system foundations.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Misoto22/kioku-ui.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/Misoto22/kioku-ui#readme",
+  "bugs": {
+    "url": "https://github.com/Misoto22/kioku-ui/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "type": "module",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "!dist/**/*.test.*",
+    "src",
+    "!src/**/*.test.*",
+    "README.md"
   ],
   "exports": {
     ".": {

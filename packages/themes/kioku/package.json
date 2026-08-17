@@ -3,6 +3,21 @@
   "version": "0.0.0",
   "description": "Kioku Washi, Muji, and Sumi themes for Kioku UI.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Misoto22/kioku-ui.git",
+    "directory": "packages/themes/kioku"
+  },
+  "homepage": "https://github.com/Misoto22/kioku-ui#readme",
+  "bugs": {
+    "url": "https://github.com/Misoto22/kioku-ui/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "type": "module",
   "types": "./dist/index.d.ts",
   "files": [
