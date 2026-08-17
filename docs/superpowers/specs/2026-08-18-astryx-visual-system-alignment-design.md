@@ -1,6 +1,6 @@
 # Astryx Visual System Alignment
 
-**Status:** Approved direction, pending document review
+**Status:** Approved
 
 **Goal:** Replace the scaffold-level visual implementation in `kioku-ui` with
 an intentional, themeable component system that follows Astryx's design
