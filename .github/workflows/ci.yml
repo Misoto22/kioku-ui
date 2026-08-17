@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Require Changesets for package pull requests
+        if: >-
+          github.event_name == 'pull_request' &&
+          (github.event.pull_request.user.login != 'github-actions[bot]' ||
+          github.event.pull_request.head.repo.full_name != github.repository ||
+          github.head_ref != 'changeset-release/main')
+        run: pnpm changeset status --since=origin/${{ github.base_ref }}
+      - run: pnpm check:repo
+      - run: pnpm check:package-boundaries
+      - run: pnpm format
+      - run: pnpm lint
+      - run: pnpm build:packages
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm a11y:audit
+      - run: pnpm storybook:build
+      - run: pnpm sandbox:build
+      - run: pnpm verify-exports
+      - run: pnpm --dir apps/example-vite install --ignore-workspace --frozen-lockfile
+      - run: pnpm --dir apps/example-vite build
+      - run: pnpm --dir apps/example-nextjs install --ignore-workspace --frozen-lockfile
+      - run: pnpm --dir apps/example-nextjs build
+      - run: pnpm --dir apps/example-vite-source install --ignore-workspace --frozen-lockfile
+      - run: pnpm --dir apps/example-vite-source build
+      - run: pnpm --dir apps/example-nextjs-source install --ignore-workspace --frozen-lockfile
+      - run: pnpm --dir apps/example-nextjs-source build

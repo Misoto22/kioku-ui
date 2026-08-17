@@ -1,0 +1,4 @@
+/* StyleX's Vite integration injects extracted rules into an emitted CSS asset. */
+:root {
+  --kioku-ui-source-example: 1;
+}

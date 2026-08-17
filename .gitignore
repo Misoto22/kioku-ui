@@ -1,0 +1,10 @@
+node_modules/
+.artifacts/
+dist/
+apps/example-*/.next/
+apps/storybook/storybook-static/
+coverage/
+.DS_Store
+.env
+.env.*
+!.env.example

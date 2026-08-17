@@ -1,0 +1,30 @@
+{
+  "name": "@misoto22/kioku-ui-storybook",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter @misoto22/kioku-ui-build build && pnpm --filter @misoto22/kioku-ui build && pnpm --filter @misoto22/kioku-ui-theme-kioku build && storybook build --output-dir storybook-static",
+    "storybook": "storybook dev --port 6006",
+    "test": "vitest run .storybook stories",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@misoto22/kioku-ui": "workspace:*",
+    "@misoto22/kioku-ui-theme-kioku": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@misoto22/kioku-ui-build": "workspace:*",
+    "@storybook/addon-a11y": "10.4.6",
+    "@storybook/react-vite": "10.4.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "jsdom": "^29.1.1",
+    "storybook": "10.4.6",
+    "typescript": "5.9.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  }
+}

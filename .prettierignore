@@ -1,0 +1,7 @@
+.superpowers/
+apps/example-*/.next/
+apps/example-*/dist/
+apps/example-*/next-env.d.ts
+apps/example-*/pnpm-lock.yaml
+docs/superpowers/
+node_modules/

@@ -159,7 +159,7 @@ export function renderUi(ui: React.ReactElement) {
 }
 ```
 
-Make `@misoto22/kioku-ui` public with explicit exports for `.`, `./reset.css`, `./styles.css`, `./theme`, and `./authoring`; declare React and React DOM 19 as peers. Build `check-package-boundaries.mjs` to deny `packages/core/**` imports that contain `kioku`, `react-router-dom`, `apps/`, or `web/src`, and to deny dependency direction from `core` to `cli`, `build`, theme, charts, or Vega. Build `verify-exports.mjs` to read each published package's `package.json` and require every export target to exist after build. Define all future package manifests now with `private: true` for `lab` and `publishConfig.access: public` for publishable scoped packages.
+Make `@misoto22/kioku-ui` public with explicit exports for `.`, `./reset.css`, `./styles.css`, `./theme`, and `./authoring`; declare React and React DOM 19 as peers. Build `check-package-boundaries.mjs` to deny `packages/core/**` imports that contain `kioku`, `react-router-dom`, `apps/`, or `web/src`, and to deny dependency direction from `core` to `cli`, `build`, theme, charts, or Vega. Build `verify-exports.mjs` to read each published package's `package.json` and require every export target to exist after build. Define `core` and the Kioku theme pack as public scoped packages; keep the not-yet-implemented `cli`, `charts`, `vega`, and `lab` manifests private. Task 8 promotes `build` from private to publishable only after its source integrations and tests exist.
 
 - [ ] **Step 4: Run package-boundary, export, and TypeScript tests green**
 
@@ -323,6 +323,10 @@ git commit -m "feat: add configurable theme and link providers"
 - Create: `packages/core/src/components/Grid.tsx`
 - Create: `packages/core/src/components/Section.tsx`
 - Create: `packages/core/src/components/Card.tsx`
+- Create: `packages/core/src/components/CardHeader.tsx`
+- Create: `packages/core/src/components/CardFooter.tsx`
+- Create: `packages/core/src/components/Divider.tsx`
+- Create: `packages/core/src/components/Center.tsx`
 - Create: `packages/core/src/components/VisuallyHidden.tsx`
 - Create: `packages/core/src/components/Text.doc.ts`
 - Create: `packages/core/src/components/Heading.doc.ts`
@@ -330,6 +334,10 @@ git commit -m "feat: add configurable theme and link providers"
 - Create: `packages/core/src/components/Grid.doc.ts`
 - Create: `packages/core/src/components/Section.doc.ts`
 - Create: `packages/core/src/components/Card.doc.ts`
+- Create: `packages/core/src/components/CardHeader.doc.ts`
+- Create: `packages/core/src/components/CardFooter.doc.ts`
+- Create: `packages/core/src/components/Divider.doc.ts`
+- Create: `packages/core/src/components/Center.doc.ts`
 - Create: `packages/core/src/components/VisuallyHidden.doc.ts`
 - Create: `packages/core/src/docs/types.ts`
 - Create: `packages/core/src/docs/types.test.ts`
@@ -407,6 +415,9 @@ git commit -m "feat: add foundation and layout components"
 - Create: `packages/core/src/components/SegmentedControl.tsx`
 - Create: `packages/core/src/components/EmptyState.tsx`
 - Create: `packages/core/src/components/AsyncState.tsx`
+- Create: `packages/core/src/components/Spinner.tsx`
+- Create: `packages/core/src/components/Skeleton.tsx`
+- Create: `packages/core/src/components/Alert.tsx`
 - Create: `packages/core/src/components/Table.tsx`
 - Create: `packages/core/src/components/MetricGrid.tsx`
 - Create: `packages/core/src/components/Button.doc.ts`
@@ -420,6 +431,9 @@ git commit -m "feat: add foundation and layout components"
 - Create: `packages/core/src/components/SegmentedControl.doc.ts`
 - Create: `packages/core/src/components/EmptyState.doc.ts`
 - Create: `packages/core/src/components/AsyncState.doc.ts`
+- Create: `packages/core/src/components/Spinner.doc.ts`
+- Create: `packages/core/src/components/Skeleton.doc.ts`
+- Create: `packages/core/src/components/Alert.doc.ts`
 - Create: `packages/core/src/components/Table.doc.ts`
 - Create: `packages/core/src/components/MetricGrid.doc.ts`
 - Create: `packages/core/src/components/controls.test.tsx`
@@ -453,6 +467,11 @@ it('connects Field label and validation message to TextInput', () => {
 it('does not represent a failed request as an empty result', () => {
   renderUi(<AsyncState state={{kind: 'error', title: 'Request failed'}} />);
   expect(screen.getByRole('alert')).toHaveTextContent('Request failed');
+});
+
+it('renders progress and loading feedback with accessible state', () => {
+  renderUi(<Spinner label="Loading records" />);
+  expect(screen.getByRole('status', {name: 'Loading records'})).toHaveAttribute('aria-busy', 'true');
 });
 ```
 
@@ -685,6 +704,75 @@ Expected: every command completes with exit code 0 from a clean checkout.
 git add apps/storybook apps/sandbox internal/stylex-capabilities internal/vibe-tests .github package.json pnpm-lock.yaml
 git commit -m "chore: add design-system quality gates"
 ```
+
+### Task 9A: Escalate StyleX capability flow analysis to a conservative data-flow model
+
+**Why this is an escalation:**
+
+Task 9 reached its five review/fix rounds with the release matrix green but with two reproducible capability-policy false negatives: mutation of a StyleX alias inside zero-iteration loop paths, and unsupported calls nested in computed destructuring-key expressions. Do not add a sixth syntax-specific patch. Replace the current execution-order simulation with an explicit conservative flow analysis.
+
+**Files:**
+- Modify: `internal/stylex-capabilities/src/capabilities.ts`
+- Modify: `internal/stylex-capabilities/src/capabilities.test.ts`
+- Modify: `internal/stylex-capabilities/src/capabilities.test.ts` fixtures as needed
+- Modify: `internal/stylex-capabilities/README.md` if the accepted-flow policy needs user-facing clarification
+
+**Interfaces:**
+- Consumes: TypeScript AST and the supported StyleX capability policy.
+- Produces: an analysis that never silently accepts a call that may resolve to an unsupported StyleX capability. Dynamic or path-dependent flows may be rejected with an explicit ambiguity diagnostic; they must not be treated as safe.
+
+- [ ] **Step 1: Write failing path-merge and computed-expression fixtures**
+
+Add RED cases for the confirmed zero-iteration loop preservation and computed destructuring-key call. Add positive and negative fixtures for a possibly-mutated alias, a direct local shadow, and a dynamic computed key so the semantic boundary is explicit.
+
+- [ ] **Step 2: Define a conservative binding lattice and path merge**
+
+Represent each lexical binding as one of `other`, `namespace`, `member(name)`, or `maybe-stylex`. Join branch/loop paths instead of applying a simulated iteration mutation unconditionally. A call through `maybe-stylex` must yield a deterministic policy diagnostic rather than pass silently. Preserve lexical identity and do not flag unrelated local shadows.
+
+- [ ] **Step 3: Traverse every evaluated expression**
+
+Visit computed property-name expressions before extracting a static key. Continue resolving static string-literal keys for member and binding-pattern aliases; retain conservative diagnostics for dynamic keys that might carry StyleX capability flow.
+
+- [ ] **Step 3A: Model completions, callable captures, and remaining evaluated syntax**
+
+Do not use a single sequential state to represent a statement list. Model normal, `break`, `continue`, `return`, and throw completions so loop exits join zero, body, and back-edge paths correctly; a `do` body executes at least once. Direct calls to locally declared functions must conservatively apply their captured-binding effects at the call site (or report an ambiguity), while dormant functions must not mutate outer state. Traverse getter/setter bodies and computed accessor names, establish class/static-block scopes, and avoid expression-recursion cycles. Array/aggregate binding patterns must retain exact StyleX flow when their source tuple is statically known. Only update bindings for mutating unary/update operators; non-mutating unary reads cannot clear flow.
+
+Add RED fixtures for: direct captured assignment, a late-mutated capture, break-before-unreachable-clear, mandatory `do` clear, computed getter/setter calls, static-block shadows, ordinary class expressions, aggregate array aliases, and non-mutating unary reads. Each dynamic/path-dependent case must produce an explicit ambiguity rather than silently pass.
+
+- [ ] **Step 4: Verify the complete policy and release matrix**
+
+Run the focused capability suite, strict typecheck, `pnpm check`, two plain `pnpm -r test` runs, `pnpm build`, `pnpm verify-exports`, sandbox and four frozen consumer builds, plus normal `pnpm a11y:audit`. Commit as a separately reviewed escalation task.
+
+### Task 9B: Replace capability flow simulation with a scope-aware direct-use policy
+
+**Why this is an escalation:**
+
+Task 9A demonstrated that simulating JavaScript runtime flow for the entire TypeScript syntax surface (closures, async/generators, calls, accessors, classes, labels, completion states, and aggregates) cannot make the required no-silent-acceptance guarantee with a bounded static analyzer. The policy must therefore restrict the supported authoring subset instead of approximating arbitrary runtime execution.
+
+**Files:**
+- Modify: `internal/stylex-capabilities/src/capabilities.ts`
+- Modify: `internal/stylex-capabilities/src/capabilities.test.ts`
+- Modify: `internal/stylex-capabilities/README.md`
+
+**Interfaces:**
+- Consumes: TypeScript AST and the StyleX namespace import binding.
+- Produces: a scope-aware direct-use policy. It permits a direct supported method on the imported StyleX namespace (including a namespace import alias) and rejects unsupported methods, indirect invocation, dynamic keys, namespace/member aliasing, capture/return/default-parameter flow, aggregate/spread flow, and every other escape of the imported namespace with a deterministic diagnostic. It distinguishes those imports from local bindings that merely share the same spelling.
+
+- [ ] **Step 1: Write failing direct-use policy fixtures**
+
+Add RED cases for every previously discovered flow escape as a direct-use rejection: zero-iteration loop alias, computed destructuring key expression, function return/capture/default parameter, object/array spread and aggregate access, async/generator/class/accessor timing, labels/completion, indirect `.call`/`new`/tagged invocation, and computed/dynamic members. Add negative controls for local, parameter, catch, loop, class-name, and static-block shadows.
+
+- [ ] **Step 2: Implement a lexical direct-use resolver**
+
+Remove runtime-state simulation from the decision path. Build stable lexical scopes/bindings sufficient to identify the actual StyleX namespace import. Accept only `importedNamespace.allowedCapability(...)`; the imported namespace used anywhere else produces an explicit unsupported-flow diagnostic. A static computed method name is equivalent to a dot method for policy purposes; a dynamic key is rejected. Do not flag ordinary local shadows or dynamically unrelated local objects.
+
+- [ ] **Step 3: Document the supported StyleX authoring subset**
+
+Explain that the build integration supports direct static StyleX calls only. Show allowed and rejected examples, the reason for deterministic rejection, and how consumers should rewrite an alias/capture into a direct supported call.
+
+- [ ] **Step 4: Verify focused policy and the release matrix**
+
+Run strict capability typecheck, focused policy tests, `pnpm check`, two plain `pnpm -r test` runs, `pnpm build`, `pnpm verify-exports`, sandbox and four frozen consumer builds, plus normal `pnpm a11y:audit`. Commit as a separately reviewed escalation task.
 
 ### Task 10: Prove package release readiness without publishing
 

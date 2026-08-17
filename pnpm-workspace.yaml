@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - '!apps/example-*'
+  - packages/*
+  - packages/themes/*
+  - internal/*
+
+allowBuilds:
+  esbuild: true

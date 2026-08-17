@@ -1,0 +1,612 @@
+import {createServer} from 'node:http';
+import {mkdir, readFile, rm, writeFile} from 'node:fs/promises';
+import {extname, join, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const visualStoryIds = [
+  'core-button--states',
+  'core-badge--tones',
+  'core-text-input--disabled',
+  'core-text-input--states',
+  'core-toggle--disabled',
+  'core-toggle--states',
+  'core-segmented-control--disabled',
+  'core-segmented-control--states',
+  'core-empty-state--composition',
+  'core-alert--tones',
+  'core-table--composition',
+  'core-metric-grid--composition',
+  'core-card--composition',
+  'core-grid--composition',
+  'core-text-area--disabled',
+  'core-text-area--states',
+  'core-theme-provider--states',
+];
+const fullThemeStoryIds = new Set([
+  'core-button--states',
+  'core-card--composition',
+  'core-table--composition',
+  'core-theme-provider--states',
+]);
+const requiredModes = ['light', 'dark'];
+const requiredThemes = ['washi', 'muji', 'sumi'];
+const pseudoStateStoryIds = new Set([
+  'core-button--states',
+  'core-segmented-control--states',
+  'core-text-area--states',
+  'core-text-input--states',
+  'core-toggle--states',
+]);
+const visualCaptureCaseCount = 100;
+const interactionStateNames = ['rest', 'hover', 'focus', 'active'];
+const viewports = [
+  {height: 900, name: 'desktop-1440x900', width: 1440},
+  {height: 844, name: 'narrow-390x844', width: 390},
+];
+
+function interactionStateSelector(storyId, state) {
+  return storyId === 'core-segmented-control--states'
+    ? `[data-story-state="${state}"] [role="radio"]:not([aria-checked="true"])`
+    : `[data-story-state="${state}"]`;
+}
+
+export function forcedPseudoStateTargets(storyId) {
+  return [
+    {
+      pseudoClasses: ['hover'],
+      selector: interactionStateSelector(storyId, 'hover'),
+    },
+    {
+      pseudoClasses: ['hover', 'active'],
+      selector: interactionStateSelector(storyId, 'active'),
+    },
+    {
+      pseudoClasses: ['focus', 'focus-visible'],
+      selector: interactionStateSelector(storyId, 'focus'),
+    },
+  ];
+}
+
+function requiredPseudoStateTargets(storyId) {
+  return pseudoStateStoryIds.has(storyId)
+    ? forcedPseudoStateTargets(storyId)
+    : [];
+}
+
+export function assertRequiredPseudoStateTargets(storyId, foundSelectors) {
+  const found = new Set(foundSelectors);
+  for (const {selector} of requiredPseudoStateTargets(storyId)) {
+    if (!found.has(selector)) {
+      throw new Error(
+        `Missing required pseudo-state target for ${storyId}: ${selector}`,
+      );
+    }
+  }
+}
+
+export function assertDistinctStateSignatures(storyId, signatures) {
+  const serialized = new Map();
+  for (const state of interactionStateNames) {
+    const signature = signatures?.[state];
+    if (!signature || typeof signature !== 'object') {
+      throw new Error(
+        `Missing interaction state signature for ${storyId}: ${state}`,
+      );
+    }
+    serialized.set(state, JSON.stringify(signature));
+  }
+
+  for (
+    let leftIndex = 0;
+    leftIndex < interactionStateNames.length;
+    leftIndex += 1
+  ) {
+    const leftState = interactionStateNames[leftIndex];
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < interactionStateNames.length;
+      rightIndex += 1
+    ) {
+      const rightState = interactionStateNames[rightIndex];
+      if (serialized.get(leftState) === serialized.get(rightState)) {
+        throw new Error(
+          `Interaction states are visually indistinguishable for ${storyId}: ${leftState} and ${rightState}`,
+        );
+      }
+    }
+  }
+}
+
+function assertExactToolbarValues(name, values, requiredValues) {
+  if (
+    values.length !== requiredValues.length ||
+    requiredValues.some((requiredValue) => !values.includes(requiredValue))
+  ) {
+    throw new Error(
+      `Storybook ${name} toolbar must expose exactly: ${requiredValues.join(', ')}`,
+    );
+  }
+}
+
+function assertUniqueFilenames(cases) {
+  const filenames = new Set();
+  for (const captureCase of cases) {
+    if (filenames.has(captureCase.filename)) {
+      throw new Error(
+        `Visual capture filename collision: ${captureCase.filename}`,
+      );
+    }
+    filenames.add(captureCase.filename);
+  }
+}
+
+export function visualCaptureCases({storyIds, themes, modes, viewports}) {
+  assertExactToolbarValues('theme', themes, requiredThemes);
+  assertExactToolbarValues('mode', modes, requiredModes);
+  const available = new Set(storyIds);
+  const cases = [];
+
+  for (const storyId of visualStoryIds) {
+    if (!available.has(storyId)) {
+      throw new Error(`Missing visual story: ${storyId}`);
+    }
+    const storyThemes = fullThemeStoryIds.has(storyId)
+      ? themes
+      : themes.filter((theme) => theme === 'washi');
+    for (const theme of storyThemes) {
+      for (const mode of modes) {
+        for (const viewport of viewports) {
+          cases.push({
+            filename: `${storyId}-${theme}-${mode}-${viewport.name}.png`,
+            globals: `theme:${theme};mode:${mode}`,
+            storyId,
+            theme,
+            mode,
+            viewport,
+          });
+        }
+      }
+    }
+  }
+
+  assertUniqueFilenames(cases);
+  if (cases.length !== visualCaptureCaseCount) {
+    throw new Error(
+      `Visual capture matrix must contain exactly ${visualCaptureCaseCount} cases; received ${cases.length}`,
+    );
+  }
+  return cases.sort((left, right) =>
+    left.filename.localeCompare(right.filename),
+  );
+}
+
+function contentType(path) {
+  return (
+    {
+      '.css': 'text/css; charset=utf-8',
+      '.html': 'text/html; charset=utf-8',
+      '.js': 'text/javascript; charset=utf-8',
+      '.json': 'application/json; charset=utf-8',
+      '.svg': 'image/svg+xml',
+      '.woff': 'font/woff',
+      '.woff2': 'font/woff2',
+    }[extname(path)] ?? 'application/octet-stream'
+  );
+}
+
+async function serveDirectory(directory) {
+  const root = resolve(directory);
+  const server = createServer(async (request, response) => {
+    try {
+      const pathname = decodeURIComponent(
+        new URL(request.url, 'http://local').pathname,
+      );
+      const requested = pathname === '/' ? 'index.html' : pathname.slice(1);
+      const path = resolve(root, requested);
+      if (path !== root && !path.startsWith(`${root}/`)) {
+        response.writeHead(403).end('Forbidden');
+        return;
+      }
+      response.writeHead(200, {'content-type': contentType(path)});
+      response.end(await readFile(path));
+    } catch {
+      response.writeHead(404).end('Not found');
+    }
+  });
+
+  await new Promise((resolveListening, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolveListening);
+  });
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Visual capture server did not expose a TCP address');
+  }
+  return {
+    close: () => new Promise((resolveClose) => server.close(resolveClose)),
+    url: `http://127.0.0.1:${address.port}`,
+  };
+}
+
+function toolbarValues(globalTypes, name) {
+  const items = globalTypes?.[name]?.toolbar?.items;
+  if (!Array.isArray(items)) {
+    throw new Error(`Storybook ${name} toolbar must declare capture values`);
+  }
+  const values = items.map((item) =>
+    typeof item === 'string' ? item : item?.value,
+  );
+  if (
+    values.length === 0 ||
+    values.some((value) => typeof value !== 'string' || value.length === 0) ||
+    new Set(values).size !== values.length
+  ) {
+    throw new Error(
+      `Storybook ${name} toolbar must declare unique string capture values`,
+    );
+  }
+  return values;
+}
+
+function storyIdsFromIndex(index) {
+  const storyIds = Object.values(index?.entries ?? {})
+    .filter((entry) => entry.type === 'story')
+    .map((entry) => entry.id)
+    .filter((id) => typeof id === 'string')
+    .sort();
+  if (storyIds.length === 0 || new Set(storyIds).size !== storyIds.length) {
+    throw new Error('Storybook index must contain unique canonical story IDs');
+  }
+  return storyIds;
+}
+
+async function waitForReadyStory(page) {
+  await page.waitForFunction(() => {
+    const root = document.querySelector('#storybook-root');
+    if (!root || root.childElementCount === 0) {
+      return false;
+    }
+    const bounds = root.getBoundingClientRect();
+    return bounds.width > 0 && bounds.height > 0;
+  });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((resolveFrame) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolveFrame)),
+    );
+  });
+}
+
+function storyUrl(baseUrl, storyId, globals) {
+  const url = new URL('/iframe.html', baseUrl);
+  url.searchParams.set('id', storyId);
+  url.searchParams.set('viewMode', 'story');
+  url.searchParams.set('globals', globals);
+  return url.href;
+}
+
+async function hostThemeCardSignature(page, themeId) {
+  return page.locator(`[data-theme="${themeId}"] article`).evaluate((card) => {
+    const style = getComputedStyle(card);
+    return {
+      backgroundColor: style.backgroundColor,
+      borderColor: style.borderColor,
+      color: style.color,
+    };
+  });
+}
+
+async function cardSignatureWithin(root) {
+  return root.locator('article').evaluate((card) => {
+    const style = getComputedStyle(card);
+    return {
+      backgroundColor: style.backgroundColor,
+      borderColor: style.borderColor,
+      color: style.color,
+    };
+  });
+}
+
+function assertPaintedHostTheme(themeId, outerTheme, mode, signature) {
+  if (
+    signature.backgroundColor === 'transparent' ||
+    signature.backgroundColor === 'rgba(0, 0, 0, 0)' ||
+    signature.color === 'transparent' ||
+    signature.color === 'rgba(0, 0, 0, 0)'
+  ) {
+    throw new Error(
+      `Host theme ${themeId} is unresolved under ${outerTheme}/${mode}: ${JSON.stringify(signature)}`,
+    );
+  }
+}
+
+async function verifyThemeProviderRuntime({baseUrl, page}) {
+  const signaturesByMode = new Map();
+
+  for (const mode of requiredModes) {
+    for (const outerTheme of requiredThemes) {
+      const globals = `theme:${outerTheme};mode:${mode}`;
+      await page.goto(
+        storyUrl(baseUrl, 'core-theme-provider--states', globals),
+        {waitUntil: 'networkidle'},
+      );
+      await waitForReadyStory(page);
+      await page
+        .locator('[data-theme^="host-theme-"]')
+        .nth(1)
+        .waitFor({state: 'visible'});
+
+      const stateSignatures = {};
+      for (const hostThemeId of ['host-theme-1', 'host-theme-2']) {
+        const signature = await hostThemeCardSignature(page, hostThemeId);
+        assertPaintedHostTheme(hostThemeId, outerTheme, mode, signature);
+        stateSignatures[hostThemeId] = signature;
+      }
+      if (
+        JSON.stringify(stateSignatures['host-theme-1']) ===
+        JSON.stringify(stateSignatures['host-theme-2'])
+      ) {
+        throw new Error(
+          `Host theme states are visually indistinguishable under ${outerTheme}/${mode}`,
+        );
+      }
+
+      const modeSignatures = signaturesByMode.get(mode);
+      if (modeSignatures) {
+        if (
+          JSON.stringify(modeSignatures) !== JSON.stringify(stateSignatures)
+        ) {
+          throw new Error(
+            `Host theme rendering depends on the outer ${outerTheme} registry under ${mode}`,
+          );
+        }
+      } else {
+        signaturesByMode.set(mode, stateSignatures);
+      }
+
+      await page.goto(
+        storyUrl(baseUrl, 'core-theme-provider--composition', globals),
+        {waitUntil: 'networkidle'},
+      );
+      await waitForReadyStory(page);
+      const switchButton = page.getByRole('button', {
+        name: 'Apply alternate host theme',
+      });
+      await switchButton.waitFor({state: 'visible'});
+      const compositionRoot = switchButton.locator(
+        'xpath=ancestor::div[starts-with(@data-theme, "host-theme-")][1]',
+      );
+      if (
+        (await compositionRoot.getAttribute('data-theme')) !== 'host-theme-1'
+      ) {
+        throw new Error(
+          `ThemeProvider composition did not initialize host-theme-1 under ${outerTheme}/${mode}`,
+        );
+      }
+      const initialSignature = await cardSignatureWithin(compositionRoot);
+      const compositionRootHandle = await compositionRoot.elementHandle();
+      if (!compositionRootHandle) {
+        throw new Error('ThemeProvider composition root is missing');
+      }
+      await switchButton.click();
+      await page.waitForFunction(
+        (root) => root.getAttribute('data-theme') === 'host-theme-2',
+        compositionRootHandle,
+      );
+      await page.evaluate(
+        () =>
+          new Promise((resolveFrame) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolveFrame)),
+          ),
+      );
+      const switchedSignature = await cardSignatureWithin(compositionRoot);
+      assertPaintedHostTheme(
+        'host-theme-2',
+        outerTheme,
+        mode,
+        switchedSignature,
+      );
+      if (
+        JSON.stringify(initialSignature) === JSON.stringify(switchedSignature)
+      ) {
+        throw new Error(
+          `Host theme switch produced no visual change under ${outerTheme}/${mode}: ${JSON.stringify({initialSignature, switchedSignature})}`,
+        );
+      }
+    }
+  }
+}
+
+async function screenshotHasVariation(page, screenshot) {
+  return page.evaluate(
+    async (dataUrl) => {
+      const image = new Image();
+      await new Promise((resolveImage, rejectImage) => {
+        image.addEventListener('load', resolveImage, {once: true});
+        image.addEventListener('error', rejectImage, {once: true});
+        image.src = dataUrl;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const context = canvas.getContext('2d');
+      if (!context) return false;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const pixels = context.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      ).data;
+      const first = pixels.slice(0, 4);
+      for (let offset = 4; offset < pixels.length; offset += 4) {
+        if (
+          Math.abs(pixels[offset] - first[0]) > 2 ||
+          Math.abs(pixels[offset + 1] - first[1]) > 2 ||
+          Math.abs(pixels[offset + 2] - first[2]) > 2 ||
+          Math.abs(pixels[offset + 3] - first[3]) > 2
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
+    `data:image/png;base64,${screenshot.toString('base64')}`,
+  );
+}
+
+async function forceInspectablePseudoStates(page, storyId) {
+  const targets = requiredPseudoStateTargets(storyId);
+  if (targets.length === 0) {
+    return undefined;
+  }
+
+  const session = await page.context().newCDPSession(page);
+  try {
+    await Promise.all([session.send('DOM.enable'), session.send('CSS.enable')]);
+    const {root} = await session.send('DOM.getDocument');
+    const targetNodes = [];
+
+    for (const target of targets) {
+      const {nodeId} = await session.send('DOM.querySelector', {
+        nodeId: root.nodeId,
+        selector: target.selector,
+      });
+      targetNodes.push({...target, nodeId});
+    }
+    assertRequiredPseudoStateTargets(
+      storyId,
+      targetNodes
+        .filter(({nodeId}) => nodeId !== 0)
+        .map(({selector}) => selector),
+    );
+
+    for (const {nodeId, pseudoClasses} of targetNodes) {
+      await session.send('CSS.forcePseudoState', {
+        forcedPseudoClasses: pseudoClasses,
+        nodeId,
+      });
+    }
+    return session;
+  } catch (error) {
+    await session.detach();
+    throw error;
+  }
+}
+
+async function assertInspectableStateSignatures(page, storyId) {
+  if (!pseudoStateStoryIds.has(storyId)) {
+    return;
+  }
+
+  await page.evaluate(
+    () =>
+      new Promise((resolveFrame) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolveFrame)),
+      ),
+  );
+  const signatures = {};
+  for (const state of interactionStateNames) {
+    const selector = interactionStateSelector(storyId, state);
+    signatures[state] = await page
+      .locator(selector)
+      .first()
+      .evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          backgroundColor: style.backgroundColor,
+          backgroundImage: style.backgroundImage,
+          borderColor: style.borderColor,
+          borderStyle: style.borderStyle,
+          borderWidth: style.borderWidth,
+          boxShadow: style.boxShadow,
+          color: style.color,
+          opacity: style.opacity,
+          outlineColor: style.outlineColor,
+          outlineOffset: style.outlineOffset,
+          outlineStyle: style.outlineStyle,
+          outlineWidth: style.outlineWidth,
+        };
+      });
+  }
+  assertDistinctStateSignatures(storyId, signatures);
+}
+
+async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
+  const {filename, globals, storyId, viewport} = captureCase;
+  await page.setViewportSize(viewport);
+  await page.goto(storyUrl(baseUrl, storyId, globals), {
+    waitUntil: 'networkidle',
+  });
+  await waitForReadyStory(page);
+
+  const pseudoStateSession = await forceInspectablePseudoStates(page, storyId);
+  try {
+    await assertInspectableStateSignatures(page, storyId);
+    const screenshot = await page.screenshot({animations: 'disabled'});
+    if (
+      screenshot.length < 1_000 ||
+      !(await screenshotHasVariation(page, screenshot))
+    ) {
+      throw new Error(`Visual capture is blank: ${filename}`);
+    }
+    await writeFile(join(outputDirectory, filename), screenshot);
+  } finally {
+    await pseudoStateSession?.detach();
+  }
+}
+
+async function captureVisuals({baseUrl, cases, outputDirectory}) {
+  const {chromium} = await import('@playwright/test');
+  const browser = await chromium.launch({headless: true});
+  const context = await browser.newContext({reducedMotion: 'reduce'});
+  const page = await context.newPage();
+
+  try {
+    await verifyThemeProviderRuntime({baseUrl, page});
+    for (const captureCase of cases) {
+      await captureStory({baseUrl, captureCase, outputDirectory, page});
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+async function runVisualCapture() {
+  const workspaceRoot = fileURLToPath(new URL('../../', import.meta.url));
+  const storybookDirectory = join(
+    workspaceRoot,
+    'apps/storybook/storybook-static',
+  );
+  const outputDirectory = join(
+    workspaceRoot,
+    '.artifacts/astryx-visual-alignment',
+  );
+  const index = JSON.parse(
+    await readFile(join(storybookDirectory, 'index.json'), 'utf8'),
+  );
+  const {storybookGlobalTypes} =
+    await import('../../apps/storybook/.storybook/audit-globals.ts');
+  const cases = visualCaptureCases({
+    modes: toolbarValues(storybookGlobalTypes, 'mode'),
+    storyIds: storyIdsFromIndex(index),
+    themes: toolbarValues(storybookGlobalTypes, 'theme'),
+    viewports,
+  });
+
+  await rm(outputDirectory, {force: true, recursive: true});
+  await mkdir(outputDirectory, {recursive: true});
+  const server = await serveDirectory(storybookDirectory);
+  try {
+    await captureVisuals({baseUrl: server.url, cases, outputDirectory});
+  } finally {
+    await server.close();
+  }
+  console.log(
+    `Captured ${cases.length} visual scenarios in ${outputDirectory}.`,
+  );
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  await runVisualCapture();
+}

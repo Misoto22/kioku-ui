@@ -1,0 +1,25 @@
+{
+  "name": "@misoto22/kioku-ui-sandbox",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter @misoto22/kioku-ui-build build && pnpm --filter @misoto22/kioku-ui build && pnpm --filter @misoto22/kioku-ui-theme-kioku build && vite build",
+    "dev": "vite",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@misoto22/kioku-ui": "workspace:*",
+    "@misoto22/kioku-ui-theme-kioku": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@misoto22/kioku-ui-build": "workspace:*",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^6.0.0",
+    "vite": "^8.2.1"
+  }
+}

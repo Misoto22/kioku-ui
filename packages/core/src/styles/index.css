@@ -1,0 +1,14 @@
+/* Lowest to highest priority: browser normalization, StyleX rules, global accessibility. */
+@layer kioku-ui.reset, kioku-ui.stylex, kioku-ui.global;
+
+@import './reset.css' layer(kioku-ui.reset);
+@import './stylex.css' layer(kioku-ui.stylex);
+
+@layer kioku-ui.global {
+  :focus-visible {
+    outline-color: var(--kioku-ui-color-focus);
+    outline-offset: var(--kioku-ui-focus-offset);
+    outline-style: var(--kioku-ui-border-style);
+    outline-width: var(--kioku-ui-focus-width);
+  }
+}

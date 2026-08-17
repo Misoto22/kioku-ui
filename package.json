@@ -1,0 +1,49 @@
+{
+  "name": "kioku-ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A public, product-neutral React design system.",
+  "license": "MIT",
+  "packageManager": "pnpm@11.10.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "a11y:audit": "pnpm storybook:build && node .github/scripts/accessibility-audit.js",
+    "a11y:baseline": "pnpm storybook:build && node .github/scripts/accessibility-audit.js --update-baseline",
+    "build": "pnpm -r --if-present build",
+    "build:packages": "pnpm --filter './packages/**' --if-present build",
+    "changeset": "changeset",
+    "check": "pnpm check:repo && pnpm check:package-boundaries && pnpm lint && pnpm build:packages && pnpm typecheck && pnpm test",
+    "check:package-boundaries": "node internal/scripts/check-package-boundaries.mjs",
+    "check:repo": "node internal/scripts/check-workspace.mjs",
+    "docsite": "pnpm --dir apps/docsite dev",
+    "examples:build": "pnpm --dir apps/example-vite install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-vite build && pnpm --dir apps/example-nextjs install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-nextjs build && pnpm --dir apps/example-vite-source install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-vite-source build && pnpm --dir apps/example-nextjs-source install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-nextjs-source build",
+    "format": "prettier --check .",
+    "lint": "eslint .",
+    "pack:smoke": "node internal/scripts/pack-smoke.mjs",
+    "release": "changeset publish",
+    "release:verify": "pnpm pack:smoke && pnpm check && pnpm format && pnpm a11y:audit && pnpm build && pnpm verify-exports && pnpm examples:build",
+    "sandbox:build": "pnpm --dir apps/sandbox build",
+    "storybook": "pnpm --dir apps/storybook storybook",
+    "storybook:build": "pnpm --dir apps/storybook build",
+    "sync:exports": "pnpm verify-exports",
+    "test": "node --test internal/scripts/**/*.test.mjs && pnpm -r --workspace-concurrency=1 --if-present test",
+    "typecheck": "tsc --noEmit && pnpm -r --workspace-concurrency=1 --if-present typecheck",
+    "visual:capture": "pnpm storybook:build && node internal/scripts/capture-storybook-visuals.mjs",
+    "verify-exports": "pnpm build:packages && node internal/scripts/verify-exports.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@changesets/cli": "^2.29.7",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.10.1",
+    "eslint": "^10.8.1",
+    "js-yaml": "4.3.1",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.0",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.10"
+  }
+}
