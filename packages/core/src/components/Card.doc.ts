@@ -9,8 +9,14 @@ export const cardDoc = {
       name: 'children',
       description: 'The self-contained article content.',
     },
+    {
+      name: 'elevation',
+      description:
+        'Optional boundary treatment: "none" uses a border; "low" and "medium" use only the matching elevation.',
+    },
   ],
   inheritedProps: ['HTMLAttributes<HTMLElement> except className and children'],
-  example: '<Card aria-label="Summary"><Text>Content</Text></Card>',
+  example:
+    '<Card aria-label="Summary" elevation="none"><Text>Content</Text></Card>',
   storyId: 'foundations--card',
 } satisfies ComponentDoc;

@@ -5,8 +5,13 @@ export const textDoc = {
   description: 'Renders body copy with semantic typography tokens.',
   props: [
     {name: 'size', description: 'Optional semantic size: "sm", "md", or "lg".'},
+    {
+      name: 'tone',
+      description:
+        'Optional hierarchy tone: "primary", "secondary", or "muted".',
+    },
   ],
   inheritedProps: ['HTMLAttributes<HTMLParagraphElement> except className'],
-  example: '<Text size="md">Readable body copy.</Text>',
+  example: '<Text size="md" tone="secondary">Supporting copy.</Text>',
   storyId: 'foundations--text',
 } satisfies ComponentDoc;

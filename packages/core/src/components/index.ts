@@ -1,13 +1,13 @@
-export {Card, type CardProps} from './Card.js';
+export {Card, type CardElevation, type CardProps} from './Card.js';
 export {CardFooter, type CardFooterProps} from './CardFooter.js';
 export {CardHeader, type CardHeaderProps} from './CardHeader.js';
 export {Center, type CenterProps} from './Center.js';
 export {Divider, type DividerProps} from './Divider.js';
 export {Grid, type GridProps} from './Grid.js';
-export {Heading, type HeadingProps} from './Heading.js';
+export {Heading, type HeadingFamily, type HeadingProps} from './Heading.js';
 export {Section, type SectionProps} from './Section.js';
 export {Stack, type Space, type StackProps} from './Stack.js';
-export {Text, type TextProps} from './Text.js';
+export {Text, type TextProps, type TextTone} from './Text.js';
 export {VisuallyHidden, type VisuallyHiddenProps} from './VisuallyHidden.js';
 export {Alert, type AlertProps} from './Alert.js';
 export {

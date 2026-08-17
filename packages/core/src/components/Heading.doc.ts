@@ -5,6 +5,11 @@ export const headingDoc = {
   description: 'Renders a native heading at the requested document level.',
   props: [
     {
+      name: 'family',
+      description:
+        'Optional "interface" family, or explicit "display" family for page-level and editorial headings.',
+    },
+    {
       name: 'level',
       description: 'Required native heading level from 1 through 6.',
       required: true,
@@ -16,6 +21,6 @@ export const headingDoc = {
     },
   ],
   inheritedProps: ['HTMLAttributes<HTMLHeadingElement> except className'],
-  example: '<Heading level={2}>Section title</Heading>',
+  example: '<Heading level={2} size="section">Section title</Heading>',
   storyId: 'foundations--heading',
 } satisfies ComponentDoc;

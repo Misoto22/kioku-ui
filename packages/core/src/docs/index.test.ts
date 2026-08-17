@@ -59,6 +59,9 @@ describe('componentDocs', () => {
       AsyncState: ['children', 'state'],
       Badge: ['tone'],
       Button: ['loading', 'size', 'variant'],
+      Card: ['children', 'elevation'],
+      CardFooter: ['children'],
+      CardHeader: ['children'],
       EmptyState: ['action', 'detail', 'title'],
       Field: [
         'controlId',
@@ -69,6 +72,7 @@ describe('componentDocs', () => {
         'statusTone',
       ],
       IconButton: ['aria-label', 'loading', 'size', 'variant'],
+      Heading: ['family', 'level', 'size'],
       MetricGrid: ['items'],
       Link: ['href'],
       LinkProvider: ['children', 'renderLink'],
@@ -92,6 +96,7 @@ describe('componentDocs', () => {
       TableHead: ['children'],
       TableHeaderCell: ['children', 'scope'],
       TableRow: ['children'],
+      Text: ['size', 'tone'],
       TextArea: [
         'aria-invalid',
         'defaultValue',

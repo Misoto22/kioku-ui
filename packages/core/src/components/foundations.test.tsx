@@ -39,34 +39,61 @@ afterEach(() => {
 });
 
 describe('foundation components', () => {
-  it('renders Heading with the requested semantic level and token-backed variant', () => {
+  it('preserves typography semantics while accepting tone and family APIs', () => {
     renderUi(
-      <Heading level={2} size="section">
-        Account settings
-      </Heading>,
+      <>
+        <Text tone="secondary">Supporting copy</Text>
+        <Text tone="muted">Updated recently</Text>
+        <Heading level={2}>Interface heading</Heading>
+        <Heading family="display" level={1}>
+          Editorial title
+        </Heading>
+      </>,
     );
 
-    const heading = screen.getByRole('heading', {
+    const interfaceHeading = screen.getByRole('heading', {
       level: 2,
-      name: 'Account settings',
+      name: 'Interface heading',
+    });
+    const displayHeading = screen.getByRole('heading', {
+      level: 1,
+      name: 'Editorial title',
     });
 
-    expect(heading).toBeVisible();
-    expect(heading.style.getPropertyValue('color')).toBe(
-      'var(--kioku-ui-color-text)',
+    expect(interfaceHeading.tagName).toBe('H2');
+    expect(displayHeading.tagName).toBe('H1');
+    expect(screen.getByText('Supporting copy').tagName).toBe('P');
+    expect(screen.getByText('Updated recently').tagName).toBe('P');
+    expect(interfaceHeading).not.toHaveAttribute('family');
+    expect(displayHeading).not.toHaveAttribute('family');
+    expect(screen.getByText('Supporting copy')).not.toHaveAttribute('tone');
+    expect(screen.getByText('Updated recently')).not.toHaveAttribute('tone');
+  });
+
+  it('preserves Card article structure across elevation variants', () => {
+    renderUi(
+      <>
+        <Card aria-label="Standard card">
+          <CardHeader>Standard header</CardHeader>
+          <CardFooter>Standard footer</CardFooter>
+        </Card>
+        <Card aria-label="Low card" elevation="low">
+          Low content
+        </Card>
+        <Card aria-label="Medium card" elevation="medium">
+          Medium content
+        </Card>
+      </>,
     );
-    expect(heading.style.getPropertyValue('font-family')).toBe(
-      'var(--kioku-ui-typography-font-family-heading)',
-    );
-    expect(heading.style.getPropertyValue('font-size')).toBe(
-      'var(--kioku-ui-typography-font-size-lg)',
-    );
-    expect(heading.style.getPropertyValue('font-weight')).toBe(
-      'var(--kioku-ui-typography-font-weight-strong)',
-    );
-    expect(heading.style.getPropertyValue('line-height')).toBe(
-      'var(--kioku-ui-typography-line-height-heading)',
-    );
+
+    for (const name of ['Standard card', 'Low card', 'Medium card']) {
+      expect(screen.getByRole('article', {name}).tagName).toBe('ARTICLE');
+      expect(screen.getByRole('article', {name})).not.toHaveAttribute(
+        'elevation',
+      );
+    }
+    expect(screen.getByText('Standard header').tagName).toBe('HEADER');
+    expect(screen.getByText('Standard footer').tagName).toBe('FOOTER');
   });
 
   it('hides VisuallyHidden text visually while preserving its accessible name', () => {
@@ -102,11 +129,12 @@ describe('foundation components', () => {
           <Grid columns={2}>
             <Card>
               <CardHeader>Delivery</CardHeader>
-              <Divider />
+              <Text>Orders are ready for dispatch.</Text>
               <CardFooter>Enabled</CardFooter>
             </Card>
             <Center>Secondary content</Center>
           </Grid>
+          <Divider />
         </Stack>
       </Section>,
     );

@@ -5,8 +5,14 @@ import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
   base: {
-    paddingBlock: semanticTokens.spacingMd,
-    paddingInline: semanticTokens.spacingLg,
+    borderBlockEndColor: semanticTokens.borderDefault,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
+    marginBlockEnd: semanticTokens.spacingXl,
+    marginBlockStart: `calc(-1 * ${semanticTokens.spacingXl})`,
+    marginInline: `calc(-1 * ${semanticTokens.spacingXl})`,
+    paddingBlock: semanticTokens.spacingLg,
+    paddingInline: semanticTokens.spacingXl,
   },
 });
 

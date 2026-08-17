@@ -877,6 +877,207 @@ process.stdout.write(JSON.stringify({
     expectNoRenderedDeclaration(packageCss, unselectedSegment, 'border-color:');
   });
 
+  it('ships typography hierarchy and one Card boundary in compiled CSS', async () => {
+    const fixtureRoot = await mkdtemp(join(packageRoot, '.test-foundations-'));
+    temporaryDirectories.push(fixtureRoot);
+    const loader = await createCssIgnoringLoader(fixtureRoot);
+    const runtime = join(fixtureRoot, 'consumer.mjs');
+
+    await writeFile(
+      runtime,
+      `import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {Card, CardFooter, CardHeader, Heading, Text} from '${packageName}';
+
+const render = (component, props, children) =>
+  renderToStaticMarkup(createElement(component, props, children));
+
+process.stdout.write(JSON.stringify({
+  textPrimary: render(Text, {}, 'Primary'),
+  textSecondary: render(Text, {tone: 'secondary'}, 'Secondary'),
+  textMuted: render(Text, {tone: 'muted'}, 'Muted'),
+  headingInterface: render(Heading, {level: 2}, 'Interface'),
+  headingDisplay: render(Heading, {family: 'display', level: 1}, 'Display'),
+  headingPage: render(Heading, {level: 1, size: 'page'}, 'Page'),
+  headingSection: render(Heading, {level: 2, size: 'section'}, 'Section'),
+  headingSubsection: render(Heading, {level: 3, size: 'subsection'}, 'Subsection'),
+  cardDefault: render(Card, {}, 'Default'),
+  cardNone: render(Card, {elevation: 'none'}, 'None'),
+  cardLow: render(Card, {elevation: 'low'}, 'Low'),
+  cardMedium: render(Card, {elevation: 'medium'}, 'Medium'),
+  cardComposition: render(Card, {}, [
+    createElement(CardHeader, {key: 'header'}, 'Header'),
+    createElement(Text, {key: 'body'}, 'Body'),
+    createElement(CardFooter, {key: 'footer'}, 'Footer'),
+  ]),
+}));
+`,
+    );
+
+    const {stdout} = await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, runtime],
+      {cwd: fixtureRoot},
+    );
+    const markup = JSON.parse(stdout) as Record<string, string>;
+    const packageCss = await readFile(
+      join(packageRoot, 'dist/styles/stylex.css'),
+      'utf8',
+    );
+    const variable = (customProperty: string) =>
+      semanticVariable(packageCss, customProperty);
+    const cardHeader = elementMarkup(markup.cardComposition, 'header');
+    const cardFooter = elementMarkup(markup.cardComposition, 'footer');
+
+    for (const [name, customProperty] of [
+      ['textPrimary', '--kioku-ui-color-text'],
+      ['textSecondary', '--kioku-ui-color-text-secondary'],
+      ['textMuted', '--kioku-ui-color-text-muted'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable(customProperty)})`,
+      );
+    }
+
+    expectRenderedRule(
+      packageCss,
+      markup.headingInterface,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-heading')})`,
+    );
+    expectNoRenderedDeclaration(
+      packageCss,
+      markup.headingInterface,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-display')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.headingDisplay,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-display')})`,
+    );
+    for (const [name, customProperty] of [
+      ['headingPage', '--kioku-ui-typography-font-size2xl'],
+      ['headingSection', '--kioku-ui-typography-font-size-xl'],
+      ['headingSubsection', '--kioku-ui-typography-font-size-lg'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `font-size:var(${variable(customProperty)})`,
+      );
+    }
+
+    for (const name of ['cardDefault', 'cardNone'] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-border-default')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-width:var(${variable('--kioku-ui-border-width')})`,
+      );
+      expectRenderedRule(packageCss, markup[name], 'box-shadow:none');
+    }
+    for (const [name, customProperty] of [
+      ['cardLow', '--kioku-ui-elevation-low'],
+      ['cardMedium', '--kioku-ui-elevation-medium'],
+    ] as const) {
+      expectRenderedRule(packageCss, markup[name], 'border-style:none');
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `box-shadow:var(${variable(customProperty)})`,
+      );
+      expectNoRenderedDeclaration(packageCss, markup[name], 'border-color:');
+      expectNoRenderedDeclaration(packageCss, markup[name], 'border-width:');
+    }
+    for (const name of [
+      'cardDefault',
+      'cardNone',
+      'cardLow',
+      'cardMedium',
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `padding:var(${variable('--kioku-ui-spacing-xl')})`,
+      );
+    }
+
+    for (const name of ['cardHeader', 'cardFooter'] as const) {
+      expectRenderedRule(
+        packageCss,
+        name === 'cardHeader' ? cardHeader : cardFooter,
+        `margin-inline:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+      );
+      expectRenderedRule(
+        packageCss,
+        name === 'cardHeader' ? cardHeader : cardFooter,
+        `padding-block:var(${variable('--kioku-ui-spacing-lg')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        name === 'cardHeader' ? cardHeader : cardFooter,
+        `padding-inline:var(${variable('--kioku-ui-spacing-xl')})`,
+      );
+    }
+    expectRenderedRule(
+      packageCss,
+      cardHeader,
+      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardHeader,
+      `border-bottom-style:var(${variable('--kioku-ui-border-style')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardHeader,
+      `border-bottom-width:var(${variable('--kioku-ui-border-width')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardHeader,
+      `margin-top:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardHeader,
+      `margin-bottom:var(${variable('--kioku-ui-spacing-xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardFooter,
+      `border-top-color:var(${variable('--kioku-ui-border-default')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardFooter,
+      `border-top-style:var(${variable('--kioku-ui-border-style')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardFooter,
+      `border-top-width:var(${variable('--kioku-ui-border-width')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardFooter,
+      `margin-top:var(${variable('--kioku-ui-spacing-xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      cardFooter,
+      `margin-bottom:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+    );
+    expectNoRenderedDeclaration(packageCss, cardHeader, 'border-top');
+    expectNoRenderedDeclaration(packageCss, cardFooter, 'border-bottom');
+  });
+
   it('publishes typed tokens through the compiled authoring subpath', async () => {
     const fixtureRoot = await mkdtemp(
       join(packageRoot, '.test-authoring-types-'),
@@ -947,8 +1148,11 @@ if (!/^var\\(--[^)]+\\)$/.test(semanticTokens.colorText)) {
   AsyncStateValue,
   BadgeTone,
   ButtonVariant,
+  CardElevation,
   ControlSize,
   FieldNecessity,
+  HeadingFamily,
+  TextTone,
   ThemeDefinition,
   TokenContract,
 } from '${packageName}';
@@ -972,6 +1176,9 @@ const badgeTones: readonly BadgeTone[] = [
   'danger',
 ];
 const fieldNecessities: readonly FieldNecessity[] = ['required', 'optional'];
+const textTones: readonly TextTone[] = ['primary', 'secondary', 'muted'];
+const headingFamilies: readonly HeadingFamily[] = ['interface', 'display'];
+const cardElevations: readonly CardElevation[] = ['none', 'low', 'medium'];
 
 const themeId: string = theme.id;
 const canvasValue: string = theme.tokens[contract.color.canvas];
@@ -987,6 +1194,9 @@ void [
   buttonVariants,
   badgeTones,
   fieldNecessities,
+  textTones,
+  headingFamilies,
+  cardElevations,
 ];
 `,
     );
