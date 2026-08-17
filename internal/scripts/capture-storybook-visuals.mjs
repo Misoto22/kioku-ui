@@ -6,8 +6,11 @@ import {fileURLToPath} from 'node:url';
 const visualStoryIds = [
   'core-button--states',
   'core-badge--tones',
+  'core-text-input--disabled',
   'core-text-input--states',
+  'core-toggle--disabled',
   'core-toggle--states',
+  'core-segmented-control--disabled',
   'core-segmented-control--states',
   'core-empty-state--composition',
   'core-alert--tones',
@@ -15,6 +18,7 @@ const visualStoryIds = [
   'core-metric-grid--composition',
   'core-card--composition',
   'core-grid--composition',
+  'core-text-area--disabled',
   'core-text-area--states',
   'core-theme-provider--states',
 ];
@@ -33,27 +37,32 @@ const pseudoStateStoryIds = new Set([
   'core-text-input--states',
   'core-toggle--states',
 ]);
-const visualCaptureCaseCount = 84;
+const visualCaptureCaseCount = 100;
+const interactionStateNames = ['rest', 'hover', 'focus', 'active'];
 const viewports = [
   {height: 900, name: 'desktop-1440x900', width: 1440},
   {height: 844, name: 'narrow-390x844', width: 390},
 ];
 
-export function forcedPseudoStateTargets(storyId) {
-  const target = (state) =>
-    storyId === 'core-segmented-control--states'
-      ? `[data-story-state="${state}"] [role="radio"]:not([aria-checked="true"])`
-      : `[data-story-state="${state}"]`;
+function interactionStateSelector(storyId, state) {
+  return storyId === 'core-segmented-control--states'
+    ? `[data-story-state="${state}"] [role="radio"]:not([aria-checked="true"])`
+    : `[data-story-state="${state}"]`;
+}
 
+export function forcedPseudoStateTargets(storyId) {
   return [
-    {pseudoClasses: ['hover'], selector: target('hover')},
+    {
+      pseudoClasses: ['hover'],
+      selector: interactionStateSelector(storyId, 'hover'),
+    },
     {
       pseudoClasses: ['hover', 'active'],
-      selector: target('active'),
+      selector: interactionStateSelector(storyId, 'active'),
     },
     {
       pseudoClasses: ['focus', 'focus-visible'],
-      selector: target('focus'),
+      selector: interactionStateSelector(storyId, 'focus'),
     },
   ];
 }
@@ -71,6 +80,39 @@ export function assertRequiredPseudoStateTargets(storyId, foundSelectors) {
       throw new Error(
         `Missing required pseudo-state target for ${storyId}: ${selector}`,
       );
+    }
+  }
+}
+
+export function assertDistinctStateSignatures(storyId, signatures) {
+  const serialized = new Map();
+  for (const state of interactionStateNames) {
+    const signature = signatures?.[state];
+    if (!signature || typeof signature !== 'object') {
+      throw new Error(
+        `Missing interaction state signature for ${storyId}: ${state}`,
+      );
+    }
+    serialized.set(state, JSON.stringify(signature));
+  }
+
+  for (
+    let leftIndex = 0;
+    leftIndex < interactionStateNames.length;
+    leftIndex += 1
+  ) {
+    const leftState = interactionStateNames[leftIndex];
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < interactionStateNames.length;
+      rightIndex += 1
+    ) {
+      const rightState = interactionStateNames[rightIndex];
+      if (serialized.get(leftState) === serialized.get(rightState)) {
+        throw new Error(
+          `Interaction states are visually indistinguishable for ${storyId}: ${leftState} and ${rightState}`,
+        );
+      }
     }
   }
 }
@@ -452,6 +494,44 @@ async function forceInspectablePseudoStates(page, storyId) {
   }
 }
 
+async function assertInspectableStateSignatures(page, storyId) {
+  if (!pseudoStateStoryIds.has(storyId)) {
+    return;
+  }
+
+  await page.evaluate(
+    () =>
+      new Promise((resolveFrame) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolveFrame)),
+      ),
+  );
+  const signatures = {};
+  for (const state of interactionStateNames) {
+    const selector = interactionStateSelector(storyId, state);
+    signatures[state] = await page
+      .locator(selector)
+      .first()
+      .evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          backgroundColor: style.backgroundColor,
+          backgroundImage: style.backgroundImage,
+          borderColor: style.borderColor,
+          borderStyle: style.borderStyle,
+          borderWidth: style.borderWidth,
+          boxShadow: style.boxShadow,
+          color: style.color,
+          opacity: style.opacity,
+          outlineColor: style.outlineColor,
+          outlineOffset: style.outlineOffset,
+          outlineStyle: style.outlineStyle,
+          outlineWidth: style.outlineWidth,
+        };
+      });
+  }
+  assertDistinctStateSignatures(storyId, signatures);
+}
+
 async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
   const {filename, globals, storyId, viewport} = captureCase;
   await page.setViewportSize(viewport);
@@ -462,6 +542,7 @@ async function captureStory({baseUrl, captureCase, outputDirectory, page}) {
 
   const pseudoStateSession = await forceInspectablePseudoStates(page, storyId);
   try {
+    await assertInspectableStateSignatures(page, storyId);
     const screenshot = await page.screenshot({animations: 'disabled'});
     if (
       screenshot.length < 1_000 ||

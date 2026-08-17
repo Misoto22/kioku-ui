@@ -15,11 +15,15 @@ const storyIds = [
   'core-empty-state--composition',
   'core-grid--composition',
   'core-metric-grid--composition',
+  'core-segmented-control--disabled',
   'core-segmented-control--states',
   'core-table--composition',
+  'core-text-area--disabled',
   'core-text-area--states',
+  'core-text-input--disabled',
   'core-text-input--states',
   'core-theme-provider--states',
+  'core-toggle--disabled',
   'core-toggle--states',
 ];
 const modes = ['light', 'dark'];
@@ -33,7 +37,7 @@ test('visual capture matrix covers the approved stories, themes, modes, and view
   const cases = visualCaptureCases({storyIds, themes, modes, viewports});
   const filenames = cases.map(({filename}) => filename);
 
-  assert.equal(cases.length, 84);
+  assert.equal(cases.length, 100);
   assert.equal(new Set(filenames).size, filenames.length);
   assert.deepEqual(
     filenames,
@@ -49,6 +53,21 @@ test('visual capture matrix covers the approved stories, themes, modes, and view
   });
 
   for (const storyId of storyIds) {
+    for (const mode of modes) {
+      for (const viewport of viewports) {
+        assert.ok(
+          filenames.includes(`${storyId}-washi-${mode}-${viewport.name}.png`),
+        );
+      }
+    }
+  }
+
+  for (const storyId of [
+    'core-segmented-control--disabled',
+    'core-text-area--disabled',
+    'core-text-input--disabled',
+    'core-toggle--disabled',
+  ]) {
     for (const mode of modes) {
       for (const viewport of viewports) {
         assert.ok(
@@ -224,5 +243,38 @@ test('visual capture rejects near-miss pseudo-state markers for required stories
         ],
       ),
     /Missing required pseudo-state target.*data-story-state="active"/,
+  );
+});
+
+test('visual capture requires distinct computed-style signatures for interaction states', () => {
+  assert.equal(typeof captureModule.assertDistinctStateSignatures, 'function');
+
+  const signatures = {
+    rest: {backgroundColor: 'rgb(255, 255, 255)', outlineWidth: '0px'},
+    hover: {backgroundColor: 'rgb(248, 248, 248)', outlineWidth: '0px'},
+    focus: {backgroundColor: 'rgb(255, 255, 255)', outlineWidth: '2px'},
+    active: {backgroundColor: 'rgb(240, 240, 240)', outlineWidth: '0px'},
+  };
+
+  assert.doesNotThrow(() =>
+    captureModule.assertDistinctStateSignatures(
+      'core-text-input--states',
+      signatures,
+    ),
+  );
+  assert.throws(
+    () =>
+      captureModule.assertDistinctStateSignatures('core-text-input--states', {
+        ...signatures,
+        hover: signatures.rest,
+      }),
+    /Interaction states are visually indistinguishable.*rest.*hover/,
+  );
+  assert.throws(
+    () =>
+      captureModule.assertDistinctStateSignatures('core-text-input--states', {
+        rest: signatures.rest,
+      }),
+    /Missing interaction state signature.*hover/,
   );
 });
