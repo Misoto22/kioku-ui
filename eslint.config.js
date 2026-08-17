@@ -1,3 +1,5 @@
+import tseslint from 'typescript-eslint';
+
 export default [
   {
     ignores: ['.changeset/**', '.github/**', 'node_modules/**'],
@@ -10,6 +12,18 @@ export default [
     },
     rules: {
       'no-unused-vars': 'error',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser,
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
 ];
