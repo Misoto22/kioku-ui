@@ -46,14 +46,14 @@ const styles = stylex.create({
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color',
     transitionTimingFunction: semanticTokens.easingStandard,
+    ':hover:not(:active)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
+    ':focus-within:not(:active)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
     ':active': {
       backgroundColor: semanticTokens.colorOverlayActive,
-    },
-    ':focus-within': {
-      backgroundColor: semanticTokens.colorOverlayHover,
-    },
-    ':hover': {
-      backgroundColor: semanticTokens.colorOverlayHover,
     },
   },
   headerCell: {

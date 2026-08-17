@@ -16,9 +16,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
-    <AsyncState state={{kind: 'loading', label: 'Loading delivery activity'}} />
-  ),
+  args: {state: {kind: 'loading', label: 'Loading delivery activity'}},
+  render: (args) => <AsyncState {...args} />,
 };
 
 export const States: Story = {

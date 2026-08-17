@@ -23,11 +23,11 @@ const hostRenderer = ({children, ...props}: ComponentProps<'a'>) => (
 );
 
 export const Default: Story = {
-  render: () => (
-    <LinkProvider renderLink={hostRenderer}>
-      <Link href="/activity">Open activity with host routing</Link>
-    </LinkProvider>
-  ),
+  args: {
+    children: <Link href="/activity">Open activity with host routing</Link>,
+    renderLink: hostRenderer,
+  },
+  render: (args) => <LinkProvider {...args} />,
 };
 
 export const States: Story = {

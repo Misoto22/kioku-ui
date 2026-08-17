@@ -7,6 +7,12 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Section',
   component: Section,
+  argTypes: {
+    padding: {
+      control: 'select',
+      options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Section>;
 
@@ -29,11 +35,14 @@ function SectionContent({title}: {readonly title: string}) {
 }
 
 export const Default: Story = {
-  render: () => (
+  args: {
+    'aria-label': 'Delivery overview',
+    children: <SectionContent title="Delivery overview" />,
+    padding: 'xl',
+  },
+  render: (args) => (
     <DemoFrame>
-      <Section aria-label="Delivery overview">
-        <SectionContent title="Delivery overview" />
-      </Section>
+      <Section {...args} />
     </DemoFrame>
   ),
 };

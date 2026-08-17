@@ -8,6 +8,20 @@ const meta = {
   id: 'core-text-input',
   title: 'Core/TextInput',
   component: TextInput,
+  args: {
+    'aria-label': 'Saved view name',
+    placeholder: 'Weekly activity',
+  },
+  argTypes: {
+    'aria-invalid': {control: 'boolean'},
+    disabled: {control: 'boolean'},
+    readOnly: {control: 'boolean'},
+    required: {control: 'boolean'},
+    type: {
+      control: 'select',
+      options: ['text', 'email', 'search', 'tel', 'url'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof TextInput>;
 
@@ -15,9 +29,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  render: (args) => (
     <ConstrainedFrame>
-      <TextInput aria-label="Saved view name" placeholder="Weekly activity" />
+      <TextInput {...args} />
     </ConstrainedFrame>
   ),
 };

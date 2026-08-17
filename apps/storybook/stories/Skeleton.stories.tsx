@@ -7,6 +7,7 @@ import {ConstrainedFrame, DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Skeleton',
   component: Skeleton,
+  args: {label: 'Loading activity summary'},
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Skeleton>;
 
@@ -14,9 +15,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  render: (args) => (
     <ConstrainedFrame>
-      <Skeleton label="Loading activity summary" />
+      <Skeleton {...args} />
     </ConstrainedFrame>
   ),
 };

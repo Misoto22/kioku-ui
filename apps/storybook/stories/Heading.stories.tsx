@@ -8,6 +8,11 @@ const meta = {
   title: 'Core/Heading',
   component: Heading,
   args: {level: 2},
+  argTypes: {
+    family: {control: 'select', options: ['interface', 'display']},
+    level: {control: 'select', options: [1, 2, 3, 4, 5, 6]},
+    size: {control: 'select', options: ['page', 'section', 'subsection']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Heading>;
 

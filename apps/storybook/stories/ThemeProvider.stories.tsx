@@ -52,8 +52,8 @@ function ThemeControls() {
 }
 
 export const Default: Story = {
-  render: () => (
-    <ThemeProvider defaultThemeId={hostThemes[0]!.id} themes={hostThemes}>
+  render: (args) => (
+    <ThemeProvider {...args}>
       <Card>
         <Text>
           The provider applies a registry and default supplied by its host.

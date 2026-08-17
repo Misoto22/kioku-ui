@@ -420,37 +420,6 @@ function jsxName(node: ts.JsxElement | ts.JsxSelfClosingElement) {
   return ts.isIdentifier(tagName) ? tagName.text : undefined;
 }
 
-function reachableJsxElements(
-  root: ts.Node,
-  declarations: ReadonlyMap<string, ts.Node>,
-) {
-  const elements: (ts.JsxElement | ts.JsxSelfClosingElement)[] = [];
-  const visitedDeclarations = new Set<ts.Node>();
-
-  function visit(node: ts.Node) {
-    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
-      elements.push(node);
-      const name = jsxName(node);
-      const declaration = name ? declarations.get(name) : undefined;
-      if (declaration && !visitedDeclarations.has(declaration)) {
-        visitedDeclarations.add(declaration);
-        visit(declaration);
-      }
-    }
-    if (ts.isIdentifier(node)) {
-      const declaration = declarations.get(node.text);
-      if (declaration && !visitedDeclarations.has(declaration)) {
-        visitedDeclarations.add(declaration);
-        visit(declaration);
-      }
-    }
-    ts.forEachChild(node, visit);
-  }
-
-  visit(root);
-  return elements;
-}
-
 function canonicalJsxName(
   node: ts.JsxElement | ts.JsxSelfClosingElement,
   aliases: ReadonlyMap<string, string>,
@@ -459,53 +428,395 @@ function canonicalJsxName(
   return name ? (aliases.get(name) ?? name) : undefined;
 }
 
-function jsxDescendants(
-  root: ts.JsxElement | ts.JsxSelfClosingElement,
-  aliases: ReadonlyMap<string, string>,
-) {
-  const names: string[] = [];
-
-  function visit(node: ts.Node) {
-    if (
-      node !== root &&
-      (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node))
-    ) {
-      const name = canonicalJsxName(node, aliases);
-      if (name) names.push(name);
-    }
-    ts.forEachChild(node, visit);
-  }
-
-  visit(root);
-  return names;
+interface RenderNode {
+  readonly children: readonly RenderNode[];
+  readonly name: string;
+  readonly storyStates: readonly string[];
 }
 
-function hasCompleteComposition(
-  elements: readonly (ts.JsxElement | ts.JsxSelfClosingElement)[],
+function jsxStoryStates(node: ts.JsxElement | ts.JsxSelfClosingElement) {
+  const attributes = ts.isJsxElement(node)
+    ? node.openingElement.attributes
+    : node.attributes;
+  const state = attributes.properties.find(
+    (attribute): attribute is ts.JsxAttribute =>
+      ts.isJsxAttribute(attribute) &&
+      ts.isIdentifier(attribute.name) &&
+      attribute.name.text === 'data-story-state',
+  );
+  if (!state?.initializer) return [];
+
+  const values = new Set<string>();
+  function visit(value: ts.Node) {
+    if (
+      ts.isStringLiteral(value) ||
+      ts.isNoSubstitutionTemplateLiteral(value)
+    ) {
+      values.add(value.text);
+    }
+    ts.forEachChild(value, visit);
+  }
+  visit(state.initializer);
+  return [...values];
+}
+
+function objectPropertyInitializer(
+  object: ts.ObjectLiteralExpression,
+  name: string,
+) {
+  const property = object.properties.find(
+    (candidate): candidate is ts.PropertyAssignment =>
+      ts.isPropertyAssignment(candidate) &&
+      ((ts.isIdentifier(candidate.name) && candidate.name.text === name) ||
+        (ts.isStringLiteral(candidate.name) && candidate.name.text === name)),
+  );
+  return property && unwrapExpression(property.initializer);
+}
+
+function functionReturnExpressions(node: ts.Node): ts.Expression[] {
+  if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
+    return [unwrapExpression(node.body)];
+  }
+  const body =
+    (ts.isArrowFunction(node) ||
+      ts.isFunctionExpression(node) ||
+      ts.isFunctionDeclaration(node)) &&
+    node.body;
+  if (!body) return [];
+
+  const expressions: ts.Expression[] = [];
+  function visit(candidate: ts.Node) {
+    if (candidate !== body && ts.isFunctionLike(candidate)) return;
+    if (ts.isReturnStatement(candidate) && candidate.expression) {
+      expressions.push(unwrapExpression(candidate.expression));
+      return;
+    }
+    ts.forEachChild(candidate, visit);
+  }
+  visit(body);
+  return expressions;
+}
+
+function renderedRoots(
+  expression: ts.Expression,
+  declarations: ReadonlyMap<string, ts.Node>,
   aliases: ReadonlyMap<string, string>,
+  visiting = new Set<ts.Node>(),
+): RenderNode[] {
+  const value = unwrapExpression(expression);
+
+  if (ts.isConditionalExpression(value)) {
+    return [
+      ...renderedRoots(value.whenTrue, declarations, aliases, visiting),
+      ...renderedRoots(value.whenFalse, declarations, aliases, visiting),
+    ];
+  }
+  if (ts.isArrayLiteralExpression(value)) {
+    return value.elements.flatMap((element) =>
+      ts.isExpression(element)
+        ? renderedRoots(element, declarations, aliases, visiting)
+        : [],
+    );
+  }
+  if (ts.isJsxFragment(value)) {
+    return renderedJsxChildren(value.children, declarations, aliases, visiting);
+  }
+  if (!ts.isJsxElement(value) && !ts.isJsxSelfClosingElement(value)) {
+    return [];
+  }
+
+  const localName = jsxName(value);
+  const declaration = localName ? declarations.get(localName) : undefined;
+  if (declaration && !aliases.has(localName!) && !visiting.has(declaration)) {
+    const nextVisiting = new Set(visiting).add(declaration);
+    return functionReturnExpressions(declaration).flatMap((returned) =>
+      renderedRoots(returned, declarations, aliases, nextVisiting),
+    );
+  }
+
+  const name = canonicalJsxName(value, aliases);
+  if (!name) return [];
+  const children = ts.isJsxElement(value)
+    ? renderedJsxChildren(value.children, declarations, aliases, visiting)
+    : [];
+  return [{children, name, storyStates: jsxStoryStates(value)}];
+}
+
+function renderedJsxChildren(
+  children: ts.NodeArray<ts.JsxChild>,
+  declarations: ReadonlyMap<string, ts.Node>,
+  aliases: ReadonlyMap<string, string>,
+  visiting: ReadonlySet<ts.Node>,
+) {
+  return children.flatMap((child) => {
+    if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child)) {
+      return renderedRoots(child, declarations, aliases, new Set(visiting));
+    }
+    if (ts.isJsxExpression(child) && child.expression) {
+      return renderedRoots(
+        child.expression,
+        declarations,
+        aliases,
+        new Set(visiting),
+      );
+    }
+    return [];
+  });
+}
+
+function storyRenderFunction(initializer: ts.Expression) {
+  const value = unwrapExpression(initializer);
+  if (!ts.isObjectLiteralExpression(value)) return undefined;
+  const render = objectPropertyInitializer(value, 'render');
+  return render &&
+    (ts.isArrowFunction(render) || ts.isFunctionExpression(render))
+    ? render
+    : undefined;
+}
+
+function storyRenderRoots(
+  initializer: ts.Expression,
+  declarations: ReadonlyMap<string, ts.Node>,
+  aliases: ReadonlyMap<string, string>,
+) {
+  const render = storyRenderFunction(initializer);
+  if (!render) return [];
+  return functionReturnExpressions(render).flatMap((expression) =>
+    renderedRoots(expression, declarations, aliases),
+  );
+}
+
+function descendants(node: RenderNode): RenderNode[] {
+  return node.children.flatMap((child) => [child, ...descendants(child)]);
+}
+
+function containsName(node: RenderNode, name: string) {
+  return (
+    node.name === name || descendants(node).some((item) => item.name === name)
+  );
+}
+
+function tableStateRowsAreInteractive(roots: readonly RenderNode[]) {
+  const requiredStates = new Set(['rest', 'hover', 'focus', 'active']);
+  const coveredStates = new Set<string>();
+  let invalidStateRow = false;
+
+  function visit(node: RenderNode) {
+    if (node.name === 'TableRow') {
+      const states = node.storyStates.filter((state) =>
+        requiredStates.has(state),
+      );
+      if (states.length > 0) {
+        const interactive = ['Link', 'Button', 'IconButton'].some((name) =>
+          containsName(node, name),
+        );
+        if (!interactive) invalidStateRow = true;
+        if (interactive) states.forEach((state) => coveredStates.add(state));
+      }
+    }
+    node.children.forEach(visit);
+  }
+
+  roots.forEach(visit);
+  return (
+    !invalidStateRow &&
+    [...requiredStates].every((state) => coveredStates.has(state))
+  );
+}
+
+function completeCard(node: RenderNode, target: string) {
+  if (node.name !== 'Card' || !containsName(node, target)) return false;
+  const directNames = node.children.map(({name}) => name);
+  return (
+    directNames.includes('CardHeader') && directNames.includes('CardFooter')
+  );
+}
+
+function completeTable(node: RenderNode, target: string) {
+  if (node.name !== 'Table' || !containsName(node, target)) return false;
+  const caption = node.children.find(({name}) => name === 'TableCaption');
+  const head = node.children.find(({name}) => name === 'TableHead');
+  const body = node.children.find(({name}) => name === 'TableBody');
+  if (!caption || !head || !body) return false;
+  const headRows = head.children.filter(({name}) => name === 'TableRow');
+  const bodyRows = body.children.filter(({name}) => name === 'TableRow');
+  return (
+    headRows.some((row) =>
+      row.children.some(({name}) => name === 'TableHeaderCell'),
+    ) &&
+    bodyRows.some((row) => row.children.some(({name}) => name === 'TableCell'))
+  );
+}
+
+function everyStructuralTargetHasCompleteParent(
+  roots: readonly RenderNode[],
   family: 'Card' | 'Table',
   target: string,
 ) {
-  const completeNames =
-    family === 'Card'
-      ? ['CardHeader', 'CardFooter']
-      : [
-          'TableCaption',
-          'TableHead',
-          'TableBody',
-          'TableRow',
-          'TableHeaderCell',
-          'TableCell',
-        ];
+  let foundTarget = false;
+  let allComplete = true;
 
-  return elements.some((element) => {
-    if (canonicalJsxName(element, aliases) !== family) return false;
-    const descendants = jsxDescendants(element, aliases);
-    return (
-      descendants.includes(target) &&
-      completeNames.every((name) => descendants.includes(name))
-    );
-  });
+  function visit(node: RenderNode, ancestors: readonly RenderNode[]) {
+    if (node.name === target) {
+      foundTarget = true;
+      const familyNode = [...ancestors]
+        .reverse()
+        .find(({name}) => name === family);
+      if (
+        !familyNode ||
+        (family === 'Card'
+          ? !completeCard(familyNode, target)
+          : !completeTable(familyNode, target))
+      ) {
+        allComplete = false;
+      }
+    }
+    for (const child of node.children) visit(child, [...ancestors, node]);
+  }
+
+  for (const root of roots) visit(root, []);
+  return foundTarget && allComplete;
+}
+
+function structuralHierarchyProblems(roots: readonly RenderNode[]) {
+  const problems = new Set<string>();
+
+  function visit(node: RenderNode, ancestors: readonly RenderNode[]) {
+    const parent = ancestors.at(-1);
+    const grandparent = ancestors.at(-2);
+    const insideCard = ancestors.some(({name}) => name === 'Card');
+    const insideTable = ancestors.some(({name}) => name === 'Table');
+
+    if (
+      insideCard &&
+      (node.name === 'CardHeader' || node.name === 'CardFooter') &&
+      parent?.name !== 'Card'
+    ) {
+      problems.add(`${node.name} must be a direct child of Card`);
+    }
+    if (
+      insideTable &&
+      ['TableCaption', 'TableHead', 'TableBody'].includes(node.name) &&
+      parent?.name !== 'Table'
+    ) {
+      problems.add(`${node.name} must be a direct child of Table`);
+    }
+    if (
+      insideTable &&
+      node.name === 'TableRow' &&
+      parent?.name !== 'TableHead' &&
+      parent?.name !== 'TableBody'
+    ) {
+      problems.add('TableRow must be a direct child of TableHead or TableBody');
+    }
+    if (
+      insideTable &&
+      node.name === 'TableHeaderCell' &&
+      (parent?.name !== 'TableRow' || grandparent?.name !== 'TableHead')
+    ) {
+      problems.add('TableHeaderCell must belong to a TableRow in TableHead');
+    }
+    if (
+      insideTable &&
+      node.name === 'TableCell' &&
+      (parent?.name !== 'TableRow' || grandparent?.name !== 'TableBody')
+    ) {
+      problems.add('TableCell must belong to a TableRow in TableBody');
+    }
+
+    for (const child of node.children) visit(child, [...ancestors, node]);
+  }
+
+  for (const root of roots) visit(root, []);
+  return [...problems];
+}
+
+function identifierNames(binding: ts.BindingName): string[] {
+  if (ts.isIdentifier(binding)) return [binding.text];
+  return binding.elements.flatMap((element) =>
+    ts.isOmittedExpression(element) ? [] : identifierNames(element.name),
+  );
+}
+
+function expressionReferencesAny(
+  expression: ts.Expression,
+  names: ReadonlySet<string>,
+) {
+  let found = false;
+  function visit(node: ts.Node) {
+    if (ts.isIdentifier(node) && names.has(node.text)) found = true;
+    if (!found) ts.forEachChild(node, visit);
+  }
+  visit(expression);
+  return found;
+}
+
+function renderAppliesArgs(initializer: ts.Expression) {
+  const render = storyRenderFunction(initializer);
+  if (!render) return true;
+  const parameter = render.parameters[0];
+  if (!parameter) return false;
+  const names = new Set(identifierNames(parameter.name));
+  return functionReturnExpressions(render).some((expression) =>
+    expressionReferencesAny(expression, names),
+  );
+}
+
+function storyObject(initializer: ts.Expression) {
+  const value = unwrapExpression(initializer);
+  return ts.isObjectLiteralExpression(value) ? value : undefined;
+}
+
+function storyStateTargets(
+  initializer: ts.Expression,
+  declarations: ReadonlyMap<string, ts.Node>,
+) {
+  const values = new Set<string>();
+  const visitedDeclarations = new Set<ts.Node>();
+  function visit(node: ts.Node) {
+    if (
+      ts.isJsxAttribute(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === 'data-story-state' &&
+      node.initializer
+    ) {
+      function collectValue(value: ts.Node) {
+        if (ts.isStringLiteral(value)) values.add(value.text);
+        ts.forEachChild(value, collectValue);
+      }
+      collectValue(node.initializer);
+    }
+    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const name = jsxName(node);
+      const declaration = name ? declarations.get(name) : undefined;
+      if (declaration && !visitedDeclarations.has(declaration)) {
+        visitedDeclarations.add(declaration);
+        visit(declaration);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(initializer);
+  return values;
+}
+
+function playDrivesFocusAndPointer(initializer: ts.Expression) {
+  const object = storyObject(initializer);
+  const play = object && objectPropertyInitializer(object, 'play');
+  if (!play) return false;
+  let focus = false;
+  let pointer = false;
+  function visit(node: ts.Node) {
+    if (ts.isPropertyAccessExpression(node) && node.name.text === 'focus') {
+      focus = true;
+    }
+    if (ts.isPropertyAccessExpression(node) && node.name.text === 'pointer') {
+      pointer = true;
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(play);
+  return focus && pointer;
 }
 
 const placeholderCopy = ['First item', 'Alpha', 'Example values'] as const;
@@ -524,6 +835,7 @@ export function storySourceProblems(
   file = 'Unknown.stories.tsx',
 ) {
   const sourceFile = storySourceFile(sourceText, file);
+  const componentName = storyComponentName(sourceFile);
   const aliases = namedImportAliases(sourceFile);
   const declarations = localDeclarations(sourceFile);
   const stories = exportedStoryInitializers(sourceFile);
@@ -553,6 +865,48 @@ export function storySourceProblems(
   }
 
   for (const [storyName, initializer] of stories) {
+    if (
+      componentName &&
+      storyName === 'Default' &&
+      !renderAppliesArgs(initializer)
+    ) {
+      problems.push(
+        `${file} story Default render must apply its Storybook args`,
+      );
+    }
+
+    if (
+      storyName === 'States' &&
+      componentName &&
+      ['Button', 'IconButton', 'Table'].includes(componentName)
+    ) {
+      const targets = storyStateTargets(initializer, declarations);
+      if (
+        !['rest', 'hover', 'focus', 'active'].every((state) =>
+          targets.has(state),
+        )
+      ) {
+        problems.push(
+          `${file} story States must expose rest, hover, focus, and active state targets`,
+        );
+      }
+      if (!playDrivesFocusAndPointer(initializer)) {
+        problems.push(
+          `${file} story States must drive its targets with a play function`,
+        );
+      }
+      if (
+        componentName === 'Table' &&
+        !tableStateRowsAreInteractive(
+          storyRenderRoots(initializer, declarations, aliases),
+        )
+      ) {
+        problems.push(
+          `${file} story States must put interactive content in every state row`,
+        );
+      }
+    }
+
     const cardTarget = cardStructuralStories.find(
       (name) => storyName === name || storyName === `${name}Story`,
     );
@@ -563,8 +917,18 @@ export function storySourceProblems(
     const target = cardTarget ?? tableTarget;
     if (!family || !target) continue;
 
-    const elements = reachableJsxElements(initializer, declarations);
-    if (!hasCompleteComposition(elements, aliases, family, target)) {
+    const roots = storyRenderRoots(initializer, declarations, aliases);
+    for (const hierarchyProblem of structuralHierarchyProblems(roots)) {
+      problems.push(
+        `${file} story ${storyName} has invalid structural hierarchy: ${hierarchyProblem}`,
+      );
+    }
+    const complete = everyStructuralTargetHasCompleteParent(
+      roots,
+      family,
+      target,
+    );
+    if (!complete) {
       problems.push(
         `${file} story ${storyName} must render ${target} within a complete ${family} composition`,
       );

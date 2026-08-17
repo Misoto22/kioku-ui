@@ -7,7 +7,19 @@ import {ConstrainedFrame, DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Field',
   component: Field,
-  args: {label: 'View name'},
+  args: {
+    children: <TextInput placeholder="Quarterly deliveries" />,
+    description: 'Used to identify this view in the workspace.',
+    label: 'View name',
+    necessity: 'required',
+  },
+  argTypes: {
+    necessity: {control: 'select', options: ['required', 'optional']},
+    statusTone: {
+      control: 'select',
+      options: ['info', 'success', 'warning', 'danger'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Field>;
 
@@ -15,15 +27,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  render: (args) => (
     <ConstrainedFrame>
-      <Field
-        description="Used to identify this view in the workspace."
-        label="View name"
-        necessity="required"
-      >
-        <TextInput placeholder="Quarterly deliveries" />
-      </Field>
+      <Field {...args} />
     </ConstrainedFrame>
   ),
 };

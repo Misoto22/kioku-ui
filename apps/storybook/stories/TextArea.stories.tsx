@@ -8,6 +8,16 @@ const meta = {
   id: 'core-text-area',
   title: 'Core/TextArea',
   component: TextArea,
+  args: {
+    'aria-label': 'Release note',
+    placeholder: 'Summarize the update',
+  },
+  argTypes: {
+    'aria-invalid': {control: 'boolean'},
+    disabled: {control: 'boolean'},
+    readOnly: {control: 'boolean'},
+    required: {control: 'boolean'},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof TextArea>;
 
@@ -15,9 +25,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  render: (args) => (
     <ConstrainedFrame>
-      <TextArea aria-label="Release note" placeholder="Summarize the update" />
+      <TextArea {...args} />
     </ConstrainedFrame>
   ),
 };

@@ -7,6 +7,12 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Alert',
   component: Alert,
+  argTypes: {
+    tone: {
+      control: 'select',
+      options: ['info', 'success', 'warning', 'danger'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Alert>;
 

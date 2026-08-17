@@ -16,6 +16,10 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Card',
   component: Card,
+  args: {elevation: 'none'},
+  argTypes: {
+    elevation: {control: 'select', options: ['none', 'low', 'medium']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Card>;
 
@@ -61,7 +65,7 @@ function CardExample({elevation, focus}: CardExampleProps) {
   );
 }
 
-export const Default: Story = {render: () => <CardExample />};
+export const Default: Story = {render: (args) => <CardExample {...args} />};
 
 export const Elevations: Story = {
   render: () => (

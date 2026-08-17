@@ -9,6 +9,9 @@ const meta = {
   title: 'Core/EmptyState',
   component: EmptyState,
   args: {title: 'No saved views yet'},
+  argTypes: {
+    size: {control: 'select', options: ['compact', 'default']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof EmptyState>;
 

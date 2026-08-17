@@ -9,6 +9,13 @@ const meta = {
   title: 'Core/IconButton',
   component: IconButton,
   args: {'aria-label': 'Action'},
+  argTypes: {
+    size: {control: 'select', options: ['sm', 'md', 'lg']},
+    variant: {
+      control: 'select',
+      options: ['primary', 'secondary', 'ghost', 'destructive'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof IconButton>;
 
@@ -91,19 +98,61 @@ export const States: Story = {
       items={[
         {
           label: 'Rest',
-          content: <IconButton aria-label="Add filter">+</IconButton>,
+          content: (
+            <IconButton aria-label="Add filter" data-story-state="rest">
+              +
+            </IconButton>
+          ),
+        },
+        {
+          label: 'Pointer hover',
+          content: (
+            <IconButton aria-label="Preview filters" data-story-state="hover">
+              ↗
+            </IconButton>
+          ),
         },
         {
           label: 'Keyboard focus',
           content: (
-            <IconButton aria-label="Close filters" autoFocus>
+            <IconButton aria-label="Close filters" data-story-state="focus">
               ×
+            </IconButton>
+          ),
+        },
+        {
+          label: 'Pointer active',
+          content: (
+            <IconButton
+              aria-label="Publish filters"
+              data-story-state="active"
+              onMouseDown={(event) => event.preventDefault()}
+            >
+              ✓
             </IconButton>
           ),
         },
       ]}
     />
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const focusTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="focus"]',
+    );
+    const activeTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="active"]',
+    );
+    const hoverTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="hover"]',
+    );
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('IconButton state targets are missing');
+    }
+
+    focusTarget.focus();
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const Disabled: Story = {

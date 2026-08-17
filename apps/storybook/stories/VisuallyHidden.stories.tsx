@@ -8,6 +8,7 @@ const meta = {
   id: 'core-visually-hidden',
   title: 'Core/VisuallyHidden',
   component: VisuallyHidden,
+  args: {children: 'Open workspace actions'},
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof VisuallyHidden>;
 
@@ -15,10 +16,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  render: (args) => (
     <Button>
       <span aria-hidden="true">•••</span>
-      <VisuallyHidden>Open workspace actions</VisuallyHidden>
+      <VisuallyHidden {...args} />
     </Button>
   ),
 };

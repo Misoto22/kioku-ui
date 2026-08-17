@@ -14,7 +14,16 @@ const meta = {
   id: 'core-segmented-control',
   title: 'Core/SegmentedControl',
   component: SegmentedControl,
-  args: {'aria-label': 'Activity range', options: rangeOptions},
+  args: {
+    'aria-label': 'Activity range',
+    defaultValue: 'month',
+    options: rangeOptions,
+    orientation: 'horizontal',
+  },
+  argTypes: {
+    disabled: {control: 'boolean'},
+    orientation: {control: 'select', options: ['horizontal', 'vertical']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof SegmentedControl>;
 
@@ -22,13 +31,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
-    <SegmentedControl
-      aria-label="Activity range"
-      defaultValue="month"
-      options={rangeOptions}
-    />
-  ),
+  render: (args) => <SegmentedControl {...args} />,
 };
 
 export const States: Story = {

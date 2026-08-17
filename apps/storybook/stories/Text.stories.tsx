@@ -7,6 +7,10 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Text',
   component: Text,
+  argTypes: {
+    size: {control: 'select', options: ['sm', 'md', 'lg']},
+    tone: {control: 'select', options: ['primary', 'secondary', 'muted']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Text>;
 

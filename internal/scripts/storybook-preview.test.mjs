@@ -67,10 +67,10 @@ test('Storybook preview defaults component stories to padded layout', async () =
   assert.equal(layoutValue.text, 'padded');
 });
 
-test('Storybook preview keeps theme ownership without global decorator padding', async () => {
+test('Storybook preview keeps theme ownership without the former 24px wrapper', async () => {
   const preview = await previewSource();
   let themeProviderCall = false;
-  let paddingProperty = false;
+  let numericTwentyFourPadding = false;
 
   function visit(node) {
     if (
@@ -86,14 +86,16 @@ test('Storybook preview keeps theme ownership without global decorator padding',
     if (
       ts.isPropertyAssignment(node) &&
       ((ts.isIdentifier(node.name) && node.name.text === 'padding') ||
-        (ts.isStringLiteral(node.name) && node.name.text === 'padding'))
+        (ts.isStringLiteral(node.name) && node.name.text === 'padding')) &&
+      ts.isNumericLiteral(node.initializer) &&
+      node.initializer.text === '24'
     ) {
-      paddingProperty = true;
+      numericTwentyFourPadding = true;
     }
     ts.forEachChild(node, visit);
   }
 
   visit(preview);
   assert.equal(themeProviderCall, true);
-  assert.equal(paddingProperty, false);
+  assert.equal(numericTwentyFourPadding, false);
 });

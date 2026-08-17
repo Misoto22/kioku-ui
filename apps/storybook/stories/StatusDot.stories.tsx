@@ -9,6 +9,12 @@ const meta = {
   title: 'Core/StatusDot',
   component: StatusDot,
   args: {'aria-label': 'Workspace status'},
+  argTypes: {
+    tone: {
+      control: 'select',
+      options: ['info', 'success', 'warning', 'danger'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof StatusDot>;
 

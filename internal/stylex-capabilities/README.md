@@ -93,13 +93,16 @@ the public core recipes are supported:
 :disabled
 :active:not(:disabled)
 :hover:not(:disabled)
+:hover:not(:disabled):not(:active)
 ::before
 ::placeholder
 :active:not(:disabled):not(:read-only):not(:focus-visible)
 :hover:not(:disabled):not(:read-only):not(:focus-visible)
 :active
 :focus-within
+:focus-within:not(:active)
 :hover
+:hover:not(:active)
 :not(:last-child)
 :focus-visible
 ```

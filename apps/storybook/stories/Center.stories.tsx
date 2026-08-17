@@ -7,6 +7,7 @@ import {DemoFrame} from './support/StoryFrame';
 const meta = {
   title: 'Core/Center',
   component: Center,
+  args: {children: <Card>Centered workspace summary</Card>},
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Center>;
 
@@ -14,13 +15,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  render: (args) => (
     <DemoFrame>
-      <Center>
-        <Card>
-          <Text>Centered workspace summary</Text>
-        </Card>
-      </Center>
+      <Center {...args} />
     </DemoFrame>
   ),
 };

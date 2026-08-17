@@ -25,16 +25,20 @@ const preview: Preview = {
 
       return createElement(
         ThemeProvider,
-        {defaultThemeId: theme.id, themes: kiokuThemes},
+        {defaultThemeId: theme.id, key: theme.id, themes: kiokuThemes},
         createElement(
           'div',
           {
             'data-story-mode': mode,
+            'data-story-surface': 'true',
             style: {
               background: 'var(--kioku-ui-color-canvas)',
+              boxSizing: 'border-box',
               color: 'var(--kioku-ui-color-text)',
               colorScheme: mode,
+              margin: '-1rem',
               minHeight: '100vh',
+              padding: '1rem',
             },
           },
           createElement(Story),

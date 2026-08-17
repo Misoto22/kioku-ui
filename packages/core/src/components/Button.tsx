@@ -49,25 +49,25 @@ const styles = stylex.create({
     backgroundColor: semanticTokens.colorAccent,
     borderColor: semanticTokens.colorAccent,
     color: semanticTokens.colorTextOnAccent,
+    ':hover:not(:disabled):not(:active)': {
+      backgroundColor: semanticTokens.colorAccentHover,
+      borderColor: semanticTokens.colorAccentHover,
+    },
     ':active:not(:disabled)': {
       backgroundColor: semanticTokens.colorAccentActive,
       borderColor: semanticTokens.colorAccentActive,
-    },
-    ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorAccentHover,
-      borderColor: semanticTokens.colorAccentHover,
     },
   },
   secondary: {
     backgroundColor: semanticTokens.colorSurface,
     borderColor: semanticTokens.borderStrong,
     color: semanticTokens.colorText,
-    ':active:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayActive,
+    ':hover:not(:disabled):not(:active)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
       borderColor: semanticTokens.borderInteractive,
     },
-    ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
+    ':active:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayActive,
       borderColor: semanticTokens.borderInteractive,
     },
   },
@@ -75,22 +75,22 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     borderColor: 'transparent',
     color: semanticTokens.colorText,
+    ':hover:not(:disabled):not(:active)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
     ':active:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayActive,
-    },
-    ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
     },
   },
   destructive: {
     backgroundColor: semanticTokens.statusDangerSurface,
     borderColor: semanticTokens.statusDangerText,
     color: semanticTokens.statusDangerText,
+    ':hover:not(:disabled):not(:active)': {
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
+    },
     ':active:not(:disabled)': {
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
-    },
-    ':hover:not(:disabled)': {
-      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
   },
   loading: {cursor: 'progress'},

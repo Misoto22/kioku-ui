@@ -390,6 +390,7 @@ process.stdout.write(JSON.stringify({
       `background-color:var(${variable('--kioku-ui-color-accent-hover')})`,
       ':hover',
       true,
+      [':not(:active)'],
     );
     expectRenderedRule(
       packageCss,
@@ -414,6 +415,7 @@ process.stdout.write(JSON.stringify({
       `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
       ':hover',
       true,
+      [':not(:active)'],
     );
     expectRenderedRule(
       packageCss,
@@ -433,6 +435,7 @@ process.stdout.write(JSON.stringify({
       `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
       ':hover',
       true,
+      [':not(:active)'],
     );
     expectRenderedRule(
       packageCss,
@@ -458,6 +461,7 @@ process.stdout.write(JSON.stringify({
         `background-image:linear-gradient(var(${variable('--kioku-ui-color-overlay-hover')}),var(${variable('--kioku-ui-color-overlay-hover')}))`,
         ':hover',
         true,
+        [':not(:active)'],
       );
       expectNoRenderedRule(
         packageCss,
@@ -1402,6 +1406,8 @@ process.stdout.write(JSON.stringify({
       defaultRow,
       `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
       ':hover',
+      false,
+      [':not(:active)'],
     );
     expectRenderedRule(
       packageCss,
@@ -1414,6 +1420,8 @@ process.stdout.write(JSON.stringify({
       defaultRow,
       `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
       ':focus-within',
+      false,
+      [':not(:active)'],
     );
     const cardTable = elementMarkup(markup.cardTable, 'table');
     expectNoRenderedDeclaration(packageCss, cardTable, 'border-color:');

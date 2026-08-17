@@ -20,6 +20,17 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Table',
   component: Table,
+  args: {density: 'default', dividers: 'rows'},
+  argTypes: {
+    density: {
+      control: 'select',
+      options: ['compact', 'default', 'spacious'],
+    },
+    dividers: {
+      control: 'select',
+      options: ['rows', 'columns', 'grid', 'none'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Table>;
 
@@ -30,9 +41,10 @@ interface TableExampleProps {
   readonly density?: TableDensity;
   readonly dividers?: TableDividers;
   readonly focus?: 'body' | 'caption' | 'cell' | 'head' | 'headerCell' | 'row';
+  readonly states?: boolean;
 }
 
-function TableExample({density, dividers, focus}: TableExampleProps) {
+function TableExample({density, dividers, focus, states}: TableExampleProps) {
   return (
     <DemoFrame>
       <Card>
@@ -56,13 +68,15 @@ function TableExample({density, dividers, focus}: TableExampleProps) {
             </TableRowComponent>
           </TableHeadComponent>
           <TableBodyComponent>
-            <TableRowComponent>
+            <TableRowComponent data-story-state={states ? 'rest' : undefined}>
               <TableCellComponent>
-                {focus === 'cell'
-                  ? 'Cell — North region'
-                  : focus === 'body'
-                    ? 'Table body — North region'
-                    : 'North region'}
+                {states
+                  ? 'Rest — North region'
+                  : focus === 'cell'
+                    ? 'Cell — North region'
+                    : focus === 'body'
+                      ? 'Table body — North region'
+                      : 'North region'}
               </TableCellComponent>
               <TableCellComponent>
                 <Badge tone="success">Ready</Badge>
@@ -71,9 +85,13 @@ function TableExample({density, dividers, focus}: TableExampleProps) {
                 <Link href="/owners/operations">Operations</Link>
               </TableCellComponent>
             </TableRowComponent>
-            <TableRowComponent>
+            <TableRowComponent data-story-state={states ? 'focus' : undefined}>
               <TableCellComponent>
-                {focus === 'row' ? 'Row — Central region' : 'Central region'}
+                {states
+                  ? 'Focus within — Central region'
+                  : focus === 'row'
+                    ? 'Row — Central region'
+                    : 'Central region'}
               </TableCellComponent>
               <TableCellComponent>
                 <Badge tone="warning">Review</Badge>
@@ -82,6 +100,33 @@ function TableExample({density, dividers, focus}: TableExampleProps) {
                 <Link href="/owners/support">Support</Link>
               </TableCellComponent>
             </TableRowComponent>
+            {states ? (
+              <>
+                <TableRowComponent data-story-state="hover">
+                  <TableCellComponent>Hover — South region</TableCellComponent>
+                  <TableCellComponent>
+                    <Badge tone="info">Scheduled</Badge>
+                  </TableCellComponent>
+                  <TableCellComponent>
+                    <Link href="/owners/planning">Planning</Link>
+                  </TableCellComponent>
+                </TableRowComponent>
+                <TableRowComponent data-story-state="active">
+                  <TableCellComponent>Active — West region</TableCellComponent>
+                  <TableCellComponent>
+                    <Badge tone="warning">Review</Badge>
+                  </TableCellComponent>
+                  <TableCellComponent>
+                    <Link
+                      href="/owners/review"
+                      onMouseDown={(event) => event.preventDefault()}
+                    >
+                      Review team
+                    </Link>
+                  </TableCellComponent>
+                </TableRowComponent>
+              </>
+            ) : null}
           </TableBodyComponent>
         </Table>
       </Card>
@@ -89,7 +134,7 @@ function TableExample({density, dividers, focus}: TableExampleProps) {
   );
 }
 
-export const Default: Story = {render: () => <TableExample />};
+export const Default: Story = {render: (args) => <TableExample {...args} />};
 
 export const Densities: Story = {
   render: () => (
@@ -117,7 +162,25 @@ export const Dividers: Story = {
 };
 
 export const States: Story = {
-  render: () => <TableExample focus="row" />,
+  render: () => <TableExample states />,
+  play: async ({canvasElement, userEvent}) => {
+    const focusTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="focus"] a',
+    );
+    const activeTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="active"] a',
+    );
+    const hoverTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="hover"] a',
+    );
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('Table state targets are missing');
+    }
+
+    focusTarget.focus();
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const TableCaption: Story = {

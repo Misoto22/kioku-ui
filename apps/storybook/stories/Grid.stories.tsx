@@ -7,6 +7,10 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Grid',
   component: Grid,
+  argTypes: {
+    columns: {control: 'select', options: [1, 2, 3, 4]},
+    gap: {control: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Grid>;
 
@@ -22,13 +26,19 @@ function GridItem({title}: {readonly title: string}) {
 }
 
 export const Default: Story = {
-  render: () => (
-    <DemoFrame>
-      <Grid columns={3}>
+  args: {
+    children: (
+      <>
         <GridItem title="Delivery" />
         <GridItem title="Access" />
         <GridItem title="Activity" />
-      </Grid>
+      </>
+    ),
+    columns: 3,
+  },
+  render: (args) => (
+    <DemoFrame>
+      <Grid {...args} />
     </DemoFrame>
   ),
 };

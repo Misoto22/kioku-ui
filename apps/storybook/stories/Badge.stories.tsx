@@ -7,6 +7,12 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Badge',
   component: Badge,
+  argTypes: {
+    tone: {
+      control: 'select',
+      options: ['neutral', 'info', 'success', 'warning', 'danger'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Badge>;
 

@@ -7,6 +7,13 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Button',
   component: Button,
+  argTypes: {
+    size: {control: 'select', options: ['sm', 'md', 'lg']},
+    variant: {
+      control: 'select',
+      options: ['primary', 'secondary', 'ghost', 'destructive'],
+    },
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Button>;
 
@@ -56,18 +63,50 @@ export const States: Story = {
   render: () => (
     <StateGrid
       items={[
-        {label: 'Rest', content: <Button>Open activity</Button>},
         {
-          label: 'Keyboard focus',
-          content: <Button autoFocus>Continue setup</Button>,
+          label: 'Rest',
+          content: <Button data-story-state="rest">Open activity</Button>,
         },
         {
-          label: 'Pressed semantics',
-          content: <Button aria-pressed="true">Pinned view</Button>,
+          label: 'Pointer hover',
+          content: <Button data-story-state="hover">Preview activity</Button>,
+        },
+        {
+          label: 'Keyboard focus',
+          content: <Button data-story-state="focus">Continue setup</Button>,
+        },
+        {
+          label: 'Pointer active',
+          content: (
+            <Button
+              data-story-state="active"
+              onMouseDown={(event) => event.preventDefault()}
+            >
+              Publish changes
+            </Button>
+          ),
         },
       ]}
     />
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const focusTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="focus"]',
+    );
+    const activeTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="active"]',
+    );
+    const hoverTarget = canvasElement.querySelector<HTMLElement>(
+      '[data-story-state="hover"]',
+    );
+    if (!focusTarget || !activeTarget || !hoverTarget) {
+      throw new Error('Button state targets are missing');
+    }
+
+    focusTarget.focus();
+    await userEvent.pointer({keys: '[MouseLeft>]', target: activeTarget});
+    await userEvent.hover(hoverTarget);
+  },
 };
 
 export const Disabled: Story = {

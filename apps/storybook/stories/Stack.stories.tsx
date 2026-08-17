@@ -7,6 +7,10 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Stack',
   component: Stack,
+  argTypes: {
+    align: {control: 'select', options: ['stretch', 'start', 'center', 'end']},
+    gap: {control: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl']},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Stack>;
 
@@ -30,11 +34,10 @@ function VisibleItems() {
 }
 
 export const Default: Story = {
-  render: () => (
+  args: {children: <VisibleItems />, gap: 'md'},
+  render: (args) => (
     <DemoFrame>
-      <Stack>
-        <VisibleItems />
-      </Stack>
+      <Stack {...args} />
     </DemoFrame>
   ),
 };

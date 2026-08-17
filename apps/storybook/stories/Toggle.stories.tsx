@@ -7,6 +7,10 @@ import {DemoFrame, StateGrid} from './support/StoryFrame';
 const meta = {
   title: 'Core/Toggle',
   component: Toggle,
+  argTypes: {
+    defaultPressed: {control: 'boolean'},
+    disabled: {control: 'boolean'},
+  },
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof Toggle>;
 
