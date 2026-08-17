@@ -1,6 +1,6 @@
 import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import {Card, MetricGrid, Stack, Text} from '@misoto22/kioku-ui';
+import {MetricGrid, Stack, Text} from '@misoto22/kioku-ui';
 
 import {DemoFrame, StateGrid} from './support/StoryFrame';
 
@@ -47,17 +47,15 @@ export const States: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Card>
-        <Stack gap="lg">
-          <Stack gap="xs">
-            <Text>Workspace overview</Text>
-            <Text size="sm" tone="secondary">
-              Activity captured over the last seven days.
-            </Text>
-          </Stack>
-          <MetricGrid items={overviewItems} />
+      <Stack gap="lg">
+        <Stack gap="xs">
+          <Text>Workspace overview</Text>
+          <Text size="sm" tone="secondary">
+            Activity captured over the last seven days.
+          </Text>
         </Stack>
-      </Card>
+        <MetricGrid items={overviewItems} />
+      </Stack>
     </DemoFrame>
   ),
 };

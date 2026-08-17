@@ -99,6 +99,38 @@ async function resolveThemeValue(
   return resolvePrivateValue(privateName ?? '', declarations);
 }
 
+function lightDarkHexPair(value: string | undefined) {
+  const match = value?.match(
+    /light-dark\(\s*(#[0-9a-f]{6})\s*,\s*(#[0-9a-f]{6})\s*\)/i,
+  );
+  if (!match?.[1] || !match[2]) {
+    throw new Error(`Expected a light-dark hex pair, received ${value}`);
+  }
+  return [match[1], match[2]] as const;
+}
+
+function relativeLuminance(hex: string) {
+  const channels = hex
+    .slice(1)
+    .match(/.{2}/g)
+    ?.map((value) => Number.parseInt(value, 16) / 255);
+  if (!channels || channels.length !== 3) {
+    throw new Error(`Expected a six-digit hex color, received ${hex}`);
+  }
+  const [red = 0, green = 0, blue = 0] = channels.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function contrastRatio(foreground: string, background: string) {
+  const luminances = [
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  ].sort((left, right) => right - left);
+  return ((luminances[0] ?? 0) + 0.05) / ((luminances[1] ?? 0) + 0.05);
+}
+
 describe('Kioku themes', () => {
   it.each(themes)('fulfills the complete token contract for $id', (theme) => {
     expect(validateThemeDefinition(theme)).toEqual([]);
@@ -196,6 +228,28 @@ describe('compiled theme CSS', () => {
         expect(resolvePrivateValue(privateName ?? '', declarations)).toContain(
           'light-dark(',
         );
+      }
+    }
+  });
+
+  it('keeps muted text at AA contrast on canvas and surface in both modes', async () => {
+    for (const theme of themes) {
+      const muted = lightDarkHexPair(
+        await resolveThemeValue(theme.id, 'color.textMuted'),
+      );
+      const backgrounds = await Promise.all(
+        (['color.canvas', 'color.surface'] as const).map(async (tokenName) =>
+          lightDarkHexPair(await resolveThemeValue(theme.id, tokenName)),
+        ),
+      );
+
+      for (const [modeIndex, foreground] of muted.entries()) {
+        for (const background of backgrounds) {
+          expect(
+            contrastRatio(foreground, background[modeIndex] ?? ''),
+            `${theme.id} muted text fails AA in mode ${modeIndex}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
       }
     }
   });

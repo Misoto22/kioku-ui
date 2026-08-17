@@ -140,7 +140,7 @@
   --kioku-theme-color-surface-muted: light-dark(#eceae2, #30312b);
   --kioku-theme-color-text: light-dark(#24251f, #f4f3ed);
   --kioku-theme-color-text-secondary: light-dark(#62645b, #c4c5bc);
-  --kioku-theme-color-text-muted: light-dark(#74776d, #a5a79d);
+  --kioku-theme-color-text-muted: light-dark(#6e7168, #a5a79d);
   --kioku-theme-color-text-on-accent: light-dark(#ffffff, #172019);
   --kioku-theme-color-accent: light-dark(#4f6751, #a7c0a8);
   --kioku-theme-color-accent-hover: light-dark(#435845, #b6ceb7);
@@ -186,7 +186,7 @@
   --kioku-theme-color-surface-muted: light-dark(#e8e9e4, #30332d);
   --kioku-theme-color-text: light-dark(#2f322c, #edeee9);
   --kioku-theme-color-text-secondary: light-dark(#62665d, #c1c5bc);
-  --kioku-theme-color-text-muted: light-dark(#73776d, #9ea39a);
+  --kioku-theme-color-text-muted: light-dark(#6c6f66, #9ea39a);
   --kioku-theme-color-text-on-accent: light-dark(#ffffff, #172017);
   --kioku-theme-color-accent: light-dark(#566b52, #a9c2a4);
   --kioku-theme-color-accent-hover: light-dark(#495c46, #b8cfb3);
@@ -232,7 +232,7 @@
   --kioku-theme-color-surface-muted: light-dark(#eaeae6, #292927);
   --kioku-theme-color-text: light-dark(#131311, #f2f2ee);
   --kioku-theme-color-text-secondary: light-dark(#565650, #c4c4bd);
-  --kioku-theme-color-text-muted: light-dark(#777770, #9f9f98);
+  --kioku-theme-color-text-muted: light-dark(#6f6f68, #9f9f98);
   --kioku-theme-color-text-on-accent: light-dark(#ffffff, #101820);
   --kioku-theme-color-accent: light-dark(#1d4d7c, #8bb9e5);
   --kioku-theme-color-accent-hover: light-dark(#173f66, #9dc7ec);

@@ -1,4 +1,5 @@
 node_modules/
+.artifacts/
 dist/
 apps/example-*/.next/
 apps/storybook/storybook-static/
