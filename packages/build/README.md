@@ -68,7 +68,8 @@ source Next.js reference app demonstrates that small resolver setting.
   config/options builders. It supports both ESM import and CommonJS framework
   loading.
 - `@misoto22/kioku-ui-build/vite` exports the Vite plugin integration.
-- The package root re-exports all three APIs and their TypeScript types.
+- The package root re-exports the Babel and PostCSS APIs. Vite stays on its
+  typed `/vite` subpath so Next.js-only consumers do not need Vite installed.
 
 See `apps/example-vite-source` and `apps/example-nextjs-source` for complete
 source consumers. Their compiled counterparts show the no-build-integration

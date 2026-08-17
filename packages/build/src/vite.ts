@@ -21,6 +21,7 @@ export function kiokuUiVitePlugin({
   rootDir = process.cwd(),
   ...overrides
 }: KiokuUiViteOptions = {}): KiokuUiViteIntegration {
+  const sourcePackages = [...new Set([CORE_PACKAGE, ...include])];
   const configPlugin: Plugin = {
     name: 'kioku-ui-source-config',
     config(): UserConfig {
@@ -33,7 +34,8 @@ export function kiokuUiVitePlugin({
             },
           ],
         },
-        optimizeDeps: {exclude: [CORE_PACKAGE]},
+        optimizeDeps: {exclude: sourcePackages},
+        ssr: {optimizeDeps: {exclude: sourcePackages}},
       };
     },
   };
@@ -46,13 +48,14 @@ export function kiokuUiVitePlugin({
   ) => Plugin;
   const stylexPlugin = createStylexVitePlugin({
     ...stylexOptions,
+    externalPackages: sourcePackages,
     useCSSLayers: true,
   }) as Plugin;
   const plugins = [configPlugin, stylexPlugin] as KiokuUiViteIntegration;
 
   Object.defineProperty(plugins, 'include', {
     enumerable: true,
-    value: Object.freeze([CORE_PACKAGE, ...include]),
+    value: Object.freeze([...sourcePackages]),
   });
 
   return plugins;

@@ -2,7 +2,15 @@ import {transformAsync} from '@babel/core';
 import {execFile} from 'node:child_process';
 import {createRequire} from 'node:module';
 import postcss from 'postcss';
-import {mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -86,6 +94,24 @@ export const styles = stylex.create({root: {color: 'rebeccapurple'}});`,
     );
   });
 
+  it('compiles with frozen Babel options without mutating the caller', async () => {
+    const options = Object.freeze({dev: false, rootDir: workspaceRoot});
+    const result = await transformAsync(
+      `import * as stylex from '@stylexjs/stylex';
+export const styles = stylex.create({root: {color: 'navy'}});`,
+      {
+        babelrc: false,
+        configFile: false,
+        filename: join(workspaceRoot, 'consumer/src/frozen.stylex.ts'),
+        parserOpts: {plugins: ['typescript']},
+        plugins: [[kiokuUiBabelPlugin, options]],
+      },
+    );
+
+    expect(result?.code).not.toContain('stylex.create');
+    expect(options).toEqual({dev: false, rootDir: workspaceRoot});
+  });
+
   it('resolves emitted JavaScript theme specifiers to installed TypeScript source', async () => {
     const filename = join(
       workspaceRoot,
@@ -149,6 +175,45 @@ export const styles = stylex.create({root: {color: 'rebeccapurple'}});`,
     );
   });
 
+  it('deoptimizes every included source package through the official Vite plugin', async () => {
+    const integration = kiokuUiVitePlugin({
+      include: ['@acme/source-components'],
+      rootDir: workspaceRoot,
+    });
+    const stylexPlugin = integration.find(
+      (plugin) => plugin.name === '@stylexjs/unplugin',
+    );
+    const configHook =
+      typeof stylexPlugin?.config === 'function'
+        ? stylexPlugin.config
+        : stylexPlugin?.config?.handler;
+
+    expect(configHook).toBeTypeOf('function');
+    const config = await configHook?.call(
+      {} as never,
+      {
+        optimizeDeps: {exclude: ['existing-client-package']},
+        ssr: {optimizeDeps: {exclude: ['existing-ssr-package']}},
+      },
+      {command: 'build', mode: 'production'} as never,
+    );
+
+    expect(config?.optimizeDeps?.exclude).toEqual(
+      expect.arrayContaining([
+        'existing-client-package',
+        '@misoto22/kioku-ui',
+        '@acme/source-components',
+      ]),
+    );
+    expect(config?.ssr?.optimizeDeps?.exclude).toEqual(
+      expect.arrayContaining([
+        'existing-ssr-package',
+        '@misoto22/kioku-ui',
+        '@acme/source-components',
+      ]),
+    );
+  });
+
   it('resolves source authoring through the public source entrypoint', async () => {
     const consumerRoot = resolve(workspaceRoot, 'apps/example-vite-source');
     const integration = kiokuUiVitePlugin({rootDir: consumerRoot});
@@ -183,6 +248,80 @@ export const styles = stylex.create({root: {color: 'rebeccapurple'}});`,
 });
 
 describe('reference distribution applications', () => {
+  it('compiles a packed root-import consumer without installing Vite', async () => {
+    const fixtureRoot = await mkdtemp(join(tmpdir(), 'kioku-ui-no-vite-'));
+    temporaryDirectories.push(fixtureRoot);
+    await run(pnpm, ['pack', '--pack-destination', fixtureRoot], {
+      cwd: packageRoot,
+    });
+    const archive = (await readdir(fixtureRoot)).find((file) =>
+      file.endsWith('.tgz'),
+    );
+    expect(archive).toBeDefined();
+    await writeFile(
+      join(fixtureRoot, 'package.json'),
+      JSON.stringify({
+        name: 'kioku-ui-build-no-vite-consumer',
+        private: true,
+        type: 'module',
+        dependencies: {
+          '@misoto22/kioku-ui-build': `file:./${archive}`,
+        },
+      }),
+    );
+    await run(
+      pnpm,
+      [
+        'install',
+        '--ignore-workspace',
+        '--offline',
+        '--ignore-scripts',
+        '--config.auto-install-peers=false',
+      ],
+      {cwd: fixtureRoot},
+    );
+    await expect(
+      access(join(fixtureRoot, 'node_modules/vite')),
+    ).rejects.toThrow();
+    const consumer = join(fixtureRoot, 'consumer.ts');
+    await writeFile(
+      consumer,
+      `import {createKiokuUiBabelConfig} from '@misoto22/kioku-ui-build';
+
+const config = createKiokuUiBabelConfig({rootDir: '.'});
+void config;
+`,
+    );
+
+    try {
+      await run(
+        process.execPath,
+        [
+          join(workspaceRoot, 'node_modules/typescript/bin/tsc'),
+          '--ignoreConfig',
+          '--noEmit',
+          '--strict',
+          '--module',
+          'NodeNext',
+          '--moduleResolution',
+          'NodeNext',
+          '--target',
+          'ES2024',
+          consumer,
+        ],
+        {cwd: fixtureRoot},
+      );
+    } catch (error) {
+      const result = error as Error & {stderr?: string; stdout?: string};
+      throw new Error(
+        [result.message, result.stdout, result.stderr]
+          .filter(Boolean)
+          .join('\n'),
+        {cause: error},
+      );
+    }
+  });
+
   it('does not require a source build plugin for the compiled Vite example', async () => {
     expect(await packageUsesBuildPlugin('apps/example-vite')).toBe(false);
   });

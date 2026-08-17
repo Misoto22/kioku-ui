@@ -11,8 +11,3 @@ export {
   default as kiokuUiPostcssPlugin,
   type KiokuUiPostcssOptions,
 } from './postcss.js';
-export {
-  kiokuUiVitePlugin,
-  type KiokuUiViteIntegration,
-  type KiokuUiViteOptions,
-} from './vite.js';

@@ -1,8 +1,10 @@
 import stylexBabelPlugin from '@stylexjs/babel-plugin';
 import type {
+  BabelFile,
   ConfigAPI,
   PluginItem,
   PluginObj,
+  PluginPass,
   TransformOptions,
 } from '@babel/core';
 import {existsSync, readFileSync} from 'node:fs';
@@ -121,11 +123,18 @@ export default function kiokuUiBabelPlugin(
 ): PluginObj {
   const transform = stylexBabelPlugin as unknown as (
     babelApi: ConfigAPI,
-    stylexOptions: KiokuUiStylexOptions,
   ) => PluginObj;
+  const normalizedOptions = createKiokuUiStylexOptions(options);
+  const plugin = transform(api);
+  const upstreamPre = plugin.pre;
 
-  Object.assign(options, createKiokuUiStylexOptions(options));
-  return transform(api, options);
+  return {
+    ...plugin,
+    pre(this: PluginPass, file: BabelFile) {
+      this.opts = normalizedOptions;
+      upstreamPre?.call(this, file);
+    },
+  };
 }
 
 export function createKiokuUiBabelConfig({

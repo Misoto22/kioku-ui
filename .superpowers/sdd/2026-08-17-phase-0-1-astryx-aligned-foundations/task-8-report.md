@@ -2,6 +2,7 @@
 
 Date: 2026-08-17
 Commit message: `feat: add StyleX distribution integrations`
+Focused fix commit message: `fix: harden StyleX build integrations`
 
 ## Outcome
 
@@ -30,10 +31,12 @@ definitions plus `Button`, `Field`, `TextInput`, and `Card`.
   PostCSS loader.
 - Added the real StyleX Vite integration. It selects the public
   `@misoto22/kioku-ui/source` entrypoint through an exact package-root alias,
-  leaves CSS subpaths untouched, and excludes the compiled root from dependency
-  optimization.
-- Published root and per-tool JavaScript/type exports, documentation, package
-  contents, and dependencies for `@misoto22/kioku-ui-build`.
+  leaves CSS subpaths untouched, passes every included source package to the
+  official plugin's `externalPackages` option, and excludes them from client
+  and SSR dependency optimization.
+- Published Babel/PostCSS JavaScript and type exports at the package root and
+  all three typed per-tool exports. Vite remains on `/vite`, keeping the root
+  type surface usable when the optional Vite peer is absent.
 - Published the core `./source` entrypoint and included the source tree in the
   core package artifact. Compiled root behavior remains the default.
 - Added standalone compiled/source Vite and Next.js examples with isolated
@@ -140,7 +143,7 @@ Command:
 pnpm -F @misoto22/kioku-ui-build test -- src/build.test.ts
 ```
 
-Result: exit 0; 1 file and 13 tests passed. Coverage includes real Babel
+Result: exit 0; 1 file and 16 tests passed. Coverage includes real Babel
 transformation, installed TypeScript theme resolution, real PostCSS extraction,
 CommonJS PostCSS loading, semantic Vite/Next config behavior, public source
 resolution, and compiled/source manifest contracts.
@@ -170,7 +173,7 @@ pnpm --dir apps/example-nextjs-source build
 
 Result: exit 0.
 
-- Build integration: 13/13 tests passed.
+- Build integration: 16/16 tests passed.
 - Compiled Vite: 58 modules; 43.62 kB CSS and 201.02 kB JavaScript.
 - Source Vite: 57 modules; 31.90 kB extracted CSS and 201.04 kB JavaScript.
 - Compiled Next.js: Next 16.3.1 Turbopack compiled, typechecked, and statically
@@ -230,7 +233,7 @@ pnpm verify-exports
 
 Results:
 
-- build package: typecheck/build exit 0; 13/13 tests passed;
+- build package: typecheck/build exit 0; 16/16 tests passed;
 - all package-specific typechecks exit 0;
 - workspace/repository, boundary, and lint checks exit 0;
 - internal repository suite: 8/8 tests passed;
@@ -252,6 +255,84 @@ successful builds and export verification.
 
 Scoped Prettier checking for every Task 8 authored source/configuration file and
 `git diff --check` both exit 0.
+
+## Focused independent-review fix round 1
+
+The review identified three public integration defects. Tests were added before
+their fixes and exercised the real integrations rather than implementation
+strings or decorative metadata.
+
+### Focused RED
+
+Command:
+
+```text
+pnpm -F @misoto22/kioku-ui-build test -- src/build.test.ts -t 'frozen|deoptimizes|without installing Vite'
+```
+
+Result: exit 1; 3 failed and 13 passed.
+
+- A frozen Babel options object threw
+  `Cannot assign to read only property 'dev' of object '#<Object>'` at the
+  integration's `Object.assign`.
+- Calling the official `@stylexjs/unplugin` Vite plugin's `config` hook did not
+  include either `@misoto22/kioku-ui` or the supplied
+  `@acme/source-components`; the old `include` property was metadata only.
+- A packed, isolated Next-only consumer installed with
+  `--config.auto-install-peers=false` and no `vite` package failed TypeScript:
+  `dist/vite.d.ts(1,29): error TS2307: Cannot find module 'vite'`.
+
+### Minimal fixes and focused GREEN
+
+- The Vite integration deduplicates core and caller-supplied source packages,
+  passes that list to the official plugin as `externalPackages`, and excludes
+  it from client and SSR dependency optimization. The regression calls the
+  official plugin's own `config` hook and verifies both the core and custom
+  package, so returned integration metadata alone cannot satisfy it.
+- Root declarations now export Babel and PostCSS only. The typed Vite API stays
+  available from the documented `/vite` subpath, isolating its optional peer.
+  The regression packs the actual artifact, installs it offline into a
+  temporary package without peer auto-installation, asserts Vite is absent,
+  and compiles a root Babel-config import using NodeNext TypeScript.
+- The Babel wrapper creates a normalized copy and places it on the Babel plugin
+  pass before upstream visitors run. It no longer mutates caller options, and a
+  frozen-options transform proves StyleX compilation still occurs.
+
+Command:
+
+```text
+pnpm -F @misoto22/kioku-ui-build build && \
+pnpm -F @misoto22/kioku-ui-build test
+```
+
+Result: exit 0; build passed and all 16 tests passed, including installed-source
+resolution and the CommonJS PostCSS bridge.
+
+All four lockfile-isolated installs were refreshed with
+`--ignore-workspace --frozen-lockfile --ignore-scripts`. Existing build outputs
+were moved to `/tmp/kioku-ui-task8-review.3qIaMf`, then this chain ran from empty
+output directories:
+
+```text
+pnpm --dir apps/example-vite build && \
+pnpm --dir apps/example-vite-source build && \
+pnpm --dir apps/example-nextjs build && \
+pnpm --dir apps/example-nextjs-source build
+```
+
+Result: exit 0 for all four paths. Compiled Vite transformed 58 modules; source
+Vite transformed 57 and extracted 31.90 kB CSS; compiled Next used Turbopack;
+source Next used webpack, explicitly loaded `babel.config.js`, typechecked,
+statically generated `/`, and collected build traces.
+
+The final package/repository chain reran build-package typecheck, build, and all
+16 tests; all package typechecks; repository and boundary checks; lint; 8
+internal tests; recursive builds; and export verification. Every command exited
+0. The packed artifact includes root/Babel/PostCSS/Vite JavaScript and
+declarations plus the CommonJS bridge. Its generated root declaration has no
+Vite import. Source Vite/Next artifact assertions again confirmed extracted
+StyleX CSS, no retained `stylex.create`, installed public source modules in the
+Next trace, and no compiled StyleX CSS in that source trace.
 
 ## Known inherited limitations
 
