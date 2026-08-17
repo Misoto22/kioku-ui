@@ -1219,12 +1219,16 @@ async function renderPackedRuntime(consumerRoot) {
 }
 
 async function installPackedConsumer(consumer, consumerRoot) {
+  // Resolution has to reach the registry: the consumer's bundler pulls its
+  // native binding through platform optional dependencies, and an offline
+  // resolve silently writes a lockfile that omits the ones this machine has
+  // never downloaded.
   await runCommand(
     pnpm,
     [
       'install',
       '--ignore-workspace',
-      '--offline',
+      '--prefer-offline',
       '--ignore-scripts',
       '--lockfile-only',
       '--config.auto-install-peers=false',

@@ -13,7 +13,7 @@ React 19 components, semantic tokens, and StyleX build tooling.
 <br />
 
 ![React](https://img.shields.io/badge/React-19-087EA4)
-![StyleX](https://img.shields.io/badge/StyleX-0.19.0-1E1E1E)
+![StyleX](https://img.shields.io/badge/StyleX-0.19.0-5A5A5A)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)
 ![Node](https://img.shields.io/badge/Node.js-24+-5FA04E)
 ![License](https://img.shields.io/badge/License-MIT-750014)
