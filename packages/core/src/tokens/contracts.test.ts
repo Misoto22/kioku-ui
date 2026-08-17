@@ -22,7 +22,24 @@ describe('validateThemeDefinition', () => {
         label: 'Incomplete',
         tokens: nonColorTokens,
       }),
-    ).toEqual(['color.canvas', 'color.surface', 'color.text', 'color.focus']);
+    ).toEqual([
+      'color.canvas',
+      'color.surface',
+      'color.surfaceRaised',
+      'color.surfaceMuted',
+      'color.text',
+      'color.textSecondary',
+      'color.textMuted',
+      'color.textOnAccent',
+      'color.accent',
+      'color.accentHover',
+      'color.accentActive',
+      'color.overlayHover',
+      'color.overlayActive',
+      'color.disabledSurface',
+      'color.disabledText',
+      'color.focus',
+    ]);
   });
 
   it('reports the complete contract in stable group order', () => {
@@ -56,28 +73,82 @@ describe('tokenContract', () => {
       'typography',
       'spacing',
       'radius',
+      'size',
       'elevation',
       'motion',
-      'density',
     ]);
+  });
+
+  it('defines the complete semantic color vocabulary', () => {
+    expect(tokenContract.color).toEqual({
+      canvas: 'color.canvas',
+      surface: 'color.surface',
+      surfaceRaised: 'color.surfaceRaised',
+      surfaceMuted: 'color.surfaceMuted',
+      text: 'color.text',
+      textSecondary: 'color.textSecondary',
+      textMuted: 'color.textMuted',
+      textOnAccent: 'color.textOnAccent',
+      accent: 'color.accent',
+      accentHover: 'color.accentHover',
+      accentActive: 'color.accentActive',
+      overlayHover: 'color.overlayHover',
+      overlayActive: 'color.overlayActive',
+      disabledSurface: 'color.disabledSurface',
+      disabledText: 'color.disabledText',
+      focus: 'color.focus',
+    });
   });
 
   it('separates border color, width, and style roles', () => {
     expect(tokenContract.border).toEqual({
       default: 'border.default',
       strong: 'border.strong',
+      interactive: 'border.interactive',
+      disabled: 'border.disabled',
       width: 'border.width',
       style: 'border.style',
     });
   });
 
-  it('defines density separately from semantic spacing', () => {
-    expect(tokenContract.density).toEqual({
-      controlBlock: 'density.controlBlock',
-      controlInline: 'density.controlInline',
-      itemGap: 'density.itemGap',
+  it('defines the final typography, radius, and size roles', () => {
+    expect(tokenContract.typography).toEqual({
+      fontFamilyBody: 'typography.fontFamilyBody',
+      fontFamilyHeading: 'typography.fontFamilyHeading',
+      fontFamilyDisplay: 'typography.fontFamilyDisplay',
+      fontFamilyMono: 'typography.fontFamilyMono',
+      fontSizeXs: 'typography.fontSizeXs',
+      fontSizeSm: 'typography.fontSizeSm',
+      fontSizeMd: 'typography.fontSizeMd',
+      fontSizeLg: 'typography.fontSizeLg',
+      fontSizeXl: 'typography.fontSizeXl',
+      fontSize2xl: 'typography.fontSize2xl',
+      fontWeightRegular: 'typography.fontWeightRegular',
+      fontWeightMedium: 'typography.fontWeightMedium',
+      fontWeightStrong: 'typography.fontWeightStrong',
+      lineHeightBody: 'typography.lineHeightBody',
+      lineHeightHeading: 'typography.lineHeightHeading',
     });
-    expect(tokenContract.spacing.md).toBe('spacing.md');
+    expect(tokenContract.radius).toEqual({
+      inner: 'radius.inner',
+      element: 'radius.element',
+      container: 'radius.container',
+      page: 'radius.page',
+      full: 'radius.full',
+    });
+    expect(tokenContract.size).toEqual({
+      controlSm: 'size.controlSm',
+      controlMd: 'size.controlMd',
+      controlLg: 'size.controlLg',
+      hitTarget: 'size.hitTarget',
+    });
+    expect(tokenNames).not.toEqual(
+      expect.arrayContaining([
+        'radius.sm',
+        'radius.round',
+        'density.controlBlock',
+      ]),
+    );
   });
 
   it('maps camel-cased roles to stable kebab-cased custom properties', () => {
@@ -90,8 +161,17 @@ describe('tokenContract', () => {
     expect(tokenCustomProperties['motion.durationFast']).toBe(
       '--kioku-ui-motion-duration-fast',
     );
-    expect(tokenCustomProperties['density.controlBlock']).toBe(
-      '--kioku-ui-density-control-block',
+    expect(tokenCustomProperties['color.surfaceRaised']).toBe(
+      '--kioku-ui-color-surface-raised',
+    );
+    expect(tokenCustomProperties['typography.fontFamilyDisplay']).toBe(
+      '--kioku-ui-typography-font-family-display',
+    );
+    expect(tokenCustomProperties['typography.fontSize2xl']).toBe(
+      '--kioku-ui-typography-font-size2xl',
+    );
+    expect(tokenCustomProperties['size.controlMd']).toBe(
+      '--kioku-ui-size-control-md',
     );
   });
 });

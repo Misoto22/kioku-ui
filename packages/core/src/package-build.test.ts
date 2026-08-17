@@ -105,6 +105,56 @@ export const consumerStyles = stylex.create({
     );
   });
 
+  it('emits every final semantic bridge without legacy radius or density properties', async () => {
+    const packageCss = await readFile(
+      join(packageRoot, 'dist/styles/stylex.css'),
+      'utf8',
+    );
+
+    for (const customProperty of [
+      '--kioku-ui-color-surface-raised',
+      '--kioku-ui-color-surface-muted',
+      '--kioku-ui-color-text-secondary',
+      '--kioku-ui-color-text-muted',
+      '--kioku-ui-color-text-on-accent',
+      '--kioku-ui-color-accent',
+      '--kioku-ui-color-accent-hover',
+      '--kioku-ui-color-accent-active',
+      '--kioku-ui-color-overlay-hover',
+      '--kioku-ui-color-overlay-active',
+      '--kioku-ui-color-disabled-surface',
+      '--kioku-ui-color-disabled-text',
+      '--kioku-ui-border-interactive',
+      '--kioku-ui-border-disabled',
+      '--kioku-ui-typography-font-family-display',
+      '--kioku-ui-typography-font-size-xs',
+      '--kioku-ui-typography-font-size2xl',
+      '--kioku-ui-radius-inner',
+      '--kioku-ui-radius-element',
+      '--kioku-ui-radius-container',
+      '--kioku-ui-radius-page',
+      '--kioku-ui-radius-full',
+      '--kioku-ui-size-control-sm',
+      '--kioku-ui-size-control-md',
+      '--kioku-ui-size-control-lg',
+      '--kioku-ui-size-hit-target',
+    ]) {
+      expect(packageCss).toContain(`var(${customProperty})`);
+    }
+
+    for (const legacyProperty of [
+      '--kioku-ui-radius-sm',
+      '--kioku-ui-radius-md',
+      '--kioku-ui-radius-lg',
+      '--kioku-ui-radius-round',
+      '--kioku-ui-density-control-block',
+      '--kioku-ui-density-control-inline',
+      '--kioku-ui-density-item-gap',
+    ]) {
+      expect(packageCss).not.toContain(legacyProperty);
+    }
+  });
+
   it('publishes typed tokens through the compiled authoring subpath', async () => {
     const fixtureRoot = await mkdtemp(
       join(packageRoot, '.test-authoring-types-'),

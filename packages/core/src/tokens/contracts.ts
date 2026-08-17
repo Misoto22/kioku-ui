@@ -2,8 +2,25 @@ type Roles<Group extends string, Role extends string> = Readonly<{
   [Name in Role]: `${Group}.${Name}`;
 }>;
 
-type ColorRole = 'canvas' | 'surface' | 'text' | 'focus';
-type BorderRole = 'default' | 'strong' | 'width' | 'style';
+type ColorRole =
+  | 'canvas'
+  | 'surface'
+  | 'surfaceRaised'
+  | 'surfaceMuted'
+  | 'text'
+  | 'textSecondary'
+  | 'textMuted'
+  | 'textOnAccent'
+  | 'accent'
+  | 'accentHover'
+  | 'accentActive'
+  | 'overlayHover'
+  | 'overlayActive'
+  | 'disabledSurface'
+  | 'disabledText'
+  | 'focus';
+type BorderRole =
+  'default' | 'strong' | 'interactive' | 'disabled' | 'width' | 'style';
 type StatusRole =
   | 'infoSurface'
   | 'infoText'
@@ -17,18 +34,22 @@ type FocusRole = 'width' | 'offset';
 type TypographyRole =
   | 'fontFamilyBody'
   | 'fontFamilyHeading'
+  | 'fontFamilyDisplay'
   | 'fontFamilyMono'
+  | 'fontSizeXs'
   | 'fontSizeSm'
   | 'fontSizeMd'
   | 'fontSizeLg'
   | 'fontSizeXl'
+  | 'fontSize2xl'
   | 'fontWeightRegular'
   | 'fontWeightMedium'
   | 'fontWeightStrong'
   | 'lineHeightBody'
   | 'lineHeightHeading';
 type SpacingRole = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-type RadiusRole = 'sm' | 'md' | 'lg' | 'round';
+type RadiusRole = 'inner' | 'element' | 'container' | 'page' | 'full';
+type SizeRole = 'controlSm' | 'controlMd' | 'controlLg' | 'hitTarget';
 type ElevationRole = 'low' | 'medium' | 'high';
 type MotionRole =
   | 'durationFast'
@@ -36,7 +57,6 @@ type MotionRole =
   | 'durationSlow'
   | 'easingStandard'
   | 'easingEmphasized';
-type DensityRole = 'controlBlock' | 'controlInline' | 'itemGap';
 
 export interface TokenContract {
   readonly color: Roles<'color', ColorRole>;
@@ -46,21 +66,35 @@ export interface TokenContract {
   readonly typography: Roles<'typography', TypographyRole>;
   readonly spacing: Roles<'spacing', SpacingRole>;
   readonly radius: Roles<'radius', RadiusRole>;
+  readonly size: Roles<'size', SizeRole>;
   readonly elevation: Roles<'elevation', ElevationRole>;
   readonly motion: Roles<'motion', MotionRole>;
-  readonly density: Roles<'density', DensityRole>;
 }
 
 export const tokenContract = {
   color: {
     canvas: 'color.canvas',
     surface: 'color.surface',
+    surfaceRaised: 'color.surfaceRaised',
+    surfaceMuted: 'color.surfaceMuted',
     text: 'color.text',
+    textSecondary: 'color.textSecondary',
+    textMuted: 'color.textMuted',
+    textOnAccent: 'color.textOnAccent',
+    accent: 'color.accent',
+    accentHover: 'color.accentHover',
+    accentActive: 'color.accentActive',
+    overlayHover: 'color.overlayHover',
+    overlayActive: 'color.overlayActive',
+    disabledSurface: 'color.disabledSurface',
+    disabledText: 'color.disabledText',
     focus: 'color.focus',
   },
   border: {
     default: 'border.default',
     strong: 'border.strong',
+    interactive: 'border.interactive',
+    disabled: 'border.disabled',
     width: 'border.width',
     style: 'border.style',
   },
@@ -81,11 +115,14 @@ export const tokenContract = {
   typography: {
     fontFamilyBody: 'typography.fontFamilyBody',
     fontFamilyHeading: 'typography.fontFamilyHeading',
+    fontFamilyDisplay: 'typography.fontFamilyDisplay',
     fontFamilyMono: 'typography.fontFamilyMono',
+    fontSizeXs: 'typography.fontSizeXs',
     fontSizeSm: 'typography.fontSizeSm',
     fontSizeMd: 'typography.fontSizeMd',
     fontSizeLg: 'typography.fontSizeLg',
     fontSizeXl: 'typography.fontSizeXl',
+    fontSize2xl: 'typography.fontSize2xl',
     fontWeightRegular: 'typography.fontWeightRegular',
     fontWeightMedium: 'typography.fontWeightMedium',
     fontWeightStrong: 'typography.fontWeightStrong',
@@ -101,10 +138,17 @@ export const tokenContract = {
     '2xl': 'spacing.2xl',
   },
   radius: {
-    sm: 'radius.sm',
-    md: 'radius.md',
-    lg: 'radius.lg',
-    round: 'radius.round',
+    inner: 'radius.inner',
+    element: 'radius.element',
+    container: 'radius.container',
+    page: 'radius.page',
+    full: 'radius.full',
+  },
+  size: {
+    controlSm: 'size.controlSm',
+    controlMd: 'size.controlMd',
+    controlLg: 'size.controlLg',
+    hitTarget: 'size.hitTarget',
   },
   elevation: {
     low: 'elevation.low',
@@ -118,11 +162,6 @@ export const tokenContract = {
     easingStandard: 'motion.easingStandard',
     easingEmphasized: 'motion.easingEmphasized',
   },
-  density: {
-    controlBlock: 'density.controlBlock',
-    controlInline: 'density.controlInline',
-    itemGap: 'density.itemGap',
-  },
 } as const satisfies TokenContract;
 
 type ContractGroup = (typeof tokenContract)[keyof typeof tokenContract];
@@ -133,8 +172,6 @@ export type TokenName = Values<ContractGroup>;
 export const tokenNames = Object.freeze(
   Object.values(tokenContract).flatMap((group) => Object.values(group)),
 ) as readonly TokenName[];
-
-export const density = tokenContract.density;
 
 export interface ThemeDefinition {
   readonly id: string;

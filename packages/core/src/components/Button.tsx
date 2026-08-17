@@ -6,18 +6,18 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderRadius: semanticTokens.radiusSm,
+    borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightMedium,
-    gap: semanticTokens.densityItemGap,
+    gap: semanticTokens.spacingSm,
     justifyContent: 'center',
-    minHeight: semanticTokens.densityControlBlock,
+    minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.densityControlInline,
+    paddingInline: semanticTokens.spacingMd,
   },
   primary: {
     backgroundColor: semanticTokens.colorText,

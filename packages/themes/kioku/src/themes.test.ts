@@ -4,6 +4,7 @@ import {
   tokenCustomProperties,
   tokenNames,
   validateThemeDefinition,
+  type TokenName,
 } from '@misoto22/kioku-ui';
 import {describe, expect, it} from 'vitest';
 
@@ -88,6 +89,19 @@ function resolvePrivateValue(
   return alias ? resolvePrivateValue(alias, declarations, seen) : value;
 }
 
+async function resolveThemeValue(
+  id: (typeof themes)[number]['id'],
+  tokenName: TokenName,
+  options: {language?: 'zh'} = {},
+) {
+  const css = await readFile(new URL('./theme.css', import.meta.url), 'utf8');
+  const declarations = declarationsFor(cssBlocks(css), id, options);
+  const theme = themes.find((candidate) => candidate.id === id);
+  const privateName = privateTokenReference(theme?.tokens[tokenName] ?? '');
+
+  return resolvePrivateValue(privateName ?? '', declarations);
+}
+
 describe('Kioku themes', () => {
   it.each(themes)('fulfills the complete token contract for $id', (theme) => {
     expect(validateThemeDefinition(theme)).toEqual([]);
@@ -134,7 +148,10 @@ describe('compiled theme CSS', () => {
       const declarations = declarationsFor(blocks, theme.id);
 
       for (const tokenName of tokenNames) {
-        expect(declarations.has(tokenCustomProperties[tokenName])).toBe(true);
+        expect(
+          declarations.has(tokenCustomProperties[tokenName]),
+          `${theme.id} does not expose ${tokenCustomProperties[tokenName]}`,
+        ).toBe(true);
         const privateName = privateTokenReference(theme.tokens[tokenName]);
         expect(privateName).toBeDefined();
         expect(
@@ -161,55 +178,97 @@ describe('compiled theme CSS', () => {
     );
   });
 
-  it('carries explicit light and dark palette values plus standard density roles', async () => {
+  it('carries explicit light and dark values for every palette role', async () => {
     const css = await readFile(new URL('./theme.css', import.meta.url), 'utf8');
     const blocks = cssBlocks(css);
     const modeAwareTokens = tokenNames.filter(
       (name) =>
         name.startsWith('color.') ||
-        name.startsWith('border.default') ||
-        name.startsWith('border.strong') ||
+        (name.startsWith('border.') &&
+          name !== 'border.width' &&
+          name !== 'border.style') ||
         name.startsWith('status.') ||
         name.startsWith('elevation.'),
     );
 
     for (const theme of themes) {
-      const compact = declarationsFor(blocks, theme.id);
-      const standard = declarationsFor(blocks, theme.id, {
-        density: 'standard',
-      });
+      const declarations = declarationsFor(blocks, theme.id);
 
       for (const tokenName of modeAwareTokens) {
         const privateName = privateTokenReference(theme.tokens[tokenName]);
-        expect(resolvePrivateValue(privateName ?? '', compact)).toContain(
+        expect(resolvePrivateValue(privateName ?? '', declarations)).toContain(
           'light-dark(',
         );
       }
-      expect(
-        resolvePrivateValue(
-          privateTokenReference(theme.tokens['density.controlBlock']) ?? '',
-          compact,
-        ),
-      ).toBe('32px');
-      expect(
-        resolvePrivateValue(
-          privateTokenReference(theme.tokens['density.controlBlock']) ?? '',
-          standard,
-        ),
-      ).toBe('40px');
-      expect(
-        resolvePrivateValue(
-          privateTokenReference(theme.tokens['density.controlInline']) ?? '',
-          standard,
-        ),
-      ).toBe('14px');
-      expect(
-        resolvePrivateValue(
-          privateTokenReference(theme.tokens['density.itemGap']) ?? '',
-          standard,
-        ),
-      ).toBe('8px');
     }
+  });
+
+  it('implements the approved shared geometry and type scale', async () => {
+    for (const theme of themes) {
+      expect(await resolveThemeValue(theme.id, 'spacing.xs')).toBe('4px');
+      expect(await resolveThemeValue(theme.id, 'spacing.sm')).toBe('8px');
+      expect(await resolveThemeValue(theme.id, 'spacing.md')).toBe('12px');
+      expect(await resolveThemeValue(theme.id, 'spacing.lg')).toBe('16px');
+      expect(await resolveThemeValue(theme.id, 'spacing.xl')).toBe('24px');
+      expect(await resolveThemeValue(theme.id, 'spacing.2xl')).toBe('32px');
+      expect(await resolveThemeValue(theme.id, 'size.controlSm')).toBe('28px');
+      expect(await resolveThemeValue(theme.id, 'size.controlMd')).toBe('32px');
+      expect(await resolveThemeValue(theme.id, 'size.controlLg')).toBe('36px');
+      expect(await resolveThemeValue(theme.id, 'size.hitTarget')).toBe('44px');
+      expect(await resolveThemeValue(theme.id, 'radius.inner')).toBe('4px');
+      expect(await resolveThemeValue(theme.id, 'radius.element')).toBe('8px');
+      expect(await resolveThemeValue(theme.id, 'radius.container')).toBe(
+        '12px',
+      );
+      expect(await resolveThemeValue(theme.id, 'typography.fontSizeXs')).toBe(
+        '12px',
+      );
+      expect(await resolveThemeValue(theme.id, 'typography.fontSizeSm')).toBe(
+        '12px',
+      );
+      expect(await resolveThemeValue(theme.id, 'typography.fontSizeMd')).toBe(
+        '14px',
+      );
+      expect(await resolveThemeValue(theme.id, 'typography.fontSizeLg')).toBe(
+        '16px',
+      );
+      expect(await resolveThemeValue(theme.id, 'typography.fontSizeXl')).toBe(
+        '20px',
+      );
+      expect(await resolveThemeValue(theme.id, 'typography.fontSize2xl')).toBe(
+        '28px',
+      );
+    }
+  });
+
+  it('implements the approved Washi light palette and alpha overlays', async () => {
+    expect(
+      (await resolveThemeValue('washi', 'color.canvas'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#F5F4EF,');
+    expect(
+      (await resolveThemeValue('washi', 'color.surface'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#FFFFFF,');
+    expect(
+      (await resolveThemeValue('washi', 'color.surfaceMuted'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#ECEAE2,');
+    expect(
+      (await resolveThemeValue('washi', 'color.text'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#24251F,');
+    expect(
+      (await resolveThemeValue('washi', 'color.textSecondary'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#62645B,');
+    expect(
+      (await resolveThemeValue('washi', 'color.accent'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#4F6751,');
+    expect(
+      (await resolveThemeValue('washi', 'color.focus'))?.toUpperCase(),
+    ).toContain('LIGHT-DARK(#315F77,');
+    expect(await resolveThemeValue('washi', 'color.overlayHover')).toMatch(
+      /light-dark\(\s*rgb\([^)]*\/[^)]*\),\s*rgb\([^)]*\/[^)]*\)\s*\)/,
+    );
+    expect(await resolveThemeValue('washi', 'color.overlayActive')).toMatch(
+      /light-dark\(\s*rgb\([^)]*\/[^)]*\),\s*rgb\([^)]*\/[^)]*\)\s*\)/,
+    );
   });
 
   it('uses complete Chinese font families inside each theme root', async () => {
@@ -227,13 +286,49 @@ describe('compiled theme CSS', () => {
           '',
         chinese,
       );
+      const display = resolvePrivateValue(
+        privateTokenReference(theme.tokens['typography.fontFamilyDisplay']) ??
+          '',
+        chinese,
+      );
 
       expect(body).toContain('Noto Sans SC');
       expect(body).not.toContain('Shippori Mincho');
-      expect(heading).toContain(
+      expect(heading).toContain('Noto Sans SC');
+      expect(heading).not.toContain('Shippori Mincho');
+      expect(display).toContain(
         theme.id === 'muji' ? 'Noto Sans SC' : 'Noto Serif SC',
       );
-      expect(heading).not.toContain('Shippori Mincho');
+    }
+  });
+
+  it('uses sans-serif component headings and reserves serif for display type', async () => {
+    for (const theme of themes) {
+      const body = await resolveThemeValue(
+        theme.id,
+        'typography.fontFamilyBody',
+      );
+      const heading = await resolveThemeValue(
+        theme.id,
+        'typography.fontFamilyHeading',
+      );
+      const mono = await resolveThemeValue(
+        theme.id,
+        'typography.fontFamilyMono',
+      );
+      const display = await resolveThemeValue(
+        theme.id,
+        'typography.fontFamilyDisplay',
+      );
+
+      expect(body).toContain('sans-serif');
+      expect(heading).toContain('sans-serif');
+      expect(body).not.toMatch(/(^|,)\s*serif\s*(,|$)/);
+      expect(heading).not.toMatch(/(^|,)\s*serif\s*(,|$)/);
+      expect(mono).not.toMatch(/(^|,)\s*serif\s*(,|$)/);
+      if (theme.id !== 'muji') {
+        expect(display).toContain('serif');
+      }
     }
   });
 });

@@ -12,7 +12,7 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   root: {
     borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusSm,
+    borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',
@@ -22,13 +22,13 @@ const styles = stylex.create({
   option: {
     backgroundColor: semanticTokens.colorSurface,
     borderColor: semanticTokens.colorSurface,
-    borderRadius: semanticTokens.radiusSm,
+    borderRadius: semanticTokens.radiusInner,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    minHeight: semanticTokens.densityControlBlock,
+    minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
   },

@@ -25,7 +25,7 @@ const styles = stylex.create({
     borderInlineStartColor: semanticTokens.borderDefault,
     borderInlineStartStyle: semanticTokens.borderStyle,
     borderInlineStartWidth: semanticTokens.borderWidth,
-    borderRadius: semanticTokens.radiusRound,
+    borderRadius: semanticTokens.radiusFull,
     display: 'inline-block',
     height: semanticTokens.spacingLg,
     width: semanticTokens.spacingLg,

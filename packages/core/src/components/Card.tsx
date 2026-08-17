@@ -7,7 +7,7 @@ const styles = stylex.create({
   base: {
     backgroundColor: semanticTokens.colorSurface,
     borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusMd,
+    borderRadius: semanticTokens.radiusContainer,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     boxShadow: semanticTokens.elevationLow,

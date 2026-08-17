@@ -6,7 +6,7 @@ import type {StatusTone} from './Badge.js';
 
 const styles = stylex.create({
   base: {
-    borderRadius: semanticTokens.radiusRound,
+    borderRadius: semanticTokens.radiusFull,
     display: 'inline-block',
     height: semanticTokens.spacingSm,
     width: semanticTokens.spacingSm,

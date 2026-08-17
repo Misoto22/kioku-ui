@@ -8,14 +8,14 @@ const styles = stylex.create({
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurface,
     borderColor: semanticTokens.borderStrong,
-    borderRadius: semanticTokens.radiusRound,
+    borderRadius: semanticTokens.radiusFull,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     color: semanticTokens.colorText,
     display: 'inline-flex',
-    height: semanticTokens.densityControlBlock,
+    height: semanticTokens.sizeControlMd,
     justifyContent: 'center',
-    width: semanticTokens.densityControlBlock,
+    width: semanticTokens.sizeControlMd,
   },
 });
 

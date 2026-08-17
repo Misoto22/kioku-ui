@@ -1,15 +1,14 @@
 import {execFile} from 'node:child_process';
-import {access, mkdtemp, rm, writeFile} from 'node:fs/promises';
+import {access, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {promisify} from 'node:util';
 
-import {afterAll, beforeAll, describe, it} from 'vitest';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 
 const run = promisify(execFile);
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const packageName = ['@misoto22', 'kioku-ui-theme-kioku'].join('/');
-const coreThemeEntry = ['@misoto22', 'kioku-ui/theme'].join('/');
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const temporaryDirectories: string[] = [];
 
@@ -64,12 +63,19 @@ if (!washiTheme.tokens['color.canvas'].includes('--kioku-theme-washi-color-canva
     const consumer = join(fixtureRoot, 'consumer.ts');
     await writeFile(
       consumer,
-      `import type {ThemeDefinition} from '${coreThemeEntry}';
+      `import type {ThemeDefinition, TokenName} from '@misoto22/kioku-ui';
 import {kiokuThemes, mujiTheme} from '${packageName}';
 
 const theme: ThemeDefinition = mujiTheme;
 const themes: readonly ThemeDefinition[] = kiokuThemes;
-void [theme, themes];
+const names: readonly TokenName[] = [
+  'color.surfaceRaised',
+  'border.interactive',
+  'typography.fontFamilyDisplay',
+  'radius.container',
+  'size.controlLg',
+];
+void [theme, themes, names];
 `,
     );
 
@@ -91,5 +97,15 @@ void [theme, themes];
 
   it('exports ready-to-use theme CSS from the public package', async () => {
     await access(join(packageRoot, 'dist/theme.css'));
+
+    const css = await readFile(join(packageRoot, 'dist/theme.css'), 'utf8');
+    expect(css).toContain(
+      '--kioku-ui-color-surface-raised: var(--kioku-theme-color-surface-raised)',
+    );
+    expect(css).toContain(
+      '--kioku-ui-size-control-lg: var(--kioku-theme-size-control-lg)',
+    );
+    expect(css).not.toContain('--kioku-ui-radius-sm');
+    expect(css).not.toContain('--kioku-ui-density-control-block');
   });
 });

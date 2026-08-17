@@ -1,5 +1,4 @@
 export {
-  density,
   tokenContract,
   tokenCustomProperties,
   tokenNames,

@@ -7,11 +7,11 @@ const styles = stylex.create({
   base: {
     alignItems: 'center',
     borderColor: semanticTokens.borderStrong,
-    borderRadius: semanticTokens.radiusRound,
+    borderRadius: semanticTokens.radiusFull,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',
-    minHeight: semanticTokens.densityControlBlock,
+    minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
   },
@@ -25,7 +25,7 @@ const styles = stylex.create({
   },
   indicator: {
     backgroundColor: semanticTokens.borderStrong,
-    borderRadius: semanticTokens.radiusRound,
+    borderRadius: semanticTokens.radiusFull,
     display: 'inline-block',
     height: semanticTokens.spacingMd,
     width: semanticTokens.spacingMd,

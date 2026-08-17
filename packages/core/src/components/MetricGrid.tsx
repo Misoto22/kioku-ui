@@ -13,7 +13,7 @@ const styles = stylex.create({
   item: {
     backgroundColor: semanticTokens.colorSurface,
     borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusSm,
+    borderRadius: semanticTokens.radiusContainer,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'grid',

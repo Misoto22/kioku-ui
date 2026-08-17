@@ -6,8 +6,8 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   base: {
     backgroundColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusSm,
-    minHeight: semanticTokens.densityControlBlock,
+    borderRadius: semanticTokens.radiusElement,
+    minHeight: semanticTokens.sizeControlMd,
     width: '100%',
   },
 });

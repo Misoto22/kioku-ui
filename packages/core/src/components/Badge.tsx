@@ -7,7 +7,7 @@ export type StatusTone = 'info' | 'success' | 'warning' | 'danger';
 
 const styles = stylex.create({
   base: {
-    borderRadius: semanticTokens.radiusRound,
+    borderRadius: semanticTokens.radiusFull,
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
