@@ -1241,12 +1241,15 @@ async function installPackedConsumer(consumer, consumerRoot) {
   if (installProblems.length > 0) {
     throw new Error(installProblems.join('\n'));
   }
+  // The consumer resolves its own dependency tree, so parts of it never enter
+  // the workspace store and cannot be installed offline on a clean machine.
+  // The lockfile written above still pins every version and integrity hash.
   await runCommand(
     pnpm,
     [
       'install',
       '--ignore-workspace',
-      '--offline',
+      '--prefer-offline',
       '--ignore-scripts',
       '--frozen-lockfile',
       '--config.auto-install-peers=false',
