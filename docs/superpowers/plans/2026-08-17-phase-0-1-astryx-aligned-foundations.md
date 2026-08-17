@@ -159,7 +159,7 @@ export function renderUi(ui: React.ReactElement) {
 }
 ```
 
-Make `@misoto22/kioku-ui` public with explicit exports for `.`, `./reset.css`, `./styles.css`, `./theme`, and `./authoring`; declare React and React DOM 19 as peers. Build `check-package-boundaries.mjs` to deny `packages/core/**` imports that contain `kioku`, `react-router-dom`, `apps/`, or `web/src`, and to deny dependency direction from `core` to `cli`, `build`, theme, charts, or Vega. Build `verify-exports.mjs` to read each published package's `package.json` and require every export target to exist after build. Define all future package manifests now with `private: true` for `lab` and `publishConfig.access: public` for publishable scoped packages.
+Make `@misoto22/kioku-ui` public with explicit exports for `.`, `./reset.css`, `./styles.css`, `./theme`, and `./authoring`; declare React and React DOM 19 as peers. Build `check-package-boundaries.mjs` to deny `packages/core/**` imports that contain `kioku`, `react-router-dom`, `apps/`, or `web/src`, and to deny dependency direction from `core` to `cli`, `build`, theme, charts, or Vega. Build `verify-exports.mjs` to read each published package's `package.json` and require every export target to exist after build. Define `core` and the Kioku theme pack as public scoped packages; keep the not-yet-implemented `cli`, `charts`, `vega`, and `lab` manifests private. Task 8 promotes `build` from private to publishable only after its source integrations and tests exist.
 
 - [ ] **Step 4: Run package-boundary, export, and TypeScript tests green**
 
@@ -323,6 +323,10 @@ git commit -m "feat: add configurable theme and link providers"
 - Create: `packages/core/src/components/Grid.tsx`
 - Create: `packages/core/src/components/Section.tsx`
 - Create: `packages/core/src/components/Card.tsx`
+- Create: `packages/core/src/components/CardHeader.tsx`
+- Create: `packages/core/src/components/CardFooter.tsx`
+- Create: `packages/core/src/components/Divider.tsx`
+- Create: `packages/core/src/components/Center.tsx`
 - Create: `packages/core/src/components/VisuallyHidden.tsx`
 - Create: `packages/core/src/components/Text.doc.ts`
 - Create: `packages/core/src/components/Heading.doc.ts`
@@ -330,6 +334,10 @@ git commit -m "feat: add configurable theme and link providers"
 - Create: `packages/core/src/components/Grid.doc.ts`
 - Create: `packages/core/src/components/Section.doc.ts`
 - Create: `packages/core/src/components/Card.doc.ts`
+- Create: `packages/core/src/components/CardHeader.doc.ts`
+- Create: `packages/core/src/components/CardFooter.doc.ts`
+- Create: `packages/core/src/components/Divider.doc.ts`
+- Create: `packages/core/src/components/Center.doc.ts`
 - Create: `packages/core/src/components/VisuallyHidden.doc.ts`
 - Create: `packages/core/src/docs/types.ts`
 - Create: `packages/core/src/docs/types.test.ts`
@@ -407,6 +415,9 @@ git commit -m "feat: add foundation and layout components"
 - Create: `packages/core/src/components/SegmentedControl.tsx`
 - Create: `packages/core/src/components/EmptyState.tsx`
 - Create: `packages/core/src/components/AsyncState.tsx`
+- Create: `packages/core/src/components/Spinner.tsx`
+- Create: `packages/core/src/components/Skeleton.tsx`
+- Create: `packages/core/src/components/Alert.tsx`
 - Create: `packages/core/src/components/Table.tsx`
 - Create: `packages/core/src/components/MetricGrid.tsx`
 - Create: `packages/core/src/components/Button.doc.ts`
@@ -420,6 +431,9 @@ git commit -m "feat: add foundation and layout components"
 - Create: `packages/core/src/components/SegmentedControl.doc.ts`
 - Create: `packages/core/src/components/EmptyState.doc.ts`
 - Create: `packages/core/src/components/AsyncState.doc.ts`
+- Create: `packages/core/src/components/Spinner.doc.ts`
+- Create: `packages/core/src/components/Skeleton.doc.ts`
+- Create: `packages/core/src/components/Alert.doc.ts`
 - Create: `packages/core/src/components/Table.doc.ts`
 - Create: `packages/core/src/components/MetricGrid.doc.ts`
 - Create: `packages/core/src/components/controls.test.tsx`
@@ -453,6 +467,11 @@ it('connects Field label and validation message to TextInput', () => {
 it('does not represent a failed request as an empty result', () => {
   renderUi(<AsyncState state={{kind: 'error', title: 'Request failed'}} />);
   expect(screen.getByRole('alert')).toHaveTextContent('Request failed');
+});
+
+it('renders progress and loading feedback with accessible state', () => {
+  renderUi(<Spinner label="Loading records" />);
+  expect(screen.getByRole('status', {name: 'Loading records'})).toHaveAttribute('aria-busy', 'true');
 });
 ```
 
