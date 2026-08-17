@@ -27,7 +27,11 @@ export {
   type ButtonVariant,
   type ControlSize,
 } from './Button.js';
-export {EmptyState, type EmptyStateProps} from './EmptyState.js';
+export {
+  EmptyState,
+  type EmptyStateProps,
+  type EmptyStateSize,
+} from './EmptyState.js';
 export {Field, type FieldNecessity, type FieldProps} from './Field.js';
 export {IconButton, type IconButtonProps} from './IconButton.js';
 export {
@@ -54,6 +58,8 @@ export {
   type TableBodyProps,
   type TableCaptionProps,
   type TableCellProps,
+  type TableDensity,
+  type TableDividers,
   type TableHeaderCellProps,
   type TableHeadProps,
   type TableProps,

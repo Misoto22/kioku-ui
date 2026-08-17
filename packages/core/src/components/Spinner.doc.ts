@@ -3,7 +3,7 @@ import type {ComponentDoc} from '../docs/types.js';
 export const spinnerDoc = {
   name: 'Spinner',
   description:
-    'Announces indeterminate progress with a required accessible label.',
+    'Announces indeterminate progress with a required accessible label and a static reduced-motion fallback.',
   props: [
     {
       name: 'label',

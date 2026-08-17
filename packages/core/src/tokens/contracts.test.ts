@@ -143,12 +143,9 @@ describe('tokenContract', () => {
       hitTarget: 'size.hitTarget',
     });
     expect(tokenNames).not.toEqual(
-      expect.arrayContaining([
-        'radius.sm',
-        'radius.round',
-        'density.controlBlock',
-      ]),
+      expect.arrayContaining(['radius.sm', 'radius.round']),
     );
+    expect(Object.keys(tokenContract)).not.toContain('density');
   });
 
   it('maps camel-cased roles to stable kebab-cased custom properties', () => {

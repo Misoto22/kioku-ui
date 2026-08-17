@@ -6,11 +6,14 @@ import type {StatusTone} from './Badge.js';
 
 const styles = stylex.create({
   base: {
+    alignItems: 'flex-start',
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    gap: semanticTokens.spacingMd,
     lineHeight: semanticTokens.lineHeightBody,
     padding: semanticTokens.spacingMd,
   },

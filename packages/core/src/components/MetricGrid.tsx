@@ -3,11 +3,13 @@ import type {HTMLAttributes, ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+const minimumColumnWidth = `calc(${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
   root: {
     display: 'grid',
-    gap: semanticTokens.spacingMd,
-    gridTemplateColumns: 'repeat(auto-fit, minmax(0, 1fr))',
+    gap: semanticTokens.spacingLg,
+    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${minimumColumnWidth}), 1fr))`,
     margin: 0,
   },
   item: {
@@ -18,10 +20,10 @@ const styles = stylex.create({
     borderWidth: semanticTokens.borderWidth,
     display: 'grid',
     gap: semanticTokens.spacingXs,
-    padding: semanticTokens.spacingMd,
+    padding: semanticTokens.spacingLg,
   },
   label: {
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
   },
@@ -33,7 +35,7 @@ const styles = stylex.create({
     margin: 0,
   },
   detail: {
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     margin: 0,

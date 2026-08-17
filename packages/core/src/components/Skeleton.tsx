@@ -3,9 +3,21 @@ import type {HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+const pulse = stylex.keyframes({
+  '50%': {backgroundColor: semanticTokens.colorSurface},
+});
+
 const styles = stylex.create({
   base: {
-    backgroundColor: semanticTokens.borderDefault,
+    animationDirection: 'alternate',
+    animationDuration: semanticTokens.durationSlow,
+    animationIterationCount: 'infinite',
+    animationName: {
+      default: pulse,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingStandard,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     borderRadius: semanticTokens.radiusElement,
     minHeight: semanticTokens.sizeControlMd,
     width: '100%',

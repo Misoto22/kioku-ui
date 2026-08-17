@@ -62,7 +62,7 @@ describe('componentDocs', () => {
       Card: ['children', 'elevation'],
       CardFooter: ['children'],
       CardHeader: ['children'],
-      EmptyState: ['action', 'detail', 'title'],
+      EmptyState: ['action', 'detail', 'size', 'title', 'visual'],
       Field: [
         'controlId',
         'description',
@@ -89,7 +89,7 @@ describe('componentDocs', () => {
       Skeleton: ['label'],
       Spinner: ['label'],
       StatusDot: ['aria-label', 'tone'],
-      Table: ['children'],
+      Table: ['children', 'density', 'dividers'],
       TableBody: ['children'],
       TableCaption: ['children'],
       TableCell: ['children'],

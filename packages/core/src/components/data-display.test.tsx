@@ -48,22 +48,11 @@ describe('async feedback', () => {
   it('renders progress and loading feedback with accessible state', () => {
     renderUi(<Spinner label="Loading records" />);
 
-    expect(
-      screen.getByRole('status', {name: 'Loading records'}),
-    ).toHaveAttribute('aria-busy', 'true');
-    const indicator = screen.getByRole('status', {
+    const status = screen.getByRole('status', {
       name: 'Loading records',
-    }).firstElementChild;
-    expect(indicator).not.toBeNull();
-    const indicatorStyle = (indicator as HTMLElement).style;
-    expect(indicatorStyle.animationDuration).toBe(
-      'var(--kioku-ui-motion-duration-slow)',
-    );
-    expect(indicatorStyle.animationIterationCount).toBe('infinite');
-    expect(indicatorStyle.animationName).toBe('test-spin');
-    expect(indicatorStyle.animationTimingFunction).toBe(
-      'var(--kioku-ui-motion-easing-standard)',
-    );
+    });
+    expect(status).toHaveAttribute('aria-busy', 'true');
+    expect(status.firstElementChild).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('maps loading, empty, and ready async states to distinct content', () => {
@@ -130,6 +119,29 @@ describe('async feedback', () => {
     await user.click(screen.getByRole('button', {name: 'Try again'}));
     expect(retry).toHaveBeenCalledOnce();
   });
+
+  it('keeps one persistent polite region when AsyncState renders an empty result', () => {
+    const {rerender} = renderUi(
+      <AsyncState state={{kind: 'loading', label: 'Loading saved views'}} />,
+    );
+    const liveRegion = screen.getByRole('status', {
+      name: 'Loading saved views',
+    });
+
+    rerender(
+      <AsyncState
+        state={{
+          kind: 'empty',
+          title: 'No saved views',
+          detail: 'Save a view to return to it later.',
+        }}
+      />,
+    );
+
+    expect(screen.getAllByRole('status')).toEqual([liveRegion]);
+    expect(liveRegion.querySelector('[aria-live]')).toBeNull();
+    expect(liveRegion).toHaveTextContent('No saved views');
+  });
 });
 
 function ReadyAsyncStateTypeProbe() {
@@ -168,6 +180,41 @@ describe('live feedback', () => {
       screen.getByRole('status', {name: 'Loading summary'}),
     ).toHaveAttribute('aria-busy', 'true');
   });
+
+  it('places the optional EmptyState visual before readable copy and actions', () => {
+    renderUi(
+      <EmptyState
+        action={<Button>Review filters</Button>}
+        data-testid="empty-state"
+        detail="No saved records match the current view."
+        size="compact"
+        title="No matching records"
+        visual={
+          <span aria-hidden="true" data-testid="empty-visual">
+            ◇
+          </span>
+        }
+      />,
+    );
+
+    const root = screen.getByTestId('empty-state');
+    const visual = screen.getByTestId('empty-visual');
+    const title = screen.getByText('No matching records');
+    const detail = screen.getByText('No saved records match the current view.');
+    const action = screen.getByRole('button', {name: 'Review filters'});
+
+    expect(screen.getAllByRole('status')).toEqual([root]);
+    expect(root).not.toHaveAttribute('size');
+    expect(visual.compareDocumentPosition(title)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(title.compareDocumentPosition(detail)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(detail.compareDocumentPosition(action)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
 });
 
 describe('semantic data display', () => {
@@ -195,6 +242,38 @@ describe('semantic data display', () => {
     expect(screen.getAllByRole('columnheader')).toHaveLength(2);
     expect(screen.getAllByRole('row')).toHaveLength(2);
     expect(screen.getAllByRole('cell')).toHaveLength(2);
+  });
+
+  it('keeps Table density and divider policy out of native table markup', () => {
+    renderUi(
+      <>
+        <Table density="compact" dividers="grid">
+          <TableBody>
+            <TableRow>
+              <TableCell>Queued</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        <Table density="spacious" dividers="none">
+          <TableBody>
+            <TableRow>
+              <TableCell>Completed</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </>,
+    );
+
+    const tables = screen.getAllByRole('table');
+    expect(tables).toHaveLength(2);
+    for (const table of tables) {
+      expect(table).not.toHaveAttribute('density');
+      expect(table).not.toHaveAttribute('dividers');
+    }
+    expect(screen.getAllByRole('row')).toHaveLength(2);
+    expect(screen.getAllByRole('cell')).toHaveLength(2);
+    expect(screen.getByText('Queued').tagName).toBe('TD');
+    expect(screen.getByText('Completed').tagName).toBe('TD');
   });
 
   it('keeps native definition-list groups without overriding their semantics', () => {

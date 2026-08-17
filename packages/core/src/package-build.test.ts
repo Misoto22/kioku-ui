@@ -76,13 +76,7 @@ function expectRenderedRule(
   packageCss: string,
   markup: string,
   declaration: string,
-  state?:
-    | ':hover'
-    | ':active'
-    | ':focus-visible'
-    | ':disabled'
-    | '::before'
-    | '::placeholder',
+  state?: string,
   excludesDisabled = false,
   requiredSelectorParts: readonly string[] = [],
 ) {
@@ -150,6 +144,40 @@ function expectNoRenderedRule(
   });
 
   expect(matched, `Unexpected ${state} rule: ${declaration}`).toBe(false);
+}
+
+function expectRenderedMediaRule(
+  packageCss: string,
+  markup: string,
+  mediaQuery: string,
+  declaration: string,
+) {
+  const compactCss = packageCss.replaceAll(/\s+/g, '');
+  const mediaPrefix = `@media${mediaQuery.replaceAll(/\s+/g, '')}{`;
+  const mediaStart = compactCss.indexOf(mediaPrefix);
+  expect(
+    mediaStart,
+    `Missing media query: ${mediaQuery}`,
+  ).toBeGreaterThanOrEqual(0);
+
+  let depth = 1;
+  let mediaEnd = mediaStart + mediaPrefix.length;
+  for (; mediaEnd < compactCss.length && depth > 0; mediaEnd += 1) {
+    if (compactCss[mediaEnd] === '{') depth += 1;
+    if (compactCss[mediaEnd] === '}') depth -= 1;
+  }
+  const mediaBlock = compactCss.slice(mediaStart, mediaEnd);
+  const matched = classNames(markup).some((className) =>
+    mediaBlock
+      .split('}')
+      .some(
+        (rule) =>
+          rule.includes(`.${className}`) &&
+          rule.includes(declaration.replaceAll(/\s+/g, '')),
+      ),
+  );
+
+  expect(matched, `Missing ${mediaQuery} rule: ${declaration}`).toBe(true);
 }
 
 describe('published package build', () => {
@@ -1078,6 +1106,361 @@ process.stdout.write(JSON.stringify({
     expectNoRenderedDeclaration(packageCss, cardFooter, 'border-bottom');
   });
 
+  it('ships feedback, motion, Table, and MetricGrid visual contracts in compiled CSS', async () => {
+    const fixtureRoot = await mkdtemp(join(packageRoot, '.test-data-display-'));
+    temporaryDirectories.push(fixtureRoot);
+    const loader = await createCssIgnoringLoader(fixtureRoot);
+    const runtime = join(fixtureRoot, 'consumer.mjs');
+
+    await writeFile(
+      runtime,
+      `import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {
+  Alert,
+  Card,
+  EmptyState,
+  MetricGrid,
+  Skeleton,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from '${packageName}';
+
+const render = (component, props, children) =>
+  renderToStaticMarkup(createElement(component, props, children));
+const table = (props) => render(Table, props, [
+  createElement(TableHead, {key: 'head'},
+    createElement(TableRow, null, [
+      createElement(TableHeaderCell, {key: 'h1'}, 'Status'),
+      createElement(TableHeaderCell, {key: 'h2'}, 'Owner'),
+    ]),
+  ),
+  createElement(TableBody, {key: 'body'}, [
+    createElement(TableRow, {key: 'r1'}, [
+      createElement(TableCell, {key: 'c1'}, 'Queued'),
+      createElement(TableCell, {key: 'c2'}, 'Team'),
+    ]),
+    createElement(TableRow, {key: 'r2'}, [
+      createElement(TableCell, {key: 'c3'}, 'Completed'),
+      createElement(TableCell, {key: 'c4'}, 'System'),
+    ]),
+  ]),
+]);
+
+process.stdout.write(JSON.stringify({
+  alertInfo: render(Alert, {tone: 'info'}, ['Update', 'Queued']),
+  alertDanger: render(Alert, {tone: 'danger'}, ['Problem', 'Retry']),
+  emptyDefault: render(EmptyState, {
+    detail: 'No saved records match the current view.',
+    title: 'No matching records',
+    visual: createElement('span', {'aria-hidden': true}, '◇'),
+  }),
+  emptyCompact: render(EmptyState, {
+    detail: 'No saved records match the current view.',
+    size: 'compact',
+    title: 'No matching records',
+    visual: createElement('span', {'aria-hidden': true}, '◇'),
+  }),
+  spinner: render(Spinner, {label: 'Loading records'}),
+  skeleton: render(Skeleton, {label: 'Loading summary'}),
+  tableDefault: table({}),
+  tableColumns: table({dividers: 'columns'}),
+  tableCompactGrid: table({density: 'compact', dividers: 'grid'}),
+  tableSpaciousNone: table({density: 'spacious', dividers: 'none'}),
+  cardTable: render(Card, {}, createElement(Table, {},
+    createElement(TableBody, null,
+      createElement(TableRow, null,
+        createElement(TableCell, null, 'Card row'),
+      ),
+    ),
+  )),
+  metricGrid: render(MetricGrid, {items: [{
+    detail: 'Updated recently',
+    label: 'Open requests',
+    value: '24',
+  }]}),
+}));
+`,
+    );
+
+    const {stdout} = await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, runtime],
+      {cwd: fixtureRoot},
+    );
+    const markup = JSON.parse(stdout) as Record<string, string>;
+    const packageCss = await readFile(
+      join(packageRoot, 'dist/styles/stylex.css'),
+      'utf8',
+    );
+    const variable = (customProperty: string) =>
+      semanticVariable(packageCss, customProperty);
+
+    for (const [name, surface, text] of [
+      [
+        'alertInfo',
+        '--kioku-ui-status-info-surface',
+        '--kioku-ui-status-info-text',
+      ],
+      [
+        'alertDanger',
+        '--kioku-ui-status-danger-surface',
+        '--kioku-ui-status-danger-text',
+      ],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable(surface)})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable(text)})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable(text)})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `gap:var(${variable('--kioku-ui-spacing-md')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-radius:var(${variable('--kioku-ui-radius-element')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-width:var(${variable('--kioku-ui-border-width')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `padding:var(${variable('--kioku-ui-spacing-md')})`,
+      );
+    }
+
+    const emptyDefault = elementMarkup(markup.emptyDefault, 'div', 1);
+    const emptyCompact = elementMarkup(markup.emptyCompact, 'div', 1);
+    const emptyDefaultDetail = elementMarkup(markup.emptyDefault, 'p', 1);
+    const emptyDefaultTitle = elementMarkup(markup.emptyDefault, 'p');
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `padding:var(${variable('--kioku-ui-spacing-2xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `gap:var(${variable('--kioku-ui-spacing-md')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyCompact,
+      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyCompact,
+      `gap:var(${variable('--kioku-ui-spacing-sm')})`,
+    );
+    expectRenderedRule(packageCss, emptyDefaultDetail, 'max-width:calc(');
+    expectRenderedRule(packageCss, emptyDefaultTitle, 'max-width:calc(');
+
+    const spinnerVisual = elementMarkup(markup.spinner, 'span', 1);
+    expectRenderedRule(
+      packageCss,
+      spinnerVisual,
+      `border-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      spinnerVisual,
+      `border-top-color:var(${variable('--kioku-ui-color-accent')})`,
+    );
+    expectRenderedMediaRule(
+      packageCss,
+      spinnerVisual,
+      '(prefers-reduced-motion: reduce)',
+      'animation-name:none',
+    );
+
+    expectRenderedRule(
+      packageCss,
+      markup.skeleton,
+      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.skeleton,
+      `border-radius:var(${variable('--kioku-ui-radius-element')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.skeleton,
+      `animation-duration:var(${variable('--kioku-ui-motion-duration-slow')})`,
+    );
+    expectRenderedMediaRule(
+      packageCss,
+      markup.skeleton,
+      '(prefers-reduced-motion: reduce)',
+      'animation-name:none',
+    );
+
+    const defaultCell = elementMarkup(markup.tableDefault, 'td');
+    const compactCell = elementMarkup(markup.tableCompactGrid, 'td');
+    const spaciousCell = elementMarkup(markup.tableSpaciousNone, 'td');
+    const compactHeaderCell = elementMarkup(markup.tableCompactGrid, 'th');
+    for (const [cell, spacing] of [
+      [defaultCell, '--kioku-ui-spacing-md'],
+      [compactCell, '--kioku-ui-spacing-sm'],
+      [spaciousCell, '--kioku-ui-spacing-lg'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        cell,
+        `padding-block:var(${variable(spacing)})`,
+      );
+    }
+    expectRenderedRule(
+      packageCss,
+      compactHeaderCell,
+      `padding-block:var(${variable('--kioku-ui-spacing-sm')})`,
+    );
+
+    const defaultRow = elementMarkup(markup.tableDefault, 'tr', 1);
+    const columnsRow = elementMarkup(markup.tableColumns, 'tr', 1);
+    const columnsCell = elementMarkup(markup.tableColumns, 'td');
+    const gridRow = elementMarkup(markup.tableCompactGrid, 'tr', 1);
+    const gridCell = elementMarkup(markup.tableCompactGrid, 'td');
+    expectRenderedRule(
+      packageCss,
+      defaultRow,
+      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
+    );
+    expectRenderedRule(
+      packageCss,
+      gridRow,
+      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
+    );
+    expectRenderedRule(
+      packageCss,
+      gridCell,
+      `border-inline-end-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
+    );
+    expectRenderedRule(
+      packageCss,
+      columnsCell,
+      `border-inline-end-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
+    );
+    expectNoRenderedDeclaration(packageCss, columnsRow, 'border-bottom');
+    expectRenderedRule(
+      packageCss,
+      compactHeaderCell,
+      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      compactHeaderCell,
+      `border-inline-end-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
+    );
+    expectNoRenderedDeclaration(packageCss, spaciousCell, 'border-inline-end');
+    expectNoRenderedDeclaration(
+      packageCss,
+      elementMarkup(markup.tableSpaciousNone, 'tr', 1),
+      'border-bottom',
+    );
+
+    const headerCell = elementMarkup(markup.tableDefault, 'th');
+    expectRenderedRule(
+      packageCss,
+      headerCell,
+      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      headerCell,
+      `color:var(${variable('--kioku-ui-color-text-secondary')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      defaultRow,
+      `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+      ':hover',
+    );
+    expectRenderedRule(
+      packageCss,
+      defaultRow,
+      `background-color:var(${variable('--kioku-ui-color-overlay-active')})`,
+      ':active',
+    );
+    expectRenderedRule(
+      packageCss,
+      defaultRow,
+      `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+      ':focus-within',
+    );
+    const cardTable = elementMarkup(markup.cardTable, 'table');
+    expectNoRenderedDeclaration(packageCss, cardTable, 'border-color:');
+    expectNoRenderedDeclaration(packageCss, cardTable, 'border-width:');
+
+    const metricRoot = elementMarkup(markup.metricGrid, 'dl');
+    const metricItem = elementMarkup(markup.metricGrid, 'div');
+    const metricLabel = elementMarkup(markup.metricGrid, 'dt');
+    const metricValue = elementMarkup(markup.metricGrid, 'dd');
+    const metricDetail = elementMarkup(markup.metricGrid, 'dd', 1);
+    expectRenderedRule(
+      packageCss,
+      metricRoot,
+      'grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(',
+    );
+    expectRenderedRule(
+      packageCss,
+      metricItem,
+      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricLabel,
+      `color:var(${variable('--kioku-ui-color-text-secondary')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricValue,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-heading')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricValue,
+      `color:var(${variable('--kioku-ui-color-text')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricValue,
+      `font-weight:var(${variable('--kioku-ui-typography-font-weight-strong')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricDetail,
+      `color:var(${variable('--kioku-ui-color-text-muted')})`,
+    );
+  });
+
   it('publishes typed tokens through the compiled authoring subpath', async () => {
     const fixtureRoot = await mkdtemp(
       join(packageRoot, '.test-authoring-types-'),
@@ -1150,8 +1533,11 @@ if (!/^var\\(--[^)]+\\)$/.test(semanticTokens.colorText)) {
   ButtonVariant,
   CardElevation,
   ControlSize,
+  EmptyStateSize,
   FieldNecessity,
   HeadingFamily,
+  TableDensity,
+  TableDividers,
   TextTone,
   ThemeDefinition,
   TokenContract,
@@ -1179,6 +1565,18 @@ const fieldNecessities: readonly FieldNecessity[] = ['required', 'optional'];
 const textTones: readonly TextTone[] = ['primary', 'secondary', 'muted'];
 const headingFamilies: readonly HeadingFamily[] = ['interface', 'display'];
 const cardElevations: readonly CardElevation[] = ['none', 'low', 'medium'];
+const emptyStateSizes: readonly EmptyStateSize[] = ['compact', 'default'];
+const tableDensities: readonly TableDensity[] = [
+  'compact',
+  'default',
+  'spacious',
+];
+const tableDividers: readonly TableDividers[] = [
+  'rows',
+  'columns',
+  'grid',
+  'none',
+];
 
 const themeId: string = theme.id;
 const canvasValue: string = theme.tokens[contract.color.canvas];
@@ -1197,6 +1595,9 @@ void [
   textTones,
   headingFamilies,
   cardElevations,
+  emptyStateSizes,
+  tableDensities,
+  tableDividers,
 ];
 `,
     );

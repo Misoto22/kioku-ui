@@ -208,6 +208,8 @@ describe('compiled theme CSS', () => {
       expect(await resolveThemeValue(theme.id, 'spacing.lg')).toBe('16px');
       expect(await resolveThemeValue(theme.id, 'spacing.xl')).toBe('24px');
       expect(await resolveThemeValue(theme.id, 'spacing.2xl')).toBe('32px');
+      expect(await resolveThemeValue(theme.id, 'border.width')).toBe('1px');
+      expect(await resolveThemeValue(theme.id, 'border.style')).toBe('solid');
       expect(await resolveThemeValue(theme.id, 'size.controlSm')).toBe('28px');
       expect(await resolveThemeValue(theme.id, 'size.controlMd')).toBe('32px');
       expect(await resolveThemeValue(theme.id, 'size.controlLg')).toBe('36px');

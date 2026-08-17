@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
+import {createContext, useContext} from 'react';
 import type {
   HTMLAttributes,
   TableHTMLAttributes,
@@ -7,6 +8,25 @@ import type {
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+
+export type TableDensity = 'compact' | 'default' | 'spacious';
+export type TableDividers = 'rows' | 'columns' | 'grid' | 'none';
+
+type TableSection = 'body' | 'head' | undefined;
+
+interface TableStyleContextValue {
+  readonly density: TableDensity;
+  readonly dividers: TableDividers;
+  readonly section: TableSection;
+}
+
+const defaultTableStyle: TableStyleContextValue = {
+  density: 'default',
+  dividers: 'rows',
+  section: undefined,
+};
+
+const TableStyleContext = createContext(defaultTableStyle);
 
 const styles = stylex.create({
   table: {
@@ -22,27 +42,61 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingSm,
     textAlign: 'start',
   },
-  row: {
-    borderBlockEndColor: semanticTokens.borderDefault,
-    borderBlockEndStyle: semanticTokens.borderStyle,
-    borderBlockEndWidth: semanticTokens.borderWidth,
+  bodyRow: {
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    ':active': {
+      backgroundColor: semanticTokens.colorOverlayActive,
+    },
+    ':focus-within': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
+    ':hover': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
   },
   headerCell: {
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    color: semanticTokens.colorTextSecondary,
     fontWeight: semanticTokens.fontWeightStrong,
-    paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingMd,
     textAlign: 'start',
   },
   cell: {
-    paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingMd,
+  },
+  compact: {paddingBlock: semanticTokens.spacingSm},
+  default: {paddingBlock: semanticTokens.spacingMd},
+  spacious: {paddingBlock: semanticTokens.spacingLg},
+  rowDivider: {
+    ':not(:last-child)': {
+      borderBlockEndColor: semanticTokens.borderDefault,
+      borderBlockEndStyle: semanticTokens.borderStyle,
+      borderBlockEndWidth: semanticTokens.borderWidth,
+    },
+  },
+  headerRowDivider: {
+    borderBlockEndColor: semanticTokens.borderDefault,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
+  },
+  columnDivider: {
+    ':not(:last-child)': {
+      borderInlineEndColor: semanticTokens.borderDefault,
+      borderInlineEndStyle: semanticTokens.borderStyle,
+      borderInlineEndWidth: semanticTokens.borderWidth,
+    },
   },
 });
 
-export type TableProps = Omit<
+export interface TableProps extends Omit<
   TableHTMLAttributes<HTMLTableElement>,
   'className'
->;
+> {
+  readonly density?: TableDensity;
+  readonly dividers?: TableDividers;
+}
 export type TableCaptionProps = Omit<
   HTMLAttributes<HTMLTableCaptionElement>,
   'className'
@@ -65,11 +119,26 @@ export type TableCellProps = Omit<
   'className'
 >;
 
-export function Table({children, ...props}: TableProps) {
+function usesRowDividers(dividers: TableDividers) {
+  return dividers === 'rows' || dividers === 'grid';
+}
+
+function usesColumnDividers(dividers: TableDividers) {
+  return dividers === 'columns' || dividers === 'grid';
+}
+
+export function Table({
+  children,
+  density = 'default',
+  dividers = 'rows',
+  ...props
+}: TableProps) {
   return (
-    <table {...props} {...stylex.props(styles.table)}>
-      {children}
-    </table>
+    <TableStyleContext.Provider value={{density, dividers, section: undefined}}>
+      <table {...props} {...stylex.props(styles.table)}>
+        {children}
+      </table>
+    </TableStyleContext.Provider>
   );
 }
 
@@ -82,16 +151,33 @@ export function TableCaption({children, ...props}: TableCaptionProps) {
 }
 
 export function TableHead({children, ...props}: TableHeadProps) {
-  return <thead {...props}>{children}</thead>;
+  const tableStyle = useContext(TableStyleContext);
+  return (
+    <TableStyleContext.Provider value={{...tableStyle, section: 'head'}}>
+      <thead {...props}>{children}</thead>
+    </TableStyleContext.Provider>
+  );
 }
 
 export function TableBody({children, ...props}: TableBodyProps) {
-  return <tbody {...props}>{children}</tbody>;
+  const tableStyle = useContext(TableStyleContext);
+  return (
+    <TableStyleContext.Provider value={{...tableStyle, section: 'body'}}>
+      <tbody {...props}>{children}</tbody>
+    </TableStyleContext.Provider>
+  );
 }
 
 export function TableRow({children, ...props}: TableRowProps) {
+  const {dividers, section} = useContext(TableStyleContext);
   return (
-    <tr {...props} {...stylex.props(styles.row)}>
+    <tr
+      {...props}
+      {...stylex.props(
+        section === 'body' && styles.bodyRow,
+        section === 'body' && usesRowDividers(dividers) && styles.rowDivider,
+      )}
+    >
       {children}
     </tr>
   );
@@ -102,16 +188,34 @@ export function TableHeaderCell({
   scope = 'col',
   ...props
 }: TableHeaderCellProps) {
+  const {density, dividers} = useContext(TableStyleContext);
   return (
-    <th {...props} scope={scope} {...stylex.props(styles.headerCell)}>
+    <th
+      {...props}
+      scope={scope}
+      {...stylex.props(
+        styles.headerCell,
+        styles[density],
+        usesRowDividers(dividers) && styles.headerRowDivider,
+        usesColumnDividers(dividers) && styles.columnDivider,
+      )}
+    >
       {children}
     </th>
   );
 }
 
 export function TableCell({children, ...props}: TableCellProps) {
+  const {density, dividers} = useContext(TableStyleContext);
   return (
-    <td {...props} {...stylex.props(styles.cell)}>
+    <td
+      {...props}
+      {...stylex.props(
+        styles.cell,
+        styles[density],
+        usesColumnDividers(dividers) && styles.columnDivider,
+      )}
+    >
       {children}
     </td>
   );

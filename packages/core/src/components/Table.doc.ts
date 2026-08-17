@@ -10,9 +10,19 @@ export const tableDoc = {
       description: 'Supplies semantic table primitives.',
       required: true,
     },
+    {
+      name: 'density',
+      description: 'Selects compact, default, or spacious cell rhythm.',
+    },
+    {
+      name: 'dividers',
+      description:
+        'Selects internal row, column, grid, or borderless dividers without adding an outer boundary.',
+    },
   ],
   inheritedProps: ['TableHTMLAttributes<HTMLTableElement> except className'],
-  example: '<Table><TableCaption>Values</TableCaption><TableBody /></Table>',
+  example:
+    '<Table density="compact" dividers="grid"><TableCaption>Values</TableCaption><TableBody /></Table>',
   storyId: 'data-display--table',
 } satisfies ComponentDoc;
 

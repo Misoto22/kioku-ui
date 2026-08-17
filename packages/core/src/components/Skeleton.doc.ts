@@ -3,7 +3,7 @@ import type {ComponentDoc} from '../docs/types.js';
 export const skeletonDoc = {
   name: 'Skeleton',
   description:
-    'Displays a decorative or explicitly labelled loading placeholder.',
+    'Displays a decorative or explicitly labelled loading placeholder with a static reduced-motion fallback.',
   props: [
     {name: 'label', description: 'Optionally announces what is loading.'},
   ],

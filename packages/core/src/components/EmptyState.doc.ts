@@ -13,9 +13,19 @@ export const emptyStateDoc = {
       name: 'detail',
       description: 'Provides optional supporting empty-state content.',
     },
+    {
+      name: 'size',
+      description: 'Adjusts container padding and grouping rhythm.',
+    },
     {name: 'title', description: 'Names the empty state.', required: true},
+    {
+      name: 'visual',
+      description:
+        'Provides optional consumer-owned visual content before the copy; consumers own its accessible semantics.',
+    },
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className and title'],
-  example: '<EmptyState title="No results" detail="Try another query." />',
+  example:
+    '<EmptyState title="No results" detail="Try another query." size="compact" />',
   storyId: 'data-display--empty-state',
 } satisfies ComponentDoc;

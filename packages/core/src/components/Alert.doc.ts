@@ -3,7 +3,7 @@ import type {ComponentDoc} from '../docs/types.js';
 export const alertDoc = {
   name: 'Alert',
   description:
-    'Announces feedback with polite status or assertive error semantics.',
+    'Announces feedback with a quiet status boundary and polite or assertive live semantics.',
   props: [
     {
       name: 'tone',
