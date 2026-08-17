@@ -22,7 +22,11 @@
     },
     "./reset.css": "./dist/styles/reset.css",
     "./styles.css": "./dist/styles/index.css",
-    "./theme": "./dist/theme.js",
+    "./theme": {
+      "types": "./dist/theme/index.d.ts",
+      "import": "./dist/theme/index.js",
+      "default": "./dist/theme/index.js"
+    },
     "./authoring": "./dist/authoring.js"
   },
   "peerDependencies": {
@@ -38,7 +42,11 @@
     "@stylexjs/stylex": "0.19.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "@babel/preset-typescript": "7.28.5",
-    "@stylexjs/cli": "0.19.0"
+    "@stylexjs/cli": "0.19.0",
+    "happy-dom": "^20.0.11"
   }
 }
