@@ -24,7 +24,7 @@ async function runPnpm(arguments_: string[], cwd = packageRoot) {
   }
 }
 
-describe('published theme package build', () => {
+describe('published theme package build', {timeout: 120_000}, () => {
   // A full build of the package, well past the default hook budget.
   beforeAll(async () => {
     await runPnpm(['build']);

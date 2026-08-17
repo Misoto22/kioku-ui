@@ -136,7 +136,7 @@ afterAll(async () => {
   );
 });
 
-describe('StyleX build integrations', () => {
+describe('StyleX build integrations', {timeout: 120_000}, () => {
   it('compiles StyleX authoring through the Babel integration', async () => {
     const result = await transformAsync(
       `import * as stylex from '@stylexjs/stylex';
@@ -323,7 +323,7 @@ export const styles = stylex.create({root: {color: 'rebeccapurple'}});`,
   });
 });
 
-describe('reference distribution applications', () => {
+describe('reference distribution applications', {timeout: 120_000}, () => {
   it('compiles a packed root-import consumer without installing Vite', async () => {
     const fixtureRoot = await mkdtemp(join(tmpdir(), 'kioku-ui-no-vite-'));
     temporaryDirectories.push(fixtureRoot);

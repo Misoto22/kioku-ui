@@ -180,7 +180,7 @@ function expectRenderedMediaRule(
   expect(matched, `Missing ${mediaQuery} rule: ${declaration}`).toBe(true);
 }
 
-describe('published package build', () => {
+describe('published package build', {timeout: 120_000}, () => {
   // A full StyleX + tsc build of the package, well past the default hook budget.
   beforeAll(async () => {
     await runPnpm(['build']);
