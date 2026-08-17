@@ -1,0 +1,200 @@
+/* Ready-to-use theme CSS. Every selector targets a ThemeProvider data-theme root. */
+[data-theme='washi'],
+[data-theme='muji'],
+[data-theme='sumi'] {
+  --kioku-ui-color-canvas: var(--kioku-theme-color-canvas);
+  --kioku-ui-color-surface: var(--kioku-theme-color-surface);
+  --kioku-ui-color-text: var(--kioku-theme-color-text);
+  --kioku-ui-color-focus: var(--kioku-theme-color-focus);
+  --kioku-ui-border-default: var(--kioku-theme-border-default);
+  --kioku-ui-border-strong: var(--kioku-theme-border-strong);
+  --kioku-ui-border-width: var(--kioku-theme-border-width);
+  --kioku-ui-border-style: var(--kioku-theme-border-style);
+  --kioku-ui-status-info-surface: var(--kioku-theme-status-info-surface);
+  --kioku-ui-status-info-text: var(--kioku-theme-status-info-text);
+  --kioku-ui-status-success-surface: var(--kioku-theme-status-success-surface);
+  --kioku-ui-status-success-text: var(--kioku-theme-status-success-text);
+  --kioku-ui-status-warning-surface: var(--kioku-theme-status-warning-surface);
+  --kioku-ui-status-warning-text: var(--kioku-theme-status-warning-text);
+  --kioku-ui-status-danger-surface: var(--kioku-theme-status-danger-surface);
+  --kioku-ui-status-danger-text: var(--kioku-theme-status-danger-text);
+  --kioku-ui-focus-width: var(--kioku-theme-focus-width);
+  --kioku-ui-focus-offset: var(--kioku-theme-focus-offset);
+  --kioku-ui-typography-font-family-body: var(--kioku-theme-font-family-body);
+  --kioku-ui-typography-font-family-heading: var(
+    --kioku-theme-font-family-heading
+  );
+  --kioku-ui-typography-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-ui-typography-font-size-sm: var(--kioku-theme-font-size-sm);
+  --kioku-ui-typography-font-size-md: var(--kioku-theme-font-size-md);
+  --kioku-ui-typography-font-size-lg: var(--kioku-theme-font-size-lg);
+  --kioku-ui-typography-font-size-xl: var(--kioku-theme-font-size-xl);
+  --kioku-ui-typography-font-weight-regular: var(
+    --kioku-theme-font-weight-regular
+  );
+  --kioku-ui-typography-font-weight-medium: var(
+    --kioku-theme-font-weight-medium
+  );
+  --kioku-ui-typography-font-weight-strong: var(
+    --kioku-theme-font-weight-strong
+  );
+  --kioku-ui-typography-line-height-body: var(--kioku-theme-line-height-body);
+  --kioku-ui-typography-line-height-heading: var(
+    --kioku-theme-line-height-heading
+  );
+  --kioku-ui-spacing-xs: var(--kioku-theme-spacing-xs);
+  --kioku-ui-spacing-sm: var(--kioku-theme-spacing-sm);
+  --kioku-ui-spacing-md: var(--kioku-theme-spacing-md);
+  --kioku-ui-spacing-lg: var(--kioku-theme-spacing-lg);
+  --kioku-ui-spacing-xl: var(--kioku-theme-spacing-xl);
+  --kioku-ui-spacing-2xl: var(--kioku-theme-spacing-2xl);
+  --kioku-ui-radius-sm: var(--kioku-theme-radius-sm);
+  --kioku-ui-radius-md: var(--kioku-theme-radius-md);
+  --kioku-ui-radius-lg: var(--kioku-theme-radius-lg);
+  --kioku-ui-radius-round: var(--kioku-theme-radius-round);
+  --kioku-ui-elevation-low: var(--kioku-theme-elevation-low);
+  --kioku-ui-elevation-medium: var(--kioku-theme-elevation-medium);
+  --kioku-ui-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-ui-motion-duration-fast: var(--kioku-theme-motion-duration-fast);
+  --kioku-ui-motion-duration-moderate: var(
+    --kioku-theme-motion-duration-moderate
+  );
+  --kioku-ui-motion-duration-slow: var(--kioku-theme-motion-duration-slow);
+  --kioku-ui-motion-easing-standard: var(--kioku-theme-motion-easing-standard);
+  --kioku-ui-motion-easing-emphasized: var(
+    --kioku-theme-motion-easing-emphasized
+  );
+  --kioku-ui-density-control-block: var(--kioku-theme-density-control-block);
+  --kioku-ui-density-control-inline: var(--kioku-theme-density-control-inline);
+  --kioku-ui-density-item-gap: var(--kioku-theme-density-item-gap);
+
+  --kioku-theme-border-width: 1px;
+  --kioku-theme-border-style: solid;
+  --kioku-theme-focus-width: 2px;
+  --kioku-theme-focus-offset: 2px;
+  --kioku-theme-font-family-body:
+    'Zen Kaku Gothic New', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --kioku-theme-font-family-mono:
+    'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --kioku-theme-font-size-sm: 0.78125rem;
+  --kioku-theme-font-size-md: 0.84375rem;
+  --kioku-theme-font-size-lg: 1rem;
+  --kioku-theme-font-size-xl: 1.6875rem;
+  --kioku-theme-font-weight-regular: 400;
+  --kioku-theme-font-weight-medium: 500;
+  --kioku-theme-font-weight-strong: 600;
+  --kioku-theme-line-height-body: 1.55;
+  --kioku-theme-line-height-heading: 1.25;
+  --kioku-theme-spacing-xs: 3px;
+  --kioku-theme-spacing-sm: 6px;
+  --kioku-theme-spacing-md: 10px;
+  --kioku-theme-spacing-lg: 14px;
+  --kioku-theme-spacing-xl: 20px;
+  --kioku-theme-spacing-2xl: 28px;
+  --kioku-theme-radius-sm: 3px;
+  --kioku-theme-radius-md: 3px;
+  --kioku-theme-radius-lg: 3px;
+  --kioku-theme-radius-round: 999px;
+  --kioku-theme-motion-duration-fast: 120ms;
+  --kioku-theme-motion-duration-moderate: 220ms;
+  --kioku-theme-motion-duration-slow: 760ms;
+  --kioku-theme-motion-easing-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --kioku-theme-motion-easing-emphasized: cubic-bezier(0.16, 0.84, 0.28, 1);
+  --kioku-theme-density-control-block: 32px;
+  --kioku-theme-density-control-inline: 10px;
+  --kioku-theme-density-item-gap: 6px;
+}
+
+/* 和紙: warm paper, sumi ink, indigo, moss, kerria, and madder. */
+[data-theme='washi'] {
+  --kioku-theme-color-canvas: light-dark(#efebe0, #191713);
+  --kioku-theme-color-surface: light-dark(#f6f3e9, #211e19);
+  --kioku-theme-color-text: light-dark(#26221c, #ece6d9);
+  --kioku-theme-color-focus: light-dark(#2f5d8a, #7ba6cf);
+  --kioku-theme-border-default: light-dark(#ddd7c5, #302b24);
+  --kioku-theme-border-strong: light-dark(#c8c0aa, #423b31);
+  --kioku-theme-status-info-surface: light-dark(#e3eaf1, #24384a);
+  --kioku-theme-status-info-text: light-dark(#23486b, #a3c4e2);
+  --kioku-theme-status-success-surface: light-dark(#e6ecdf, #293326);
+  --kioku-theme-status-success-text: light-dark(#4f7043, #a8c68e);
+  --kioku-theme-status-warning-surface: light-dark(#f6eed9, #3b3322);
+  --kioku-theme-status-warning-text: light-dark(#795a0c, #e2be6f);
+  --kioku-theme-status-danger-surface: light-dark(#f5e3df, #3b2723);
+  --kioku-theme-status-danger-text: light-dark(#8c3931, #df948a);
+  --kioku-theme-font-family-heading:
+    'Shippori Mincho', 'Hiragino Mincho ProN', serif;
+  --kioku-theme-elevation-low: 0 0 0 1px light-dark(#ddd7c5, #302b24);
+  --kioku-theme-elevation-medium:
+    0 1px 0 light-dark(rgb(38 34 28 / 4%), rgb(0 0 0 / 22%)),
+    0 0 0 1px light-dark(#ddd7c5, #302b24);
+  --kioku-theme-elevation-high:
+    0 6px 18px light-dark(rgb(38 34 28 / 10%), rgb(0 0 0 / 32%)),
+    0 0 0 1px light-dark(#c8c0aa, #423b31);
+}
+
+/* 無印: cool walls, light wood, and a restrained green-grey accent. */
+[data-theme='muji'] {
+  --kioku-theme-color-canvas: light-dark(#f2f2ef, #1a1c19);
+  --kioku-theme-color-surface: light-dark(#f9f9f7, #222420);
+  --kioku-theme-color-text: light-dark(#2f322c, #e7e8e2);
+  --kioku-theme-color-focus: light-dark(#566b52, #9cb597);
+  --kioku-theme-border-default: light-dark(#dcdcd4, #31342d);
+  --kioku-theme-border-strong: light-dark(#c2c3b8, #43463d);
+  --kioku-theme-status-info-surface: light-dark(#e4e9e0, #2a3328);
+  --kioku-theme-status-info-text: light-dark(#41533e, #b8cbb3);
+  --kioku-theme-status-success-surface: light-dark(#e6ebe0, #2a3328);
+  --kioku-theme-status-success-text: light-dark(#4e6946, #afc6a9);
+  --kioku-theme-status-warning-surface: light-dark(#f1e9d8, #393225);
+  --kioku-theme-status-warning-text: light-dark(#775c29, #dec083);
+  --kioku-theme-status-danger-surface: light-dark(#f2e2dd, #3a2925);
+  --kioku-theme-status-danger-text: light-dark(#86493e, #dba095);
+  --kioku-theme-font-family-heading:
+    'Zen Kaku Gothic New', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --kioku-theme-elevation-low: 0 0 0 1px light-dark(#dcdcd4, #31342d);
+  --kioku-theme-elevation-medium:
+    0 1px 0 light-dark(rgb(47 50 44 / 4%), rgb(0 0 0 / 24%)),
+    0 0 0 1px light-dark(#dcdcd4, #31342d);
+  --kioku-theme-elevation-high:
+    0 6px 18px light-dark(rgb(47 50 44 / 9%), rgb(0 0 0 / 34%)),
+    0 0 0 1px light-dark(#c2c3b8, #43463d);
+}
+
+/* 墨: high contrast, near monochrome, with one indigo accent. */
+[data-theme='sumi'] {
+  --kioku-theme-color-canvas: light-dark(#f5f5f3, #0f0f0e);
+  --kioku-theme-color-surface: light-dark(#ffffff, #191918);
+  --kioku-theme-color-text: light-dark(#131311, #f2f2ee);
+  --kioku-theme-color-focus: light-dark(#1d4d7c, #79aade);
+  --kioku-theme-border-default: light-dark(#dcdcd8, #2a2a27);
+  --kioku-theme-border-strong: light-dark(#b4b4ae, #3d3d39);
+  --kioku-theme-status-info-surface: light-dark(#e3e9f0, #22364a);
+  --kioku-theme-status-info-text: light-dark(#143a60, #a2c6ea);
+  --kioku-theme-status-success-surface: light-dark(#e4ebe2, #273426);
+  --kioku-theme-status-success-text: light-dark(#355c31, #a5ca9b);
+  --kioku-theme-status-warning-surface: light-dark(#f3ecda, #3a3222);
+  --kioku-theme-status-warning-text: light-dark(#73520b, #e4c67c);
+  --kioku-theme-status-danger-surface: light-dark(#f4e0dd, #3c2623);
+  --kioku-theme-status-danger-text: light-dark(#842a23, #e19a92);
+  --kioku-theme-font-family-heading:
+    'Shippori Mincho', 'Hiragino Mincho ProN', serif;
+  --kioku-theme-elevation-low: 0 0 0 1px light-dark(#dcdcd8, #2a2a27);
+  --kioku-theme-elevation-medium:
+    0 1px 2px light-dark(rgb(19 19 17 / 6%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(#dcdcd8, #2a2a27);
+  --kioku-theme-elevation-high:
+    0 8px 22px light-dark(rgb(19 19 17 / 12%), rgb(0 0 0 / 52%)),
+    0 0 0 1px light-dark(#b4b4ae, #3d3d39);
+}
+
+[data-theme='washi'][data-density='standard'],
+[data-theme='muji'][data-density='standard'],
+[data-theme='sumi'][data-density='standard'],
+[data-density='standard'] [data-theme='washi'],
+[data-density='standard'] [data-theme='muji'],
+[data-density='standard'] [data-theme='sumi'] {
+  --kioku-theme-density-control-block: 40px;
+  --kioku-theme-density-control-inline: 14px;
+  --kioku-theme-density-item-gap: 8px;
+}

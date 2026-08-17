@@ -1,12 +1,26 @@
 {
   "name": "@misoto22/kioku-ui-theme-kioku",
   "version": "0.0.0",
-  "description": "Kioku visual theme for Kioku UI.",
+  "description": "Kioku Washi, Muji, and Sumi themes for Kioku UI.",
   "license": "MIT",
   "type": "module",
-  "files": ["dist"],
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./theme.css": "./dist/theme.css"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node build.mjs",
+    "test": "vitest run src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
     "@misoto22/kioku-ui": "workspace:*",

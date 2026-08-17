@@ -5,3 +5,4 @@ export {
   type ThemePersistence,
   type ThemeProviderProps,
 } from './Theme.js';
+export type {ThemeDefinition} from '../tokens/contracts.js';
