@@ -7,9 +7,14 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 vi.mock('@stylexjs/stylex', () => ({
   create: <Styles,>(styles: Styles) => styles,
   defineVars: <Vars,>(variables: Vars) => variables,
-  props: (...styles: Array<Record<string, unknown> | undefined>) => ({
-    style: Object.assign({}, ...styles),
-  }),
+  props: (...styles: Array<Record<string, unknown> | undefined>) => {
+    const appliedStyles = Object.assign({}, ...styles);
+
+    return {
+      style: appliedStyles,
+      'data-stylex-contract': JSON.stringify(appliedStyles),
+    };
+  },
 }));
 
 import {renderUi} from '@misoto22/kioku-ui-test-utils';
@@ -72,13 +77,19 @@ describe('foundation components', () => {
 
     expect(screen.getByRole('button', {name: 'Open navigation'})).toBeVisible();
     const hiddenText = screen.getByText('Open navigation');
-    const appliedStyles = hiddenText.getAttribute('style') ?? '';
-    expect(appliedStyles).toContain('clip-path: inset(50%);');
-    expect(appliedStyles).toContain('height: 1px;');
-    expect(appliedStyles).toContain('overflow: hidden;');
-    expect(appliedStyles).toContain('position: absolute;');
-    expect(appliedStyles).toContain('white-space: nowrap;');
-    expect(appliedStyles).toContain('width: 1px;');
+    const appliedStyles = JSON.parse(
+      hiddenText.getAttribute('data-stylex-contract') ?? '{}',
+    );
+    expect(appliedStyles).toEqual({
+      clip: 'rect(0 0 0 0)',
+      clipPath: 'inset(50%)',
+      height: 1,
+      margin: -1,
+      overflow: 'hidden',
+      position: 'absolute',
+      whiteSpace: 'nowrap',
+      width: 1,
+    });
   });
 
   it('preserves native landmark and content semantics in composed layout primitives', () => {

@@ -8,7 +8,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {promisify} from 'node:util';
 
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
@@ -183,5 +183,41 @@ void [docs, individualDocs, textName, missing];
       'ES2024',
       source,
     ]);
+
+    const loader = join(fixtureRoot, 'ignore-css.mjs');
+    await writeFile(
+      loader,
+      `export async function load(url, context, nextLoad) {
+  if (url.endsWith('.css')) {
+    return {format: 'module', shortCircuit: true, source: 'export {};'};
+  }
+  return nextLoad(url, context);
+}
+`,
+    );
+    const runtime = join(fixtureRoot, 'consumer.mjs');
+    await writeFile(
+      runtime,
+      `import {componentDocs, textDoc, validateComponentDoc} from '${packageName}/docs';
+
+const expectedNames = [
+  'Text', 'Heading', 'Stack', 'Grid', 'Section', 'Card', 'CardHeader',
+  'CardFooter', 'Divider', 'Center', 'VisuallyHidden',
+];
+
+if (componentDocs.map(({name}) => name).join(',') !== expectedNames.join(',')) {
+  throw new Error('The public docs catalog has unexpected records.');
+}
+if (!componentDocs.includes(textDoc) || componentDocs.some((doc) => validateComponentDoc(doc).length > 0)) {
+  throw new Error('The public docs API did not expose valid records.');
+}
+`,
+    );
+
+    await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, runtime],
+      {cwd: packageRoot},
+    );
   });
 });
