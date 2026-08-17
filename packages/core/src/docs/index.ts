@@ -33,6 +33,8 @@ import {textDoc} from '../components/Text.doc.js';
 import {textInputDoc} from '../components/TextInput.doc.js';
 import {toggleDoc} from '../components/Toggle.doc.js';
 import {visuallyHiddenDoc} from '../components/VisuallyHidden.doc.js';
+import {linkDoc, linkProviderDoc} from '../navigation/LinkProvider.doc.js';
+import {themeProviderDoc} from '../theme/Theme.doc.js';
 import type {ComponentDoc} from './types.js';
 
 export {
@@ -69,6 +71,9 @@ export {
   textAreaDoc,
   textInputDoc,
   toggleDoc,
+  linkDoc,
+  linkProviderDoc,
+  themeProviderDoc,
 };
 export {
   validateComponentDoc,
@@ -111,4 +116,7 @@ export const componentDocs: readonly ComponentDoc[] = Object.freeze([
   tableHeaderCellDoc,
   tableCellDoc,
   metricGridDoc,
+  linkDoc,
+  linkProviderDoc,
+  themeProviderDoc,
 ]);

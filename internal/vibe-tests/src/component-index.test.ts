@@ -2,7 +2,9 @@ import {describe, expect, it} from 'vitest';
 
 import {
   componentCatalogProblems,
+  publicComponentNamesFromSource,
   workspaceComponentCatalogProblems,
+  workspacePublicComponentNames,
 } from './component-index.js';
 
 describe('component catalog policy', () => {
@@ -49,6 +51,38 @@ describe('component catalog policy', () => {
     ).resolves.toEqual([
       'Button has invalid component documentation metadata: description',
     ]);
+  });
+
+  it('derives a root provider and reports its missing story and metadata', async () => {
+    const names = publicComponentNamesFromSource(`
+export {Button, type ButtonProps} from './components/index.js';
+export {ThemeProvider, useTheme, type ThemeProviderProps} from './theme/index.js';
+`);
+
+    await expect(
+      componentCatalogProblems(names, {
+        docs: [
+          {
+            name: 'Button',
+            description: 'Triggers an action.',
+            props: [{name: 'children', description: 'Sets the label.'}],
+            inheritedProps: ['ButtonHTMLAttributes<HTMLButtonElement>'],
+            example: '<Button>Save</Button>',
+            storyId: 'controls--button',
+          },
+        ],
+        storyIds: ['controls--button'],
+      }),
+    ).resolves.toEqual([
+      'ThemeProvider is missing a Storybook story',
+      'ThemeProvider is missing component documentation metadata',
+    ]);
+  });
+
+  it('derives component candidates from the public root barrel', async () => {
+    await expect(workspacePublicComponentNames()).resolves.toEqual(
+      expect.arrayContaining(['Link', 'LinkProvider', 'ThemeProvider']),
+    );
   });
 
   it('keeps every public core component discoverable', async () => {

@@ -142,10 +142,13 @@ async function workspaceStoryIds(storyDirectory: string) {
   return ids;
 }
 
-async function publicComponentNames(componentIndex: string) {
+export function publicComponentNamesFromSource(
+  sourceText: string,
+  file = 'index.ts',
+) {
   const source = ts.createSourceFile(
-    componentIndex,
-    await readFile(componentIndex, 'utf8'),
+    file,
+    sourceText,
     ts.ScriptTarget.Latest,
     true,
     ts.ScriptKind.TS,
@@ -162,24 +165,30 @@ async function publicComponentNames(componentIndex: string) {
       continue;
     }
     for (const element of statement.exportClause.elements) {
-      if (!element.isTypeOnly) names.push(element.name.text);
+      if (!element.isTypeOnly && /^[A-Z]/.test(element.name.text)) {
+        names.push(element.name.text);
+      }
     }
   }
 
   return names;
 }
 
+export async function workspacePublicComponentNames() {
+  const workspaceRoot = fileURLToPath(new URL('../../../', import.meta.url));
+  const publicIndex = join(workspaceRoot, 'packages/core/src/index.ts');
+  return publicComponentNamesFromSource(
+    await readFile(publicIndex, 'utf8'),
+    publicIndex,
+  );
+}
+
 export async function workspaceComponentCatalogProblems() {
   const workspaceRoot = fileURLToPath(new URL('../../../', import.meta.url));
-  return componentCatalogProblems(
-    await publicComponentNames(
-      join(workspaceRoot, 'packages/core/src/components/index.ts'),
+  return componentCatalogProblems(await workspacePublicComponentNames(), {
+    docs: componentDocs,
+    storyIds: await workspaceStoryIds(
+      join(workspaceRoot, 'apps/storybook/stories'),
     ),
-    {
-      docs: componentDocs,
-      storyIds: await workspaceStoryIds(
-        join(workspaceRoot, 'apps/storybook/stories'),
-      ),
-    },
-  );
+  });
 }

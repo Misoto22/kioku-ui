@@ -1,6 +1,9 @@
 import type {Meta, StoryObj} from '@storybook/react-vite';
 import {Badge, Button, Card, Heading, Stack, Text} from '@misoto22/kioku-ui';
-import {ThemeProvider, type ThemeDefinition} from '@misoto22/kioku-ui/theme';
+import {
+  ThemeProvider as ThemeProviderComponent,
+  type ThemeDefinition,
+} from '@misoto22/kioku-ui/theme';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 import '@misoto22/kioku-ui-theme-kioku/theme.css';
 
@@ -22,7 +25,7 @@ function ThemeSpecimen({
 }) {
   return (
     <div data-density={density} style={{colorScheme: mode}}>
-      <ThemeProvider defaultThemeId={theme.id} themes={[theme]}>
+      <ThemeProviderComponent defaultThemeId={theme.id} themes={[theme]}>
         <div
           style={{
             background: 'var(--kioku-ui-color-canvas)',
@@ -70,7 +73,7 @@ function ThemeSpecimen({
             </div>
           </Card>
         </div>
-      </ThemeProvider>
+      </ThemeProviderComponent>
     </div>
   );
 }
@@ -95,5 +98,17 @@ export const ThemeMatrix: Story = {
         )),
       )}
     </div>
+  ),
+};
+
+export const ThemeProvider: Story = {
+  render: () => (
+    <ThemeProviderComponent defaultThemeId="washi" themes={kiokuThemes}>
+      <Card>
+        <div style={{padding: 'var(--kioku-ui-spacing-lg)'}}>
+          <Text>The provider applies the selected theme token contract.</Text>
+        </div>
+      </Card>
+    </ThemeProviderComponent>
   ),
 };

@@ -50,6 +50,42 @@ export function newAccessibilityViolations(audits, baseline) {
   );
 }
 
+function sameStringSet(actual, expected) {
+  return (
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    new Set(actual).size === actual.length &&
+    expected.every((value) => actual.includes(value))
+  );
+}
+
+function scopeList(value) {
+  return `[${Array.isArray(value) ? value.join(', ') : 'missing'}]`;
+}
+
+export function accessibilityBaselineScopeProblems(baseline, expected) {
+  const scope = baseline.scope ?? {};
+  const problems = [];
+
+  if (scope.storyCount !== expected.storyCount) {
+    problems.push(
+      `story count: expected ${expected.storyCount}, received ${scope.storyCount ?? 'missing'}`,
+    );
+  }
+  if (!sameStringSet(scope.themes, expected.themes)) {
+    problems.push(
+      `themes: expected ${scopeList(expected.themes)}, received ${scopeList(scope.themes)}`,
+    );
+  }
+  if (!sameStringSet(scope.modes, expected.modes)) {
+    problems.push(
+      `modes: expected ${scopeList(expected.modes)}, received ${scopeList(scope.modes)}`,
+    );
+  }
+
+  return problems;
+}
+
 function contentType(path) {
   return (
     {
@@ -161,6 +197,25 @@ async function runAccessibilityAudit() {
     throw new Error('Storybook index contains no auditable stories');
   }
 
+  const updateBaseline = process.argv.includes('--update-baseline');
+  let baseline;
+  if (!updateBaseline) {
+    baseline = JSON.parse(await readFile(baselinePath, 'utf8'));
+    if (baseline.version !== 1 || !Array.isArray(baseline.violations)) {
+      throw new Error('Accessibility baseline must use schema version 1');
+    }
+    const scopeProblems = accessibilityBaselineScopeProblems(baseline, {
+      modes,
+      storyCount: storyIds.length,
+      themes,
+    });
+    if (scopeProblems.length > 0) {
+      throw new Error(
+        `Accessibility baseline scope does not match the discovered audit surface:\n${scopeProblems.join('\n')}`,
+      );
+    }
+  }
+
   const server = await serveDirectory(storybookDirectory);
   let audits;
   try {
@@ -170,7 +225,7 @@ async function runAccessibilityAudit() {
   }
 
   const current = accessibilityViolationFingerprints(audits);
-  if (process.argv.includes('--update-baseline')) {
+  if (updateBaseline) {
     const baseline = {
       scope: {
         modes,
@@ -187,10 +242,6 @@ async function runAccessibilityAudit() {
     return;
   }
 
-  const baseline = JSON.parse(await readFile(baselinePath, 'utf8'));
-  if (baseline.version !== 1 || !Array.isArray(baseline.violations)) {
-    throw new Error('Accessibility baseline must use schema version 1');
-  }
   const regressions = newAccessibilityViolations(audits, baseline);
   if (regressions.length > 0) {
     for (const regression of regressions) {

@@ -1,7 +1,7 @@
 {
   "scope": {
     "modes": ["light", "dark"],
-    "storyCount": 34,
+    "storyCount": 37,
     "themes": ["washi", "muji", "sumi"]
   },
   "version": 1,

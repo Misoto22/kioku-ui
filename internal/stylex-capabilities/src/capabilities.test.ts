@@ -56,6 +56,26 @@ export const fallback = firstThatWorks('red', 'blue');`,
     ]);
   });
 
+  it('rejects direct and renamed destructuring from the StyleX namespace', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+{
+  const {firstThatWorks} = stylex;
+  firstThatWorks('red', 'blue');
+}
+{
+  const {firstThatWorks: chooseFallback} = stylex;
+  chooseFallback('red', 'blue');
+}`,
+        'destructured.stylex.ts',
+      ),
+    ).toEqual([
+      'destructured.stylex.ts:3 uses unsupported StyleX capability: destructured stylex.firstThatWorks',
+      'destructured.stylex.ts:7 uses unsupported StyleX capability: destructured stylex.firstThatWorks as chooseFallback',
+    ]);
+  });
+
   it('keeps public core authoring within the declared capability policy', async () => {
     await expect(workspaceStylexCapabilityProblems()).resolves.toEqual([]);
   });

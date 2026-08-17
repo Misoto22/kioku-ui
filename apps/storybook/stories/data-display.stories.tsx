@@ -55,26 +55,6 @@ export const Alert: Story = {
   ),
 };
 
-export const Table: Story = {
-  render: () => (
-    <TableComponent>
-      <TableCaptionComponent>Example values</TableCaptionComponent>
-      <TableHeadComponent>
-        <TableRowComponent>
-          <TableHeaderCellComponent>Label</TableHeaderCellComponent>
-          <TableHeaderCellComponent>Value</TableHeaderCellComponent>
-        </TableRowComponent>
-      </TableHeadComponent>
-      <TableBodyComponent>
-        <TableRowComponent>
-          <TableCellComponent>Alpha</TableCellComponent>
-          <TableCellComponent>24</TableCellComponent>
-        </TableRowComponent>
-      </TableBodyComponent>
-    </TableComponent>
-  ),
-};
-
 function TableFixture() {
   return (
     <TableComponent>
@@ -95,6 +75,7 @@ function TableFixture() {
   );
 }
 
+export const Table: Story = {render: () => <TableFixture />};
 export const TableCaption: Story = {render: () => <TableFixture />};
 export const TableHead: Story = {render: () => <TableFixture />};
 export const TableBody: Story = {render: () => <TableFixture />};

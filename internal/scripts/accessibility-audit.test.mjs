@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  accessibilityBaselineScopeProblems,
   accessibilityViolationFingerprints,
   newAccessibilityViolations,
 } from '../../.github/scripts/accessibility-audit.js';
@@ -83,4 +84,29 @@ test('accessibility fingerprints are stable across axe result ordering', () => {
       theme: 'washi',
     },
   ]);
+});
+
+test('a reduced baseline surface cannot pass as an empty fingerprint set', () => {
+  const baseline = {
+    scope: {
+      modes: ['light'],
+      storyCount: 33,
+      themes: ['washi', 'muji'],
+    },
+    version: 1,
+    violations: [],
+  };
+
+  assert.deepEqual(
+    accessibilityBaselineScopeProblems(baseline, {
+      modes: ['light', 'dark'],
+      storyCount: 34,
+      themes: ['washi', 'muji', 'sumi'],
+    }),
+    [
+      'story count: expected 34, received 33',
+      'themes: expected [washi, muji, sumi], received [washi, muji]',
+      'modes: expected [light, dark], received [light]',
+    ],
+  );
 });

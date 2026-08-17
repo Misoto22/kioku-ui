@@ -91,6 +91,25 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
 
   const visit = (node: ts.Node) => {
     if (
+      ts.isVariableDeclaration(node) &&
+      ts.isObjectBindingPattern(node.name) &&
+      node.initializer &&
+      ts.isIdentifier(node.initializer) &&
+      namespaces.has(node.initializer.text)
+    ) {
+      for (const element of node.name.elements) {
+        if (!ts.isIdentifier(element.name)) continue;
+        const importedName = element.propertyName
+          ? propertyName(element.propertyName)
+          : element.name.text;
+        if (!importedName) continue;
+        const alias =
+          element.name.text === importedName ? '' : ` as ${element.name.text}`;
+        report(element, `destructured stylex.${importedName}${alias}`);
+      }
+    }
+
+    if (
       ts.isCallExpression(node) &&
       ts.isPropertyAccessExpression(node.expression) &&
       ts.isIdentifier(node.expression.expression) &&

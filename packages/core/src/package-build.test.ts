@@ -274,6 +274,8 @@ if (!button.includes('<button') || !button.includes('Save') || !ready.includes('
   gridDoc,
   headingDoc,
   iconButtonDoc,
+  linkDoc,
+  linkProviderDoc,
   metricGridDoc,
   sectionDoc,
   segmentedControlDoc,
@@ -291,6 +293,7 @@ if (!button.includes('<button') || !button.includes('Save') || !ready.includes('
   textAreaDoc,
   textDoc,
   textInputDoc,
+  themeProviderDoc,
   toggleDoc,
   validateComponentDoc,
   visuallyHiddenDoc,
@@ -332,6 +335,9 @@ const individualDocs: readonly ComponentDoc[] = [
   tableHeaderCellDoc,
   tableCellDoc,
   metricGridDoc,
+  linkDoc,
+  linkProviderDoc,
+  themeProviderDoc,
 ];
 const textName: string = textDoc.name;
 const missing = validateComponentDoc(textDoc);
@@ -375,6 +381,7 @@ const expectedNames = [
   'TextArea', 'Toggle', 'SegmentedControl', 'EmptyState', 'AsyncState',
   'Spinner', 'Skeleton', 'Alert', 'Table', 'TableCaption', 'TableHead',
   'TableBody', 'TableRow', 'TableHeaderCell', 'TableCell', 'MetricGrid',
+  'Link', 'LinkProvider', 'ThemeProvider',
 ];
 
 if (componentDocs.map(({name}) => name).join(',') !== expectedNames.join(',')) {

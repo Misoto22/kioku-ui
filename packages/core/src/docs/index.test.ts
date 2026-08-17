@@ -38,6 +38,9 @@ describe('componentDocs', () => {
       'TableHeaderCell',
       'TableCell',
       'MetricGrid',
+      'Link',
+      'LinkProvider',
+      'ThemeProvider',
     ]);
 
     for (const doc of componentDocs) {
@@ -60,6 +63,8 @@ describe('componentDocs', () => {
       Field: ['controlId', 'description', 'label', 'status', 'statusTone'],
       IconButton: ['aria-label'],
       MetricGrid: ['items'],
+      Link: ['href'],
+      LinkProvider: ['children', 'renderLink'],
       SegmentedControl: [
         'aria-label',
         'aria-labelledby',
@@ -83,6 +88,7 @@ describe('componentDocs', () => {
       TextArea: ['defaultValue', 'onValueChange', 'value'],
       TextInput: ['defaultValue', 'onValueChange', 'value'],
       Toggle: ['defaultPressed', 'onPressedChange', 'pressed'],
+      ThemeProvider: ['children', 'defaultThemeId', 'persistence', 'themes'],
     });
   });
 });
