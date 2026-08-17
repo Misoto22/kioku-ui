@@ -1,4 +1,4 @@
-import {transformAsync} from '@babel/core';
+import {transformAsync, type PluginObj} from '@babel/core';
 import {execFile} from 'node:child_process';
 import {createRequire} from 'node:module';
 import postcss from 'postcss';
@@ -17,7 +17,6 @@ import {fileURLToPath} from 'node:url';
 import {promisify} from 'node:util';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 
-import nextSourceConfig from '../../../apps/example-nextjs-source/next.config.js';
 import kiokuUiBabelPlugin, {createKiokuUiBabelConfig} from './babel.js';
 import kiokuUiPostcssPlugin, {createKiokuUiPostcssConfig} from './postcss.js';
 import {kiokuUiVitePlugin} from './vite.js';
@@ -50,6 +49,82 @@ async function packageUsesBuildPlugin(relativeDirectory: string) {
     manifest.dependencies?.['@misoto22/kioku-ui-build'] ??
     manifest.devDependencies?.['@misoto22/kioku-ui-build'],
   );
+}
+
+async function sourceNextConfigContract() {
+  const filename = join(
+    workspaceRoot,
+    'apps/example-nextjs-source/next.config.ts',
+  );
+  const contract: {
+    extensionAliases?: Record<string, string[]>;
+    transpilePackages?: string[];
+  } = {};
+
+  await transformAsync(await readFile(filename, 'utf8'), {
+    ast: false,
+    babelrc: false,
+    code: false,
+    configFile: false,
+    filename,
+    parserOpts: {plugins: ['typescript']},
+    plugins: [
+      (): PluginObj => ({
+        visitor: {
+          AssignmentExpression(path) {
+            const {left, right} = path.node;
+            if (
+              left.type !== 'MemberExpression' ||
+              left.computed ||
+              left.property.type !== 'Identifier' ||
+              left.property.name !== 'extensionAlias' ||
+              left.object.type !== 'MemberExpression' ||
+              left.object.computed ||
+              left.object.object.type !== 'Identifier' ||
+              left.object.object.name !== 'config' ||
+              left.object.property.type !== 'Identifier' ||
+              left.object.property.name !== 'resolve' ||
+              right.type !== 'ObjectExpression'
+            ) {
+              return;
+            }
+
+            const extensionAliases: Record<string, string[]> = {};
+            for (const property of right.properties) {
+              if (
+                property.type !== 'ObjectProperty' ||
+                property.computed ||
+                property.key.type !== 'StringLiteral' ||
+                property.value.type !== 'ArrayExpression'
+              ) {
+                continue;
+              }
+              const aliases = property.value.elements.flatMap((element) =>
+                element?.type === 'StringLiteral' ? [element.value] : [],
+              );
+              extensionAliases[property.key.value] = aliases;
+            }
+            contract.extensionAliases = extensionAliases;
+          },
+          ObjectProperty(path) {
+            const {key, value} = path.node;
+            if (
+              !path.node.computed &&
+              key.type === 'Identifier' &&
+              key.name === 'transpilePackages' &&
+              value.type === 'ArrayExpression'
+            ) {
+              contract.transpilePackages = value.elements.flatMap((element) =>
+                element?.type === 'StringLiteral' ? [element.value] : [],
+              );
+            }
+          },
+        },
+      }),
+    ],
+  });
+
+  return contract;
 }
 
 afterAll(async () => {
@@ -112,10 +187,10 @@ export const styles = stylex.create({root: {color: 'navy'}});`,
     expect(options).toEqual({dev: false, rootDir: workspaceRoot});
   });
 
-  it('resolves emitted JavaScript theme specifiers to installed TypeScript source', async () => {
+  it('resolves emitted JavaScript theme specifiers to TypeScript source', async () => {
     const filename = join(
       workspaceRoot,
-      'apps/example-nextjs-source/node_modules/@misoto22/kioku-ui/src/components/Card.tsx',
+      'packages/core/src/components/Card.tsx',
     );
     const result = await transformAsync(await readFile(filename, 'utf8'), {
       babelrc: false,
@@ -349,17 +424,10 @@ void config;
     expect(page).not.toContain('packages/core');
   });
 
-  it('resolves emitted JavaScript specifiers to TypeScript in the source Next.js example', () => {
-    expect(nextSourceConfig.webpack).toBeTypeOf('function');
-    const result = nextSourceConfig.webpack?.(
-      {resolve: {}} as never,
-      {} as never,
-    ) as {resolve: {extensionAlias?: Record<string, readonly string[]>}};
-
-    expect(result.resolve.extensionAlias?.['.js']).toEqual([
-      '.ts',
-      '.tsx',
-      '.js',
-    ]);
+  it('inspects the source Next.js config without loading standalone dependencies', async () => {
+    await expect(sourceNextConfigContract()).resolves.toEqual({
+      extensionAliases: {'.js': ['.ts', '.tsx', '.js']},
+      transpilePackages: ['@misoto22/kioku-ui'],
+    });
   });
 });
