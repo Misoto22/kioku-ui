@@ -9,10 +9,18 @@ export const toggleDoc = {
       description: 'Sets the initial state for an uncontrolled switch.',
     },
     {
+      name: 'disabled',
+      description: 'Disables native switch activation and focus behavior.',
+    },
+    {
       name: 'onPressedChange',
       description: 'Receives the next boolean state after activation.',
     },
-    {name: 'pressed', description: 'Controls the current switch state.'},
+    {
+      name: 'pressed',
+      description:
+        'Controls the current switch state without internal updates.',
+    },
   ],
   inheritedProps: [
     'ButtonHTMLAttributes<HTMLButtonElement> except aria-checked, aria-pressed, className, onChange, and role',

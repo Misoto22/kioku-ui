@@ -11,32 +11,45 @@ import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
   root: {
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',
     gap: semanticTokens.spacingXs,
     padding: semanticTokens.spacingXs,
   },
   option: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.colorSurface,
+    backgroundColor: 'transparent',
     borderRadius: semanticTokens.radiusInner,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    borderStyle: 'none',
+    boxSizing: 'border-box',
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    ':disabled': {color: semanticTokens.colorDisabledText},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
+  },
+  unselected: {
+    ':active:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayActive,
+    },
+    ':hover:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
   },
   selected: {
-    backgroundColor: semanticTokens.statusInfoSurface,
-    borderColor: semanticTokens.statusInfoText,
-    color: semanticTokens.statusInfoText,
+    backgroundColor: semanticTokens.colorSurfaceRaised,
+    boxShadow: semanticTokens.elevationLow,
+    color: semanticTokens.colorText,
   },
+  vertical: {flexDirection: 'column'},
 });
 
 export interface SegmentedControlOption<Value extends string = string> {
@@ -185,7 +198,10 @@ export function SegmentedControl<Value extends string = string>({
       aria-disabled={disabled || undefined}
       aria-orientation={orientation}
       role="radiogroup"
-      {...stylex.props(styles.root)}
+      {...stylex.props(
+        styles.root,
+        orientation === 'vertical' ? styles.vertical : undefined,
+      )}
     >
       {options.map((option) => {
         const isDisabled = disabled || Boolean(option.disabled);
@@ -209,7 +225,7 @@ export function SegmentedControl<Value extends string = string>({
             tabIndex={isSelected && !isDisabled ? 0 : -1}
             {...stylex.props(
               styles.option,
-              isSelected ? styles.selected : undefined,
+              isSelected ? styles.selected : styles.unselected,
             )}
             type="button"
           >

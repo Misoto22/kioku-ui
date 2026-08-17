@@ -64,6 +64,7 @@ export {
   type TextProps,
   type VisuallyHiddenProps,
   type EmptyStateProps,
+  type FieldNecessity,
   type FieldProps,
   type IconButtonProps,
   type MetricGridItem,

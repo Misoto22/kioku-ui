@@ -15,6 +15,11 @@ export const fieldDoc = {
     },
     {name: 'label', description: 'Provides the control label.', required: true},
     {
+      name: 'necessity',
+      description:
+        'Displays required or optional metadata and supplies the native required default to supported text controls.',
+    },
+    {
       name: 'status',
       description: 'Adds validation or status text to the control description.',
     },
@@ -24,6 +29,6 @@ export const fieldDoc = {
     },
   ],
   inheritedProps: ['HTMLAttributes<HTMLDivElement> except className'],
-  example: '<Field label="Email"><TextInput /></Field>',
+  example: '<Field label="Email" necessity="required"><TextInput /></Field>',
   storyId: 'controls--field',
 } satisfies ComponentDoc;

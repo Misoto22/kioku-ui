@@ -120,6 +120,62 @@ describe('button controls', () => {
 });
 
 describe('fields', () => {
+  it('connects necessity annotations and supplies the native required default', () => {
+    renderUi(
+      <>
+        <Field label="Email" necessity="required">
+          <TextInput />
+        </Field>
+        <Field label="Biography" necessity="required">
+          <TextArea required={false} />
+        </Field>
+        <Field label="Summary" necessity="required">
+          <TextArea />
+        </Field>
+        <Field label="Nickname" necessity="optional">
+          <TextInput required />
+        </Field>
+      </>,
+    );
+
+    expect(
+      screen.getByRole('textbox', {name: /Email.*required/i}),
+    ).toBeRequired();
+    expect(
+      screen.getByRole('textbox', {name: /Biography.*required/i}),
+    ).not.toBeRequired();
+    expect(
+      screen.getByRole('textbox', {name: /Summary.*required/i}),
+    ).toBeRequired();
+    expect(
+      screen.getByRole('textbox', {name: /Nickname.*optional/i}),
+    ).toBeRequired();
+  });
+
+  it('preserves native text-control state and host attributes', () => {
+    renderUi(
+      <>
+        <TextInput
+          aria-invalid="true"
+          aria-label="Disabled input"
+          data-host-prop="forwarded"
+          disabled
+          placeholder="Enter a value"
+        />
+        <TextArea aria-label="Read-only area" defaultValue="Locked" readOnly />
+      </>,
+    );
+
+    const input = screen.getByRole('textbox', {name: 'Disabled input'});
+    expect(input).toBeDisabled();
+    expect(input).toBeInvalid();
+    expect(input).toHaveAttribute('data-host-prop', 'forwarded');
+    expect(input).toHaveAttribute('placeholder', 'Enter a value');
+    expect(
+      screen.getByRole('textbox', {name: 'Read-only area'}),
+    ).toHaveAttribute('readonly');
+  });
+
   it('connects Field label and validation message to TextInput', () => {
     renderUi(
       <Field label="Email" status="Enter a valid address">
@@ -204,6 +260,20 @@ describe('fields', () => {
 });
 
 describe('selection controls', () => {
+  it('renders a switch track and an aria-hidden thumb inside the native button', () => {
+    renderUi(<Toggle aria-label="Email notifications">Notifications</Toggle>);
+
+    const toggle = screen.getByRole('switch', {
+      name: 'Email notifications',
+    });
+    const track = toggle.firstElementChild;
+    const thumb = track?.firstElementChild;
+
+    expect(track).toHaveAttribute('aria-hidden', 'true');
+    expect(thumb).toHaveAttribute('aria-hidden', 'true');
+    expect(toggle).toHaveTextContent('Notifications');
+  });
+
   it('supports uncontrolled and controlled Toggle state without bypassing disabled behavior', async () => {
     const user = userEvent.setup();
     const onPressedChange = vi.fn();

@@ -6,31 +6,59 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderColor: semanticTokens.borderStrong,
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
     borderRadius: semanticTokens.radiusFull,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',
-    minHeight: semanticTokens.sizeControlMd,
-    paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
-  },
-  off: {
-    backgroundColor: semanticTokens.colorSurface,
     color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    gap: semanticTokens.spacingSm,
+    justifyContent: 'center',
+    minHeight: semanticTokens.sizeHitTarget,
+    minWidth: semanticTokens.sizeHitTarget,
+    paddingBlock: semanticTokens.spacingXs,
+    paddingInline: semanticTokens.spacingXs,
+    ':disabled': {color: semanticTokens.colorDisabledText},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
-  on: {
-    backgroundColor: semanticTokens.statusSuccessSurface,
-    color: semanticTokens.statusSuccessText,
-  },
-  indicator: {
-    backgroundColor: semanticTokens.borderStrong,
+  track: {
+    alignItems: 'center',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusFull,
-    display: 'inline-block',
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    display: 'inline-flex',
+    flexShrink: 0,
+    height: semanticTokens.spacingLg,
+    justifyContent: 'flex-start',
+    width: semanticTokens.sizeControlLg,
+  },
+  trackOn: {
+    backgroundColor: semanticTokens.colorAccent,
+    borderColor: semanticTokens.colorAccent,
+    justifyContent: 'flex-end',
+  },
+  trackDisabled: {
+    backgroundColor: semanticTokens.colorDisabledSurface,
+    borderColor: semanticTokens.borderDisabled,
+  },
+  thumb: {
+    backgroundColor: semanticTokens.colorSurfaceRaised,
+    borderRadius: semanticTokens.radiusFull,
+    boxShadow: semanticTokens.elevationLow,
     height: semanticTokens.spacingMd,
     width: semanticTokens.spacingMd,
   },
-  indicatorOn: {backgroundColor: semanticTokens.statusSuccessText},
+  thumbDisabled: {backgroundColor: semanticTokens.colorDisabledText},
 });
 
 type SharedToggleProps = Omit<
@@ -80,18 +108,26 @@ export function Toggle({
         onClick?.(event);
       }}
       role="switch"
-      {...stylex.props(styles.base, isPressed ? styles.on : styles.off)}
+      {...stylex.props(styles.base)}
       type={type}
     >
-      {children ?? (
+      <span
+        aria-hidden="true"
+        {...stylex.props(
+          styles.track,
+          isPressed ? styles.trackOn : undefined,
+          disabled ? styles.trackDisabled : undefined,
+        )}
+      >
         <span
           aria-hidden="true"
           {...stylex.props(
-            styles.indicator,
-            isPressed ? styles.indicatorOn : undefined,
+            styles.thumb,
+            disabled ? styles.thumbDisabled : undefined,
           )}
         />
-      )}
+      </span>
+      {children}
     </button>
   );
 }

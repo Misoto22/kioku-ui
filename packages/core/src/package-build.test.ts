@@ -55,6 +55,15 @@ function classNames(markup: string) {
   );
 }
 
+function elementMarkup(markup: string, tagName: string, index = 0) {
+  return (
+    Array.from(
+      markup.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, 'g')),
+      (match) => match[0],
+    )[index] ?? ''
+  );
+}
+
 function semanticVariable(packageCss: string, customProperty: string) {
   const variable = packageCss.match(
     new RegExp(`(--[a-z0-9]+):var\\(${customProperty}\\)`),
@@ -67,16 +76,27 @@ function expectRenderedRule(
   packageCss: string,
   markup: string,
   declaration: string,
-  state?: ':hover' | ':active' | ':focus-visible' | ':disabled' | '::before',
+  state?:
+    | ':hover'
+    | ':active'
+    | ':focus-visible'
+    | ':disabled'
+    | '::before'
+    | '::placeholder',
   excludesDisabled = false,
 ) {
   const matched = packageCss.split('}').some((rule) => {
     const [selector = ''] = rule.split('{');
     const hasState = state
       ? selector.includes(state)
-      : ![':hover', ':active', ':focus-visible', ':disabled', '::before'].some(
-          (candidate) => selector.includes(candidate),
-        );
+      : ![
+          ':hover',
+          ':active',
+          ':focus-visible',
+          ':disabled',
+          '::before',
+          '::placeholder',
+        ].some((candidate) => selector.includes(candidate));
     return (
       hasState &&
       (!excludesDisabled || selector.includes(':not(:disabled)')) &&
@@ -86,6 +106,30 @@ function expectRenderedRule(
   });
 
   expect(matched, `Missing ${state ?? 'rest'} rule: ${declaration}`).toBe(true);
+}
+
+function expectNoRenderedDeclaration(
+  packageCss: string,
+  markup: string,
+  declaration: string,
+) {
+  const matched = packageCss.split('}').some((rule) => {
+    const [selector = ''] = rule.split('{');
+    return (
+      ![
+        ':hover',
+        ':active',
+        ':focus-visible',
+        ':disabled',
+        '::before',
+        '::placeholder',
+      ].some((candidate) => selector.includes(candidate)) &&
+      rule.includes(declaration) &&
+      classNames(markup).some((className) => selector.includes(`.${className}`))
+    );
+  });
+
+  expect(matched, `Unexpected rest declaration: ${declaration}`).toBe(false);
 }
 
 function expectNoRenderedRule(
@@ -495,6 +539,290 @@ process.stdout.write(JSON.stringify({
     }
   });
 
+  it('ships normalized field and selection recipes in compiled CSS', async () => {
+    const fixtureRoot = await mkdtemp(
+      join(packageRoot, '.test-form-controls-'),
+    );
+    temporaryDirectories.push(fixtureRoot);
+    const loader = await createCssIgnoringLoader(fixtureRoot);
+    const runtime = join(fixtureRoot, 'consumer.mjs');
+
+    await writeFile(
+      runtime,
+      `import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {Field, SegmentedControl, TextArea, TextInput, Toggle} from '${packageName}';
+
+const render = (component, props, children) =>
+  renderToStaticMarkup(createElement(component, props, children));
+
+const segmentOptions = [
+  {label: 'Overview', value: 'overview'},
+  {label: 'Activity', value: 'activity'},
+];
+
+process.stdout.write(JSON.stringify({
+  field: render(
+    Field,
+    {
+      description: 'Used for account notices.',
+      label: 'Email',
+      necessity: 'required',
+      status: 'Enter a valid address.',
+      statusTone: 'danger',
+    },
+    createElement(TextInput),
+  ),
+  input: render(TextInput, {'aria-label': 'Name'}),
+  inputDisabled: render(TextInput, {'aria-label': 'Name', disabled: true}),
+  inputInvalid: render(TextInput, {'aria-invalid': true, 'aria-label': 'Name'}),
+  inputReadOnly: render(TextInput, {'aria-label': 'Name', readOnly: true}),
+  textArea: render(TextArea, {'aria-label': 'Notes'}),
+  textAreaDisabled: render(TextArea, {'aria-label': 'Notes', disabled: true}),
+  textAreaInvalid: render(TextArea, {'aria-invalid': true, 'aria-label': 'Notes'}),
+  textAreaReadOnly: render(TextArea, {'aria-label': 'Notes', readOnly: true}),
+  toggleOff: render(Toggle, {'aria-label': 'Notifications'}),
+  toggleOn: render(Toggle, {'aria-label': 'Notifications', pressed: true}),
+  toggleDisabled: render(Toggle, {'aria-label': 'Notifications', disabled: true}),
+  segmented: render(SegmentedControl, {
+    'aria-label': 'View',
+    options: segmentOptions,
+    value: 'overview',
+  }),
+}));
+`,
+    );
+
+    const {stdout} = await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, runtime],
+      {cwd: fixtureRoot},
+    );
+    const markup = JSON.parse(stdout) as Record<string, string>;
+    const packageCss = await readFile(
+      join(packageRoot, 'dist/styles/stylex.css'),
+      'utf8',
+    );
+    const variable = (customProperty: string) =>
+      semanticVariable(packageCss, customProperty);
+
+    const fieldLabel = elementMarkup(markup.field, 'label');
+    const fieldAnnotation = elementMarkup(markup.field, 'span', 1);
+    const fieldDescription = elementMarkup(markup.field, 'p');
+    const fieldStatus = elementMarkup(markup.field, 'p', 1);
+    expectRenderedRule(
+      packageCss,
+      fieldLabel,
+      `color:var(${variable('--kioku-ui-color-text')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      fieldAnnotation,
+      `color:var(${variable('--kioku-ui-color-text-muted')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      fieldDescription,
+      `color:var(${variable('--kioku-ui-color-text-secondary')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      fieldStatus,
+      `color:var(${variable('--kioku-ui-status-danger-text')})`,
+    );
+
+    for (const name of ['input', 'textArea'] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable('--kioku-ui-color-surface')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-border-default')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-radius:var(${variable('--kioku-ui-radius-element')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable('--kioku-ui-color-text-muted')})`,
+        '::placeholder',
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-border-interactive')})`,
+        ':focus-visible',
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `outline-color:var(${variable('--kioku-ui-color-focus')})`,
+        ':focus-visible',
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `outline-offset:var(${variable('--kioku-ui-focus-offset')})`,
+        ':focus-visible',
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `outline-width:var(${variable('--kioku-ui-focus-width')})`,
+        ':focus-visible',
+      );
+    }
+
+    expectRenderedRule(
+      packageCss,
+      markup.input,
+      `height:var(${variable('--kioku-ui-size-control-md')})`,
+    );
+    expectRenderedRule(packageCss, markup.input, 'box-sizing:border-box');
+    expectRenderedRule(packageCss, markup.textArea, 'min-height:96px');
+
+    for (const name of ['inputDisabled', 'textAreaDisabled'] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable('--kioku-ui-color-disabled-surface')})`,
+        ':disabled',
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-border-disabled')})`,
+        ':disabled',
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable('--kioku-ui-color-disabled-text')})`,
+        ':disabled',
+      );
+    }
+
+    for (const name of ['inputReadOnly', 'textAreaReadOnly'] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable('--kioku-ui-color-text')})`,
+      );
+    }
+
+    for (const name of ['inputInvalid', 'textAreaInvalid'] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-status-danger-text')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `outline-color:var(${variable('--kioku-ui-color-focus')})`,
+        ':focus-visible',
+      );
+    }
+
+    const toggleTrackOff = elementMarkup(markup.toggleOff, 'span');
+    const toggleThumbOff = elementMarkup(markup.toggleOff, 'span', 1);
+    const toggleTrackOn = elementMarkup(markup.toggleOn, 'span');
+    expectRenderedRule(
+      packageCss,
+      markup.toggleOff,
+      `min-height:var(${variable('--kioku-ui-size-hit-target')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.toggleOff,
+      `min-width:var(${variable('--kioku-ui-size-hit-target')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      toggleTrackOff,
+      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      toggleTrackOff,
+      `width:var(${variable('--kioku-ui-size-control-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      toggleThumbOff,
+      `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      toggleTrackOn,
+      `background-color:var(${variable('--kioku-ui-color-accent')})`,
+    );
+    expectRenderedRule(packageCss, toggleTrackOn, 'justify-content:flex-end');
+    expectRenderedRule(
+      packageCss,
+      markup.toggleOff,
+      `outline-color:var(${variable('--kioku-ui-color-focus')})`,
+      ':focus-visible',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.toggleDisabled,
+      `color:var(${variable('--kioku-ui-color-disabled-text')})`,
+      ':disabled',
+    );
+
+    const segmentedRoot = elementMarkup(markup.segmented, 'div');
+    const selectedSegment = elementMarkup(markup.segmented, 'button');
+    const unselectedSegment = elementMarkup(markup.segmented, 'button', 1);
+    expectRenderedRule(
+      packageCss,
+      segmentedRoot,
+      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      segmentedRoot,
+      `border-radius:var(${variable('--kioku-ui-radius-element')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      selectedSegment,
+      `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      selectedSegment,
+      `box-shadow:var(${variable('--kioku-ui-elevation-low')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      unselectedSegment,
+      `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+      ':hover',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      unselectedSegment,
+      `background-color:var(${variable('--kioku-ui-color-overlay-active')})`,
+      ':active',
+      true,
+    );
+    expectNoRenderedDeclaration(packageCss, selectedSegment, 'border-color:');
+    expectNoRenderedDeclaration(packageCss, unselectedSegment, 'border-color:');
+  });
+
   it('publishes typed tokens through the compiled authoring subpath', async () => {
     const fixtureRoot = await mkdtemp(
       join(packageRoot, '.test-authoring-types-'),
@@ -566,6 +894,7 @@ if (!/^var\\(--[^)]+\\)$/.test(semanticTokens.colorText)) {
   BadgeTone,
   ButtonVariant,
   ControlSize,
+  FieldNecessity,
   ThemeDefinition,
   TokenContract,
 } from '${packageName}';
@@ -588,6 +917,7 @@ const badgeTones: readonly BadgeTone[] = [
   'warning',
   'danger',
 ];
+const fieldNecessities: readonly FieldNecessity[] = ['required', 'optional'];
 
 const themeId: string = theme.id;
 const canvasValue: string = theme.tokens[contract.color.canvas];
@@ -595,7 +925,15 @@ const asyncProps: AsyncStateProps<number> = {
   state,
   children: (count) => count + 1,
 };
-void [themeId, canvasValue, asyncProps, controlSizes, buttonVariants, badgeTones];
+void [
+  themeId,
+  canvasValue,
+  asyncProps,
+  controlSizes,
+  buttonVariants,
+  badgeTones,
+  fieldNecessities,
+];
 `,
     );
 

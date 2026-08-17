@@ -28,7 +28,7 @@ export {
   type ControlSize,
 } from './Button.js';
 export {EmptyState, type EmptyStateProps} from './EmptyState.js';
-export {Field, type FieldProps} from './Field.js';
+export {Field, type FieldNecessity, type FieldProps} from './Field.js';
 export {IconButton, type IconButtonProps} from './IconButton.js';
 export {
   MetricGrid,

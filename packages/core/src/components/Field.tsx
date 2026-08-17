@@ -14,6 +14,7 @@ interface FieldContextValue {
   readonly controlId: string;
   readonly describedBy: string | undefined;
   readonly invalid: boolean;
+  readonly required: boolean;
 }
 
 const FieldContext = createContext<FieldContextValue | null>(null);
@@ -21,22 +22,33 @@ const FieldContext = createContext<FieldContextValue | null>(null);
 const styles = stylex.create({
   root: {display: 'grid', gap: semanticTokens.spacingXs},
   label: {
+    alignItems: 'baseline',
     color: semanticTokens.colorText,
+    display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
+    gap: semanticTokens.spacingSm,
+    justifyContent: 'space-between',
+  },
+  annotation: {
+    color: semanticTokens.colorTextMuted,
+    fontWeight: semanticTokens.fontWeightRegular,
   },
   message: {
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     margin: 0,
   },
-  neutral: {color: semanticTokens.colorText},
+  description: {color: semanticTokens.colorTextSecondary},
   info: {color: semanticTokens.statusInfoText},
   success: {color: semanticTokens.statusSuccessText},
   warning: {color: semanticTokens.statusWarningText},
   danger: {color: semanticTokens.statusDangerText},
 });
+
+/** Native requirement metadata displayed alongside the field label. */
+export type FieldNecessity = 'required' | 'optional';
 
 export interface FieldProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
@@ -45,6 +57,7 @@ export interface FieldProps extends Omit<
   readonly controlId?: string;
   readonly description?: ReactNode;
   readonly label: ReactNode;
+  readonly necessity?: FieldNecessity;
   readonly status?: ReactNode;
   readonly statusTone?: StatusTone;
 }
@@ -54,6 +67,7 @@ export function Field({
   controlId,
   description,
   label,
+  necessity,
   status,
   statusTone = 'danger',
   ...props
@@ -71,17 +85,23 @@ export function Field({
         controlId: resolvedControlId,
         describedBy,
         invalid: Boolean(status && statusTone === 'danger'),
+        required: necessity === 'required',
       }}
     >
       <div {...props} {...stylex.props(styles.root)}>
         <label htmlFor={resolvedControlId} {...stylex.props(styles.label)}>
-          {label}
+          <span>{label}</span>
+          {necessity ? (
+            <span
+              {...stylex.props(styles.annotation)}
+            >{` (${necessity})`}</span>
+          ) : null}
         </label>
         {children}
         {description ? (
           <p
             id={descriptionId}
-            {...stylex.props(styles.message, styles.neutral)}
+            {...stylex.props(styles.message, styles.description)}
           >
             {description}
           </p>

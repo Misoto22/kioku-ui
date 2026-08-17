@@ -16,7 +16,8 @@ export const segmentedControlDoc = {
     },
     {
       name: 'defaultValue',
-      description: 'Sets the initial value for uncontrolled selection.',
+      description:
+        'Sets the initial value for uncontrolled selection while preserving roving focus.',
     },
     {
       name: 'disabled',
@@ -38,7 +39,8 @@ export const segmentedControlDoc = {
     },
     {
       name: 'value',
-      description: 'Controls the current selected value.',
+      description:
+        'Controls the current selected value; pointer and keyboard intent is reported through onValueChange.',
     },
   ],
   inheritedProps: [
