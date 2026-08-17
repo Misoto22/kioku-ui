@@ -12,7 +12,7 @@ export const statusDotDoc = {
     },
     {
       name: 'tone',
-      description: 'Selects the semantic status tone.',
+      description: 'Selects one of the four semantic status tones.',
     },
   ],
   inheritedProps: [

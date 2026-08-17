@@ -1,39 +1,18 @@
-import * as stylex from '@stylexjs/stylex';
-import type {ButtonHTMLAttributes} from 'react';
+import {
+  ActionControl,
+  type ButtonProps,
+  type ButtonVariant,
+  type ControlSize,
+} from './Button.js';
 
-import {semanticTokens} from '../authoring.stylex.js';
-
-const styles = stylex.create({
-  base: {
-    alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderStrong,
-    borderRadius: semanticTokens.radiusFull,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    color: semanticTokens.colorText,
-    display: 'inline-flex',
-    height: semanticTokens.sizeControlMd,
-    justifyContent: 'center',
-    width: semanticTokens.sizeControlMd,
-  },
-});
-
-export interface IconButtonProps extends Omit<
-  ButtonHTMLAttributes<HTMLButtonElement>,
-  'aria-label' | 'className'
-> {
+/** Props for an icon-only native action button with a required name. */
+export interface IconButtonProps extends Omit<ButtonProps, 'aria-label'> {
   readonly 'aria-label': string;
+  readonly loading?: boolean;
+  readonly size?: ControlSize;
+  readonly variant?: ButtonVariant;
 }
 
-export function IconButton({
-  children,
-  type = 'button',
-  ...props
-}: IconButtonProps) {
-  return (
-    <button {...props} {...stylex.props(styles.base)} type={type}>
-      {children}
-    </button>
-  );
+export function IconButton(props: IconButtonProps) {
+  return <ActionControl {...props} iconOnly />;
 }

@@ -46,6 +46,48 @@ async function createCssIgnoringLoader(fixtureRoot: string) {
   return loader;
 }
 
+function classNames(markup: string) {
+  return (
+    markup
+      .match(/class="([^"]+)"/)?.[1]
+      ?.split(' ')
+      .filter(Boolean) ?? []
+  );
+}
+
+function semanticVariable(packageCss: string, customProperty: string) {
+  const variable = packageCss.match(
+    new RegExp(`(--[a-z0-9]+):var\\(${customProperty}\\)`),
+  )?.[1];
+  expect(variable, `Missing StyleX bridge for ${customProperty}`).toBeDefined();
+  return variable as string;
+}
+
+function expectRenderedRule(
+  packageCss: string,
+  markup: string,
+  declaration: string,
+  state?: ':hover' | ':active' | ':focus-visible' | ':disabled' | '::before',
+  excludesDisabled = false,
+) {
+  const matched = packageCss.split('}').some((rule) => {
+    const [selector = ''] = rule.split('{');
+    const hasState = state
+      ? selector.includes(state)
+      : ![':hover', ':active', ':focus-visible', ':disabled', '::before'].some(
+          (candidate) => selector.includes(candidate),
+        );
+    return (
+      hasState &&
+      (!excludesDisabled || selector.includes(':not(:disabled)')) &&
+      rule.includes(declaration) &&
+      classNames(markup).some((className) => selector.includes(`.${className}`))
+    );
+  });
+
+  expect(matched, `Missing ${state ?? 'rest'} rule: ${declaration}`).toBe(true);
+}
+
 describe('published package build', () => {
   beforeAll(async () => {
     await runPnpm(['build']);
@@ -155,6 +197,274 @@ export const consumerStyles = stylex.create({
     }
   });
 
+  it('ships action sizes, variants, states, and badge tones in compiled CSS', async () => {
+    const fixtureRoot = await mkdtemp(join(packageRoot, '.test-actions-'));
+    temporaryDirectories.push(fixtureRoot);
+    const loader = await createCssIgnoringLoader(fixtureRoot);
+    const runtime = join(fixtureRoot, 'consumer.mjs');
+
+    await writeFile(
+      runtime,
+      `import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {Badge, Button, IconButton} from '${packageName}';
+
+const render = (component, props, children) =>
+  renderToStaticMarkup(createElement(component, props, children));
+
+process.stdout.write(JSON.stringify({
+  buttonDefault: render(Button, {}, 'Default'),
+  buttonSm: render(Button, {size: 'sm'}, 'Small'),
+  buttonMd: render(Button, {size: 'md'}, 'Medium'),
+  buttonLg: render(Button, {size: 'lg'}, 'Large'),
+  buttonPrimary: render(Button, {variant: 'primary'}, 'Primary'),
+  buttonSecondary: render(Button, {variant: 'secondary'}, 'Secondary'),
+  buttonGhost: render(Button, {variant: 'ghost'}, 'Ghost'),
+  buttonDestructive: render(Button, {variant: 'destructive'}, 'Delete'),
+  buttonLoading: render(Button, {loading: true}, 'Saving'),
+  iconDefault: render(IconButton, {'aria-label': 'Default icon'}, 'D'),
+  iconSm: render(IconButton, {'aria-label': 'Small icon', size: 'sm'}, 'S'),
+  iconMd: render(IconButton, {'aria-label': 'Medium icon', size: 'md'}, 'M'),
+  iconLg: render(IconButton, {'aria-label': 'Large icon', size: 'lg'}, 'L'),
+  iconDestructive: render(
+    IconButton,
+    {'aria-label': 'Delete icon', variant: 'destructive'},
+    'D',
+  ),
+  badgeNeutral: render(Badge, {}, 'Neutral'),
+  badgeInfo: render(Badge, {tone: 'info'}, 'Info'),
+  badgeSuccess: render(Badge, {tone: 'success'}, 'Success'),
+  badgeWarning: render(Badge, {tone: 'warning'}, 'Warning'),
+  badgeDanger: render(Badge, {tone: 'danger'}, 'Danger'),
+}));
+`,
+    );
+
+    const {stdout} = await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, runtime],
+      {cwd: fixtureRoot},
+    );
+    const markup = JSON.parse(stdout) as Record<string, string>;
+    const packageCss = await readFile(
+      join(packageRoot, 'dist/styles/stylex.css'),
+      'utf8',
+    );
+    const variable = (customProperty: string) =>
+      semanticVariable(packageCss, customProperty);
+
+    for (const [name, customProperty] of [
+      ['buttonDefault', '--kioku-ui-size-control-md'],
+      ['buttonSm', '--kioku-ui-size-control-sm'],
+      ['buttonMd', '--kioku-ui-size-control-md'],
+      ['buttonLg', '--kioku-ui-size-control-lg'],
+      ['iconDefault', '--kioku-ui-size-control-md'],
+      ['iconSm', '--kioku-ui-size-control-sm'],
+      ['iconMd', '--kioku-ui-size-control-md'],
+      ['iconLg', '--kioku-ui-size-control-lg'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `height:var(${variable(customProperty)})`,
+      );
+    }
+    for (const [name, customProperty] of [
+      ['iconDefault', '--kioku-ui-size-control-md'],
+      ['iconSm', '--kioku-ui-size-control-sm'],
+      ['iconMd', '--kioku-ui-size-control-md'],
+      ['iconLg', '--kioku-ui-size-control-lg'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `width:var(${variable(customProperty)})`,
+      );
+    }
+
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `background-color:var(${variable('--kioku-ui-color-accent')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `color:var(${variable('--kioku-ui-color-text-on-accent')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `background-color:var(${variable('--kioku-ui-color-accent-hover')})`,
+      ':hover',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `background-color:var(${variable('--kioku-ui-color-accent-active')})`,
+      ':active',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonSecondary,
+      `background-color:var(${variable('--kioku-ui-color-surface')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonSecondary,
+      `border-color:var(${variable('--kioku-ui-border-strong')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonSecondary,
+      `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+      ':hover',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonSecondary,
+      `background-color:var(${variable('--kioku-ui-color-overlay-active')})`,
+      ':active',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonGhost,
+      'background-color:transparent',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonGhost,
+      `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+      ':hover',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonGhost,
+      `background-color:var(${variable('--kioku-ui-color-overlay-active')})`,
+      ':active',
+      true,
+    );
+    for (const name of ['buttonDestructive', 'iconDestructive'] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable('--kioku-ui-status-danger-surface')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable('--kioku-ui-status-danger-text')})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable('--kioku-ui-color-overlay-hover')})`,
+        ':hover',
+        true,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable('--kioku-ui-color-overlay-active')})`,
+        ':active',
+        true,
+      );
+    }
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `outline-color:var(${variable('--kioku-ui-color-focus')})`,
+      ':focus-visible',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `outline-offset:var(${variable('--kioku-ui-focus-offset')})`,
+      ':focus-visible',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `outline-width:var(${variable('--kioku-ui-focus-width')})`,
+      ':focus-visible',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `background-color:var(${variable('--kioku-ui-color-disabled-surface')})`,
+      ':disabled',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `border-color:var(${variable('--kioku-ui-border-disabled')})`,
+      ':disabled',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `color:var(${variable('--kioku-ui-color-disabled-text')})`,
+      ':disabled',
+    );
+    expectRenderedRule(packageCss, markup.buttonLoading, 'cursor:progress');
+    expectRenderedRule(
+      packageCss,
+      markup.iconMd,
+      `height:var(${variable('--kioku-ui-size-hit-target')})`,
+      '::before',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.iconMd,
+      `width:var(${variable('--kioku-ui-size-hit-target')})`,
+      '::before',
+    );
+
+    for (const [name, surface, text] of [
+      [
+        'badgeNeutral',
+        '--kioku-ui-color-surface-muted',
+        '--kioku-ui-color-text-secondary',
+      ],
+      [
+        'badgeInfo',
+        '--kioku-ui-status-info-surface',
+        '--kioku-ui-status-info-text',
+      ],
+      [
+        'badgeSuccess',
+        '--kioku-ui-status-success-surface',
+        '--kioku-ui-status-success-text',
+      ],
+      [
+        'badgeWarning',
+        '--kioku-ui-status-warning-surface',
+        '--kioku-ui-status-warning-text',
+      ],
+      [
+        'badgeDanger',
+        '--kioku-ui-status-danger-surface',
+        '--kioku-ui-status-danger-text',
+      ],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `background-color:var(${variable(surface)})`,
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `color:var(${variable(text)})`,
+      );
+    }
+  });
+
   it('publishes typed tokens through the compiled authoring subpath', async () => {
     const fixtureRoot = await mkdtemp(
       join(packageRoot, '.test-authoring-types-'),
@@ -223,6 +533,9 @@ if (!/^var\\(--[^)]+\\)$/.test(semanticTokens.colorText)) {
       `import type {
   AsyncStateProps,
   AsyncStateValue,
+  BadgeTone,
+  ButtonVariant,
+  ControlSize,
   ThemeDefinition,
   TokenContract,
 } from '${packageName}';
@@ -231,13 +544,28 @@ declare const contract: TokenContract;
 declare const theme: ThemeDefinition;
 declare const state: AsyncStateValue<number>;
 
+const controlSizes: readonly ControlSize[] = ['sm', 'md', 'lg'];
+const buttonVariants: readonly ButtonVariant[] = [
+  'primary',
+  'secondary',
+  'ghost',
+  'destructive',
+];
+const badgeTones: readonly BadgeTone[] = [
+  'neutral',
+  'info',
+  'success',
+  'warning',
+  'danger',
+];
+
 const themeId: string = theme.id;
 const canvasValue: string = theme.tokens[contract.color.canvas];
 const asyncProps: AsyncStateProps<number> = {
   state,
   children: (count) => count + 1,
 };
-void [themeId, canvasValue, asyncProps];
+void [themeId, canvasValue, asyncProps, controlSizes, buttonVariants, badgeTones];
 `,
     );
 

@@ -4,6 +4,11 @@ export const buttonDoc = {
   name: 'Button',
   description: 'Triggers an action through native button semantics.',
   props: [
+    {
+      name: 'loading',
+      description: 'Shows progress and disables native activation.',
+    },
+    {name: 'size', description: 'Selects the fixed control height.'},
     {name: 'variant', description: 'Selects a semantic visual emphasis.'},
   ],
   inheritedProps: ['ButtonHTMLAttributes<HTMLButtonElement> except className'],

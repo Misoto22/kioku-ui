@@ -17,6 +17,7 @@ const styles = stylex.create({
   danger: {backgroundColor: semanticTokens.statusDangerText},
 });
 
+/** Props for a labelled live-status indicator using semantic status tones. */
 export interface StatusDotProps extends Omit<
   HTMLAttributes<HTMLSpanElement>,
   'aria-label' | 'children' | 'className' | 'role'

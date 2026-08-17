@@ -72,6 +72,51 @@ describe('button controls', () => {
     await user.click(button);
     expect(action).toHaveBeenCalledOnce();
   });
+
+  it('keeps a loading Button named while preventing native activation', async () => {
+    const user = userEvent.setup();
+    const action = vi.fn();
+    renderUi(
+      <Button data-host-prop="forwarded" loading onClick={action} size="sm">
+        Save changes
+      </Button>,
+    );
+
+    const button = screen.getByRole('button', {name: 'Save changes'});
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveAttribute('data-host-prop', 'forwarded');
+    expect(button).not.toHaveAttribute('size');
+    expect(button.querySelector('[aria-hidden="true"]')).toBeInTheDocument();
+    await user.click(button);
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it('keeps a loading IconButton named while preventing native activation', async () => {
+    const user = userEvent.setup();
+    const action = vi.fn();
+    renderUi(
+      <IconButton
+        aria-label="Refresh results"
+        data-host-prop="forwarded"
+        loading
+        onClick={action}
+        size="lg"
+        variant="destructive"
+      >
+        <span aria-hidden="true">↻</span>
+      </IconButton>,
+    );
+
+    const button = screen.getByRole('button', {name: 'Refresh results'});
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveAttribute('data-host-prop', 'forwarded');
+    expect(button).not.toHaveAttribute('size');
+    expect(button.querySelector('[aria-hidden="true"]')).toBeInTheDocument();
+    await user.click(button);
+    expect(action).not.toHaveBeenCalled();
+  });
 });
 
 describe('fields', () => {
@@ -360,15 +405,27 @@ function UnnamedSegmentedControlTypeProbe() {
 void UnnamedSegmentedControlTypeProbe;
 
 describe('compact status indicators', () => {
-  it('keeps badge copy visible and gives a status dot an accessible name', () => {
+  it('keeps every badge tone visible and gives a status dot an accessible name', () => {
     renderUi(
       <>
+        <Badge>Neutral</Badge>
+        <Badge tone="info">Information</Badge>
         <Badge tone="success">Available</Badge>
+        <Badge tone="warning">Attention</Badge>
+        <Badge tone="danger">Unavailable</Badge>
         <StatusDot aria-label="Service available" tone="success" />
       </>,
     );
 
-    expect(screen.getByText('Available')).toBeVisible();
+    for (const label of [
+      'Neutral',
+      'Information',
+      'Available',
+      'Attention',
+      'Unavailable',
+    ]) {
+      expect(screen.getByText(label)).toBeVisible();
+    }
     expect(
       screen.getByRole('status', {name: 'Service available'}),
     ).toBeVisible();

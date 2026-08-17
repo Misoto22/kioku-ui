@@ -15,8 +15,18 @@ export {
   type AsyncStateProps,
   type AsyncStateValue,
 } from './AsyncState.js';
-export {Badge, type BadgeProps, type StatusTone} from './Badge.js';
-export {Button, type ButtonProps} from './Button.js';
+export {
+  Badge,
+  type BadgeProps,
+  type BadgeTone,
+  type StatusTone,
+} from './Badge.js';
+export {
+  Button,
+  type ButtonProps,
+  type ButtonVariant,
+  type ControlSize,
+} from './Button.js';
 export {EmptyState, type EmptyStateProps} from './EmptyState.js';
 export {Field, type FieldProps} from './Field.js';
 export {IconButton, type IconButtonProps} from './IconButton.js';
