@@ -84,6 +84,7 @@ function expectRenderedRule(
     | '::before'
     | '::placeholder',
   excludesDisabled = false,
+  requiredSelectorParts: readonly string[] = [],
 ) {
   const matched = packageCss.split('}').some((rule) => {
     const [selector = ''] = rule.split('{');
@@ -100,6 +101,7 @@ function expectRenderedRule(
     return (
       hasState &&
       (!excludesDisabled || selector.includes(':not(:disabled)')) &&
+      requiredSelectorParts.every((part) => selector.includes(part)) &&
       rule.includes(declaration) &&
       classNames(markup).some((className) => selector.includes(`.${className}`))
     );
@@ -677,6 +679,22 @@ process.stdout.write(JSON.stringify({
         `outline-width:var(${variable('--kioku-ui-focus-width')})`,
         ':focus-visible',
       );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-border-interactive')})`,
+        ':hover',
+        true,
+        [':not(:read-only)', ':not(:focus-visible)'],
+      );
+      expectRenderedRule(
+        packageCss,
+        markup[name],
+        `border-color:var(${variable('--kioku-ui-color-accent-active')})`,
+        ':active',
+        true,
+        [':not(:read-only)', ':not(:focus-visible)'],
+      );
     }
 
     expectRenderedRule(
@@ -733,6 +751,16 @@ process.stdout.write(JSON.stringify({
         `outline-color:var(${variable('--kioku-ui-color-focus')})`,
         ':focus-visible',
       );
+      for (const state of [':hover', ':active'] as const) {
+        expectRenderedRule(
+          packageCss,
+          markup[name],
+          `border-color:var(${variable('--kioku-ui-status-danger-text')})`,
+          state,
+          true,
+          [':not(:read-only)', ':not(:focus-visible)'],
+        );
+      }
     }
 
     const toggleTrackOff = elementMarkup(markup.toggleOff, 'span');
@@ -774,6 +802,32 @@ process.stdout.write(JSON.stringify({
       markup.toggleOff,
       `outline-color:var(${variable('--kioku-ui-color-focus')})`,
       ':focus-visible',
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.toggleOff,
+      `background-image:linear-gradient(var(${variable('--kioku-ui-color-overlay-hover')}),var(${variable('--kioku-ui-color-overlay-hover')}))`,
+      ':hover',
+      true,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.toggleOn,
+      `background-image:linear-gradient(var(${variable('--kioku-ui-color-overlay-active')}),var(${variable('--kioku-ui-color-overlay-active')}))`,
+      ':active',
+      true,
+    );
+    expectNoRenderedRule(
+      packageCss,
+      markup.toggleOff,
+      'background-color:',
+      ':hover',
+    );
+    expectNoRenderedRule(
+      packageCss,
+      markup.toggleOn,
+      'background-color:',
+      ':active',
     );
     expectRenderedRule(
       packageCss,

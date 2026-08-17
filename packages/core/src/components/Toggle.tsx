@@ -21,12 +21,18 @@ const styles = stylex.create({
     minWidth: semanticTokens.sizeHitTarget,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingXs,
+    ':active:not(:disabled)': {
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
+    },
     ':disabled': {color: semanticTokens.colorDisabledText},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
+    },
+    ':hover:not(:disabled)': {
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
   },
   track: {

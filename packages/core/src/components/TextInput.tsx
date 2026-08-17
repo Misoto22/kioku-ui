@@ -32,6 +32,12 @@ const controlStyles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.colorAccentActive,
+    },
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.borderInteractive,
+    },
   },
   readOnly: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
@@ -40,6 +46,12 @@ const controlStyles = stylex.create({
   invalid: {
     borderColor: semanticTokens.statusDangerText,
     ':focus-visible': {borderColor: semanticTokens.statusDangerText},
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.statusDangerText,
+    },
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.statusDangerText,
+    },
   },
 });
 
