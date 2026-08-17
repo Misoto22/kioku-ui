@@ -49,7 +49,7 @@ describe('published theme package build', () => {
 if (kiokuThemes.length !== 3 || washiTheme.id !== 'washi') {
   throw new Error('The public theme runtime did not expose the registered themes.');
 }
-if (!washiTheme.tokens['color.canvas'].includes('--kioku-theme-color-canvas')) {
+if (!washiTheme.tokens['color.canvas'].includes('--kioku-theme-washi-color-canvas')) {
   throw new Error('The public theme runtime did not expose semantic token values.');
 }
 `,

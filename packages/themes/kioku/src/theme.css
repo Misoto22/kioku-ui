@@ -188,6 +188,281 @@
     0 0 0 1px light-dark(#b4b4ae, #3d3d39);
 }
 
+/* ThemeDefinition values resolve through a dictionary owned by each skin. */
+[data-theme='washi'] {
+  --kioku-theme-washi-color-canvas: var(--kioku-theme-color-canvas);
+  --kioku-theme-washi-color-surface: var(--kioku-theme-color-surface);
+  --kioku-theme-washi-color-text: var(--kioku-theme-color-text);
+  --kioku-theme-washi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-washi-border-default: var(--kioku-theme-border-default);
+  --kioku-theme-washi-border-strong: var(--kioku-theme-border-strong);
+  --kioku-theme-washi-border-width: var(--kioku-theme-border-width);
+  --kioku-theme-washi-border-style: var(--kioku-theme-border-style);
+  --kioku-theme-washi-status-info-surface: var(
+    --kioku-theme-status-info-surface
+  );
+  --kioku-theme-washi-status-info-text: var(--kioku-theme-status-info-text);
+  --kioku-theme-washi-status-success-surface: var(
+    --kioku-theme-status-success-surface
+  );
+  --kioku-theme-washi-status-success-text: var(
+    --kioku-theme-status-success-text
+  );
+  --kioku-theme-washi-status-warning-surface: var(
+    --kioku-theme-status-warning-surface
+  );
+  --kioku-theme-washi-status-warning-text: var(
+    --kioku-theme-status-warning-text
+  );
+  --kioku-theme-washi-status-danger-surface: var(
+    --kioku-theme-status-danger-surface
+  );
+  --kioku-theme-washi-status-danger-text: var(--kioku-theme-status-danger-text);
+  --kioku-theme-washi-focus-width: var(--kioku-theme-focus-width);
+  --kioku-theme-washi-focus-offset: var(--kioku-theme-focus-offset);
+  --kioku-theme-washi-font-family-body: var(--kioku-theme-font-family-body);
+  --kioku-theme-washi-font-family-heading: var(
+    --kioku-theme-font-family-heading
+  );
+  --kioku-theme-washi-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-washi-font-size-sm: var(--kioku-theme-font-size-sm);
+  --kioku-theme-washi-font-size-md: var(--kioku-theme-font-size-md);
+  --kioku-theme-washi-font-size-lg: var(--kioku-theme-font-size-lg);
+  --kioku-theme-washi-font-size-xl: var(--kioku-theme-font-size-xl);
+  --kioku-theme-washi-font-weight-regular: var(
+    --kioku-theme-font-weight-regular
+  );
+  --kioku-theme-washi-font-weight-medium: var(--kioku-theme-font-weight-medium);
+  --kioku-theme-washi-font-weight-strong: var(--kioku-theme-font-weight-strong);
+  --kioku-theme-washi-line-height-body: var(--kioku-theme-line-height-body);
+  --kioku-theme-washi-line-height-heading: var(
+    --kioku-theme-line-height-heading
+  );
+  --kioku-theme-washi-spacing-xs: var(--kioku-theme-spacing-xs);
+  --kioku-theme-washi-spacing-sm: var(--kioku-theme-spacing-sm);
+  --kioku-theme-washi-spacing-md: var(--kioku-theme-spacing-md);
+  --kioku-theme-washi-spacing-lg: var(--kioku-theme-spacing-lg);
+  --kioku-theme-washi-spacing-xl: var(--kioku-theme-spacing-xl);
+  --kioku-theme-washi-spacing-2xl: var(--kioku-theme-spacing-2xl);
+  --kioku-theme-washi-radius-sm: var(--kioku-theme-radius-sm);
+  --kioku-theme-washi-radius-md: var(--kioku-theme-radius-md);
+  --kioku-theme-washi-radius-lg: var(--kioku-theme-radius-lg);
+  --kioku-theme-washi-radius-round: var(--kioku-theme-radius-round);
+  --kioku-theme-washi-elevation-low: var(--kioku-theme-elevation-low);
+  --kioku-theme-washi-elevation-medium: var(--kioku-theme-elevation-medium);
+  --kioku-theme-washi-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-washi-motion-duration-fast: var(
+    --kioku-theme-motion-duration-fast
+  );
+  --kioku-theme-washi-motion-duration-moderate: var(
+    --kioku-theme-motion-duration-moderate
+  );
+  --kioku-theme-washi-motion-duration-slow: var(
+    --kioku-theme-motion-duration-slow
+  );
+  --kioku-theme-washi-motion-easing-standard: var(
+    --kioku-theme-motion-easing-standard
+  );
+  --kioku-theme-washi-motion-easing-emphasized: var(
+    --kioku-theme-motion-easing-emphasized
+  );
+  --kioku-theme-washi-density-control-block: var(
+    --kioku-theme-density-control-block
+  );
+  --kioku-theme-washi-density-control-inline: var(
+    --kioku-theme-density-control-inline
+  );
+  --kioku-theme-washi-density-item-gap: var(--kioku-theme-density-item-gap);
+}
+
+[data-theme='muji'] {
+  --kioku-theme-muji-color-canvas: var(--kioku-theme-color-canvas);
+  --kioku-theme-muji-color-surface: var(--kioku-theme-color-surface);
+  --kioku-theme-muji-color-text: var(--kioku-theme-color-text);
+  --kioku-theme-muji-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-muji-border-default: var(--kioku-theme-border-default);
+  --kioku-theme-muji-border-strong: var(--kioku-theme-border-strong);
+  --kioku-theme-muji-border-width: var(--kioku-theme-border-width);
+  --kioku-theme-muji-border-style: var(--kioku-theme-border-style);
+  --kioku-theme-muji-status-info-surface: var(
+    --kioku-theme-status-info-surface
+  );
+  --kioku-theme-muji-status-info-text: var(--kioku-theme-status-info-text);
+  --kioku-theme-muji-status-success-surface: var(
+    --kioku-theme-status-success-surface
+  );
+  --kioku-theme-muji-status-success-text: var(
+    --kioku-theme-status-success-text
+  );
+  --kioku-theme-muji-status-warning-surface: var(
+    --kioku-theme-status-warning-surface
+  );
+  --kioku-theme-muji-status-warning-text: var(
+    --kioku-theme-status-warning-text
+  );
+  --kioku-theme-muji-status-danger-surface: var(
+    --kioku-theme-status-danger-surface
+  );
+  --kioku-theme-muji-status-danger-text: var(--kioku-theme-status-danger-text);
+  --kioku-theme-muji-focus-width: var(--kioku-theme-focus-width);
+  --kioku-theme-muji-focus-offset: var(--kioku-theme-focus-offset);
+  --kioku-theme-muji-font-family-body: var(--kioku-theme-font-family-body);
+  --kioku-theme-muji-font-family-heading: var(
+    --kioku-theme-font-family-heading
+  );
+  --kioku-theme-muji-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-muji-font-size-sm: var(--kioku-theme-font-size-sm);
+  --kioku-theme-muji-font-size-md: var(--kioku-theme-font-size-md);
+  --kioku-theme-muji-font-size-lg: var(--kioku-theme-font-size-lg);
+  --kioku-theme-muji-font-size-xl: var(--kioku-theme-font-size-xl);
+  --kioku-theme-muji-font-weight-regular: var(
+    --kioku-theme-font-weight-regular
+  );
+  --kioku-theme-muji-font-weight-medium: var(--kioku-theme-font-weight-medium);
+  --kioku-theme-muji-font-weight-strong: var(--kioku-theme-font-weight-strong);
+  --kioku-theme-muji-line-height-body: var(--kioku-theme-line-height-body);
+  --kioku-theme-muji-line-height-heading: var(
+    --kioku-theme-line-height-heading
+  );
+  --kioku-theme-muji-spacing-xs: var(--kioku-theme-spacing-xs);
+  --kioku-theme-muji-spacing-sm: var(--kioku-theme-spacing-sm);
+  --kioku-theme-muji-spacing-md: var(--kioku-theme-spacing-md);
+  --kioku-theme-muji-spacing-lg: var(--kioku-theme-spacing-lg);
+  --kioku-theme-muji-spacing-xl: var(--kioku-theme-spacing-xl);
+  --kioku-theme-muji-spacing-2xl: var(--kioku-theme-spacing-2xl);
+  --kioku-theme-muji-radius-sm: var(--kioku-theme-radius-sm);
+  --kioku-theme-muji-radius-md: var(--kioku-theme-radius-md);
+  --kioku-theme-muji-radius-lg: var(--kioku-theme-radius-lg);
+  --kioku-theme-muji-radius-round: var(--kioku-theme-radius-round);
+  --kioku-theme-muji-elevation-low: var(--kioku-theme-elevation-low);
+  --kioku-theme-muji-elevation-medium: var(--kioku-theme-elevation-medium);
+  --kioku-theme-muji-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-muji-motion-duration-fast: var(
+    --kioku-theme-motion-duration-fast
+  );
+  --kioku-theme-muji-motion-duration-moderate: var(
+    --kioku-theme-motion-duration-moderate
+  );
+  --kioku-theme-muji-motion-duration-slow: var(
+    --kioku-theme-motion-duration-slow
+  );
+  --kioku-theme-muji-motion-easing-standard: var(
+    --kioku-theme-motion-easing-standard
+  );
+  --kioku-theme-muji-motion-easing-emphasized: var(
+    --kioku-theme-motion-easing-emphasized
+  );
+  --kioku-theme-muji-density-control-block: var(
+    --kioku-theme-density-control-block
+  );
+  --kioku-theme-muji-density-control-inline: var(
+    --kioku-theme-density-control-inline
+  );
+  --kioku-theme-muji-density-item-gap: var(--kioku-theme-density-item-gap);
+}
+
+[data-theme='sumi'] {
+  --kioku-theme-sumi-color-canvas: var(--kioku-theme-color-canvas);
+  --kioku-theme-sumi-color-surface: var(--kioku-theme-color-surface);
+  --kioku-theme-sumi-color-text: var(--kioku-theme-color-text);
+  --kioku-theme-sumi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-sumi-border-default: var(--kioku-theme-border-default);
+  --kioku-theme-sumi-border-strong: var(--kioku-theme-border-strong);
+  --kioku-theme-sumi-border-width: var(--kioku-theme-border-width);
+  --kioku-theme-sumi-border-style: var(--kioku-theme-border-style);
+  --kioku-theme-sumi-status-info-surface: var(
+    --kioku-theme-status-info-surface
+  );
+  --kioku-theme-sumi-status-info-text: var(--kioku-theme-status-info-text);
+  --kioku-theme-sumi-status-success-surface: var(
+    --kioku-theme-status-success-surface
+  );
+  --kioku-theme-sumi-status-success-text: var(
+    --kioku-theme-status-success-text
+  );
+  --kioku-theme-sumi-status-warning-surface: var(
+    --kioku-theme-status-warning-surface
+  );
+  --kioku-theme-sumi-status-warning-text: var(
+    --kioku-theme-status-warning-text
+  );
+  --kioku-theme-sumi-status-danger-surface: var(
+    --kioku-theme-status-danger-surface
+  );
+  --kioku-theme-sumi-status-danger-text: var(--kioku-theme-status-danger-text);
+  --kioku-theme-sumi-focus-width: var(--kioku-theme-focus-width);
+  --kioku-theme-sumi-focus-offset: var(--kioku-theme-focus-offset);
+  --kioku-theme-sumi-font-family-body: var(--kioku-theme-font-family-body);
+  --kioku-theme-sumi-font-family-heading: var(
+    --kioku-theme-font-family-heading
+  );
+  --kioku-theme-sumi-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-sumi-font-size-sm: var(--kioku-theme-font-size-sm);
+  --kioku-theme-sumi-font-size-md: var(--kioku-theme-font-size-md);
+  --kioku-theme-sumi-font-size-lg: var(--kioku-theme-font-size-lg);
+  --kioku-theme-sumi-font-size-xl: var(--kioku-theme-font-size-xl);
+  --kioku-theme-sumi-font-weight-regular: var(
+    --kioku-theme-font-weight-regular
+  );
+  --kioku-theme-sumi-font-weight-medium: var(--kioku-theme-font-weight-medium);
+  --kioku-theme-sumi-font-weight-strong: var(--kioku-theme-font-weight-strong);
+  --kioku-theme-sumi-line-height-body: var(--kioku-theme-line-height-body);
+  --kioku-theme-sumi-line-height-heading: var(
+    --kioku-theme-line-height-heading
+  );
+  --kioku-theme-sumi-spacing-xs: var(--kioku-theme-spacing-xs);
+  --kioku-theme-sumi-spacing-sm: var(--kioku-theme-spacing-sm);
+  --kioku-theme-sumi-spacing-md: var(--kioku-theme-spacing-md);
+  --kioku-theme-sumi-spacing-lg: var(--kioku-theme-spacing-lg);
+  --kioku-theme-sumi-spacing-xl: var(--kioku-theme-spacing-xl);
+  --kioku-theme-sumi-spacing-2xl: var(--kioku-theme-spacing-2xl);
+  --kioku-theme-sumi-radius-sm: var(--kioku-theme-radius-sm);
+  --kioku-theme-sumi-radius-md: var(--kioku-theme-radius-md);
+  --kioku-theme-sumi-radius-lg: var(--kioku-theme-radius-lg);
+  --kioku-theme-sumi-radius-round: var(--kioku-theme-radius-round);
+  --kioku-theme-sumi-elevation-low: var(--kioku-theme-elevation-low);
+  --kioku-theme-sumi-elevation-medium: var(--kioku-theme-elevation-medium);
+  --kioku-theme-sumi-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-sumi-motion-duration-fast: var(
+    --kioku-theme-motion-duration-fast
+  );
+  --kioku-theme-sumi-motion-duration-moderate: var(
+    --kioku-theme-motion-duration-moderate
+  );
+  --kioku-theme-sumi-motion-duration-slow: var(
+    --kioku-theme-motion-duration-slow
+  );
+  --kioku-theme-sumi-motion-easing-standard: var(
+    --kioku-theme-motion-easing-standard
+  );
+  --kioku-theme-sumi-motion-easing-emphasized: var(
+    --kioku-theme-motion-easing-emphasized
+  );
+  --kioku-theme-sumi-density-control-block: var(
+    --kioku-theme-density-control-block
+  );
+  --kioku-theme-sumi-density-control-inline: var(
+    --kioku-theme-density-control-inline
+  );
+  --kioku-theme-sumi-density-item-gap: var(--kioku-theme-density-item-gap);
+}
+
+/* Chinese uses complete SC families instead of mixing Japanese and fallback glyphs. */
+[data-theme='washi']:lang(zh),
+[data-theme='sumi']:lang(zh) {
+  --kioku-theme-font-family-body:
+    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  --kioku-theme-font-family-heading:
+    'Noto Serif SC', 'Songti SC', 'STSong', serif;
+}
+
+[data-theme='muji']:lang(zh) {
+  --kioku-theme-font-family-body:
+    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  --kioku-theme-font-family-heading:
+    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+
 [data-theme='washi'][data-density='standard'],
 [data-theme='muji'][data-density='standard'],
 [data-theme='sumi'][data-density='standard'],
