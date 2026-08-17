@@ -32,7 +32,11 @@
       "import": "./dist/docs/index.js",
       "default": "./dist/docs/index.js"
     },
-    "./authoring": "./dist/authoring.js"
+    "./authoring": {
+      "types": "./dist/authoring.stylex.d.ts",
+      "import": "./dist/authoring.stylex.js",
+      "default": "./dist/authoring.stylex.js"
+    }
   },
   "peerDependencies": {
     "react": "^19.0.0",

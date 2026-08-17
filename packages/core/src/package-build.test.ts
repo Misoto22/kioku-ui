@@ -106,6 +106,63 @@ export const consumerStyles = stylex.create({
     );
   });
 
+  it('publishes typed tokens through the compiled authoring subpath', async () => {
+    const fixtureRoot = await mkdtemp(
+      join(packageRoot, '.test-authoring-types-'),
+    );
+    temporaryDirectories.push(fixtureRoot);
+    const consumer = join(fixtureRoot, 'consumer.ts');
+
+    await writeFile(
+      consumer,
+      `import {semanticTokens} from '${packageName}/authoring';
+
+const textColor: string = semanticTokens.colorText;
+void textColor;
+`,
+    );
+
+    await runPnpm([
+      'exec',
+      'tsc',
+      '--ignoreConfig',
+      '--noEmit',
+      '--strict',
+      '--module',
+      'NodeNext',
+      '--moduleResolution',
+      'NodeNext',
+      '--target',
+      'ES2024',
+      consumer,
+    ]);
+  });
+
+  it('loads tokens through the compiled authoring subpath', async () => {
+    const fixtureRoot = await mkdtemp(
+      join(packageRoot, '.test-authoring-runtime-'),
+    );
+    temporaryDirectories.push(fixtureRoot);
+    const loader = await createCssIgnoringLoader(fixtureRoot);
+    const consumer = join(fixtureRoot, 'consumer.mjs');
+
+    await writeFile(
+      consumer,
+      `import {semanticTokens} from '${packageName}/authoring';
+
+if (!/^var\\(--[^)]+\\)$/.test(semanticTokens.colorText)) {
+  throw new Error('The compiled authoring module did not expose the color-text variable.');
+}
+`,
+    );
+
+    await run(
+      process.execPath,
+      ['--experimental-loader', pathToFileURL(loader).href, consumer],
+      {cwd: fixtureRoot},
+    );
+  });
+
   it('publishes declarations that resolve from the package root', async () => {
     await access(join(packageRoot, 'dist/index.d.ts'));
 
