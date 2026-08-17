@@ -6,6 +6,11 @@ import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 import type {Preview} from '@storybook/react-vite';
 import {createElement} from 'react';
 
+import {
+  storybookGlobalTypes,
+  storybookInitialGlobals,
+} from './audit-globals.js';
+
 const preview: Preview = {
   decorators: [
     (Story, context) => {
@@ -36,29 +41,8 @@ const preview: Preview = {
       );
     },
   ],
-  globalTypes: {
-    mode: {
-      description: 'Color mode',
-      toolbar: {
-        icon: 'mirror',
-        items: [
-          {title: 'Light', value: 'light'},
-          {title: 'Dark', value: 'dark'},
-        ],
-      },
-    },
-    theme: {
-      description: 'Kioku theme',
-      toolbar: {
-        icon: 'paintbrush',
-        items: kiokuThemes.map(({id, label}) => ({title: label, value: id})),
-      },
-    },
-  },
-  initialGlobals: {
-    mode: 'light',
-    theme: 'washi',
-  },
+  globalTypes: storybookGlobalTypes,
+  initialGlobals: storybookInitialGlobals,
   parameters: {
     a11y: {test: 'error'},
     controls: {expanded: true},

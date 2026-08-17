@@ -76,6 +76,36 @@ export const fallback = firstThatWorks('red', 'blue');`,
     ]);
   });
 
+  it('rejects unsupported calls through namespace and method aliases', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const sx = stylex;
+sx.firstThatWorks('red', 'blue');
+const choose = stylex.firstThatWorks;
+choose('red', 'blue');`,
+        'aliased.stylex.ts',
+      ),
+    ).toEqual([
+      'aliased.stylex.ts:3 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'aliased.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via choose',
+    ]);
+  });
+
+  it('does not confuse shadowed or unrelated locals with StyleX aliases', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+function useLocal(stylex: {firstThatWorks: (...values: string[]) => string}) {
+  return stylex.firstThatWorks('red', 'blue');
+}
+const sx = {firstThatWorks: (...values: string[]) => values[0]};
+sx.firstThatWorks('red', 'blue');`,
+        'shadowed.stylex.ts',
+      ),
+    ).toEqual([]);
+  });
+
   it('keeps public core authoring within the declared capability policy', async () => {
     await expect(workspaceStylexCapabilityProblems()).resolves.toEqual([]);
   });

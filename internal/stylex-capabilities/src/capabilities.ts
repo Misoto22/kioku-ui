@@ -45,8 +45,38 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     true,
     file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
   );
-  const namespaces = new Set<string>();
   const problems = new Set<string>();
+
+  type Binding =
+    | {kind: 'method'; method: string; reported: boolean}
+    | {importName: string; kind: 'namespace'}
+    | {kind: 'other'};
+  interface Scope {
+    bindings: Map<string, Binding>;
+    parent?: Scope;
+  }
+
+  const rootScope: Scope = {bindings: new Map()};
+  const otherBinding = {kind: 'other'} as const satisfies Binding;
+
+  const resolveBinding = (scope: Scope, name: string) => {
+    let current: Scope | undefined = scope;
+    while (current) {
+      const binding = current.bindings.get(name);
+      if (binding) return binding;
+      current = current.parent;
+    }
+  };
+
+  const bindOther = (scope: Scope, name: ts.BindingName) => {
+    if (ts.isIdentifier(name)) {
+      scope.bindings.set(name.text, otherBinding);
+      return;
+    }
+    for (const element of name.elements) {
+      if (!ts.isOmittedExpression(element)) bindOther(scope, element.name);
+    }
+  };
 
   const report = (node: ts.Node, capability: string) => {
     const line =
@@ -67,12 +97,14 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
 
       if (importClause.name) {
         report(importClause.name, `default import ${importClause.name.text}`);
+        rootScope.bindings.set(importClause.name.text, otherBinding);
       }
       if (
         importClause.namedBindings &&
         ts.isNamespaceImport(importClause.namedBindings)
       ) {
-        namespaces.add(importClause.namedBindings.name.text);
+        const importName = importClause.namedBindings.name.text;
+        rootScope.bindings.set(importName, {importName, kind: 'namespace'});
       } else if (
         importClause.namedBindings &&
         ts.isNamedImports(importClause.namedBindings)
@@ -83,42 +115,123 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
               element,
               `named import ${(element.propertyName ?? element.name).text}`,
             );
+            rootScope.bindings.set(element.name.text, otherBinding);
           }
         }
       }
     }
   }
 
-  const visit = (node: ts.Node) => {
+  const unsupportedMethod = (method: string) => {
+    const capability = methodCapabilities.get(method);
+    return !capability || !isSupportedStylexCapability(capability);
+  };
+
+  const expressionBinding = (expression: ts.Expression, scope: Scope) => {
+    if (ts.isIdentifier(expression)) {
+      return resolveBinding(scope, expression.text);
+    }
     if (
-      ts.isVariableDeclaration(node) &&
-      ts.isObjectBindingPattern(node.name) &&
-      node.initializer &&
-      ts.isIdentifier(node.initializer) &&
-      namespaces.has(node.initializer.text)
+      ts.isPropertyAccessExpression(expression) &&
+      ts.isIdentifier(expression.expression)
     ) {
-      for (const element of node.name.elements) {
-        if (!ts.isIdentifier(element.name)) continue;
-        const importedName = element.propertyName
-          ? propertyName(element.propertyName)
-          : element.name.text;
-        if (!importedName) continue;
-        const alias =
-          element.name.text === importedName ? '' : ` as ${element.name.text}`;
-        report(element, `destructured stylex.${importedName}${alias}`);
+      const namespace = resolveBinding(scope, expression.expression.text);
+      if (namespace?.kind === 'namespace') {
+        return {
+          kind: 'method',
+          method: expression.name.text,
+          reported: false,
+        } as const satisfies Binding;
       }
     }
+  };
 
-    if (
-      ts.isCallExpression(node) &&
-      ts.isPropertyAccessExpression(node.expression) &&
-      ts.isIdentifier(node.expression.expression) &&
-      namespaces.has(node.expression.expression.text)
-    ) {
-      const method = node.expression.name.text;
-      const capability = methodCapabilities.get(method);
-      if (!capability || !isSupportedStylexCapability(capability)) {
-        report(node, `stylex.${method}`);
+  const visit = (node: ts.Node, scope: Scope) => {
+    if (ts.isSourceFile(node)) {
+      for (const statement of node.statements) visit(statement, scope);
+      return;
+    }
+
+    if (ts.isImportDeclaration(node)) return;
+
+    if (ts.isBlock(node)) {
+      const blockScope: Scope = {bindings: new Map(), parent: scope};
+      for (const statement of node.statements) visit(statement, blockScope);
+      return;
+    }
+
+    if (ts.isFunctionLike(node)) {
+      const functionScope: Scope = {bindings: new Map(), parent: scope};
+      for (const parameter of node.parameters) {
+        bindOther(functionScope, parameter.name);
+      }
+      if ('body' in node && node.body) visit(node.body, functionScope);
+      return;
+    }
+
+    if (ts.isVariableDeclaration(node)) {
+      if (node.initializer) visit(node.initializer, scope);
+      const initializer = node.initializer
+        ? expressionBinding(node.initializer, scope)
+        : undefined;
+
+      if (ts.isIdentifier(node.name)) {
+        scope.bindings.set(node.name.text, initializer ?? otherBinding);
+      } else if (
+        ts.isObjectBindingPattern(node.name) &&
+        initializer?.kind === 'namespace'
+      ) {
+        for (const element of node.name.elements) {
+          if (!ts.isIdentifier(element.name) || element.dotDotDotToken) {
+            bindOther(scope, element.name);
+            continue;
+          }
+          const importedName = element.propertyName
+            ? propertyName(element.propertyName)
+            : element.name.text;
+          if (!importedName) {
+            scope.bindings.set(element.name.text, otherBinding);
+            continue;
+          }
+          const alias =
+            element.name.text === importedName
+              ? ''
+              : ` as ${element.name.text}`;
+          report(element, `destructured stylex.${importedName}${alias}`);
+          scope.bindings.set(element.name.text, {
+            kind: 'method',
+            method: importedName,
+            reported: true,
+          });
+        }
+      } else {
+        bindOther(scope, node.name);
+      }
+      return;
+    }
+
+    if (ts.isCallExpression(node)) {
+      if (
+        ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.expression)
+      ) {
+        const localName = node.expression.expression.text;
+        const namespace = resolveBinding(scope, localName);
+        const method = node.expression.name.text;
+        if (namespace?.kind === 'namespace' && unsupportedMethod(method)) {
+          const alias =
+            localName === namespace.importName ? '' : ` via ${localName}`;
+          report(node, `stylex.${method}${alias}`);
+        }
+      } else if (ts.isIdentifier(node.expression)) {
+        const method = resolveBinding(scope, node.expression.text);
+        if (
+          method?.kind === 'method' &&
+          !method.reported &&
+          unsupportedMethod(method.method)
+        ) {
+          report(node, `stylex.${method.method} via ${node.expression.text}`);
+        }
       }
     }
 
@@ -133,10 +246,10 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       }
     }
 
-    ts.forEachChild(node, visit);
+    ts.forEachChild(node, (child) => visit(child, scope));
   };
 
-  visit(sourceFile);
+  visit(sourceFile, rootScope);
   return [...problems].sort();
 }
 

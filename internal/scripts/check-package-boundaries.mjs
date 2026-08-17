@@ -21,6 +21,9 @@ const forbiddenDependencies = new Set([
 ]);
 const importPattern =
   /(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|require\(\s*['"]([^'"]+)['"]\s*\)/g;
+const externalThemeSkins = ['washi', 'muji', 'sumi'];
+const coreThemeSourcePattern =
+  /^packages\/core\/src\/(?:theme\/|.+\.doc\.[cm]?[jt]sx?$)/;
 
 function importProblem(file, specifier) {
   if (specifier === '@misoto22/kioku-ui-test-utils') {
@@ -109,6 +112,27 @@ export async function packageBoundaryProblems({files, packages} = {}) {
       const problem = importProblem(file, match[1] ?? match[2] ?? match[3]);
       if (problem) {
         problems.push(problem);
+      }
+    }
+
+    if (
+      coreThemeSourcePattern.test(file) &&
+      !/\.(?:spec|test)\.[cm]?[jt]sx?$/.test(file)
+    ) {
+      if (/\bdefaultThemeId\s*=\s*["'`][^"'`]+["'`]/.test(contents)) {
+        problems.push(
+          `${file} hard-codes a default theme ID instead of accepting host configuration`,
+        );
+      }
+      for (const skin of externalThemeSkins) {
+        if (new RegExp(`\\b${skin}\\b`, 'i').test(contents)) {
+          problems.push(`${file} names external theme skin "${skin}"`);
+        }
+      }
+      if (/\b(?:localStorage|sessionStorage|indexedDB)\b/.test(contents)) {
+        problems.push(
+          `${file} owns theme persistence instead of accepting a host adapter`,
+        );
       }
     }
   }

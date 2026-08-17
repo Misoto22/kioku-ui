@@ -3,9 +3,6 @@ import {readFile, writeFile} from 'node:fs/promises';
 import {extname, join, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const themes = ['washi', 'muji', 'sumi'];
-const modes = ['light', 'dark'];
-
 function fingerprintKey(fingerprint) {
   return [
     fingerprint.storyId,
@@ -63,13 +60,54 @@ function scopeList(value) {
   return `[${Array.isArray(value) ? value.join(', ') : 'missing'}]`;
 }
 
+function toolbarValues(globalTypes, name) {
+  const items = globalTypes?.[name]?.toolbar?.items;
+  if (!Array.isArray(items)) {
+    throw new Error(`Storybook ${name} toolbar must declare audit values`);
+  }
+  const values = items.map((item) =>
+    typeof item === 'string' ? item : item?.value,
+  );
+  if (
+    values.length === 0 ||
+    values.some((value) => typeof value !== 'string' || value.length === 0) ||
+    new Set(values).size !== values.length
+  ) {
+    throw new Error(
+      `Storybook ${name} toolbar must declare unique string audit values`,
+    );
+  }
+  return values;
+}
+
+export function accessibilityAuditScope(index, globalTypes) {
+  const storyIds = Object.values(index?.entries ?? {})
+    .filter((entry) => entry.type === 'story')
+    .map((entry) => entry.id)
+    .filter((id) => typeof id === 'string')
+    .sort();
+
+  if (storyIds.length === 0) {
+    throw new Error('Storybook index contains no auditable stories');
+  }
+  if (new Set(storyIds).size !== storyIds.length) {
+    throw new Error('Storybook index contains duplicate auditable story IDs');
+  }
+
+  return {
+    modes: toolbarValues(globalTypes, 'mode'),
+    storyIds,
+    themes: toolbarValues(globalTypes, 'theme'),
+  };
+}
+
 export function accessibilityBaselineScopeProblems(baseline, expected) {
   const scope = baseline.scope ?? {};
   const problems = [];
 
-  if (scope.storyCount !== expected.storyCount) {
+  if (!sameStringSet(scope.storyIds, expected.storyIds)) {
     problems.push(
-      `story count: expected ${expected.storyCount}, received ${scope.storyCount ?? 'missing'}`,
+      `story IDs: expected ${scopeList(expected.storyIds)}, received ${scopeList(scope.storyIds)}`,
     );
   }
   if (!sameStringSet(scope.themes, expected.themes)) {
@@ -135,7 +173,7 @@ async function serveDirectory(directory) {
   };
 }
 
-async function auditStories({baseUrl, storyIds}) {
+async function auditStories({baseUrl, modes, storyIds, themes}) {
   const [{AxeBuilder}, {chromium}] = await Promise.all([
     import('@axe-core/playwright'),
     import('@playwright/test'),
@@ -188,14 +226,10 @@ async function runAccessibilityAudit() {
   const index = JSON.parse(
     await readFile(join(storybookDirectory, 'index.json'), 'utf8'),
   );
-  const storyIds = Object.values(index.entries)
-    .filter((entry) => entry.type === 'story')
-    .map((entry) => entry.id)
-    .sort();
-
-  if (storyIds.length === 0) {
-    throw new Error('Storybook index contains no auditable stories');
-  }
+  const {storybookGlobalTypes} =
+    await import('../../apps/storybook/.storybook/audit-globals.ts');
+  const scope = accessibilityAuditScope(index, storybookGlobalTypes);
+  const {modes, storyIds, themes} = scope;
 
   const updateBaseline = process.argv.includes('--update-baseline');
   let baseline;
@@ -204,11 +238,7 @@ async function runAccessibilityAudit() {
     if (baseline.version !== 1 || !Array.isArray(baseline.violations)) {
       throw new Error('Accessibility baseline must use schema version 1');
     }
-    const scopeProblems = accessibilityBaselineScopeProblems(baseline, {
-      modes,
-      storyCount: storyIds.length,
-      themes,
-    });
+    const scopeProblems = accessibilityBaselineScopeProblems(baseline, scope);
     if (scopeProblems.length > 0) {
       throw new Error(
         `Accessibility baseline scope does not match the discovered audit surface:\n${scopeProblems.join('\n')}`,
@@ -219,7 +249,7 @@ async function runAccessibilityAudit() {
   const server = await serveDirectory(storybookDirectory);
   let audits;
   try {
-    audits = await auditStories({baseUrl: server.url, storyIds});
+    audits = await auditStories({baseUrl: server.url, ...scope});
   } finally {
     await server.close();
   }
@@ -227,11 +257,7 @@ async function runAccessibilityAudit() {
   const current = accessibilityViolationFingerprints(audits);
   if (updateBaseline) {
     const baseline = {
-      scope: {
-        modes,
-        storyCount: storyIds.length,
-        themes,
-      },
+      scope,
       version: 1,
       violations: current,
     };

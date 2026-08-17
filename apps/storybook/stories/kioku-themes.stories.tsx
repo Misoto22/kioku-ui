@@ -100,15 +100,3 @@ export const ThemeMatrix: Story = {
     </div>
   ),
 };
-
-export const ThemeProvider: Story = {
-  render: () => (
-    <ThemeProviderComponent defaultThemeId="washi" themes={kiokuThemes}>
-      <Card>
-        <div style={{padding: 'var(--kioku-ui-spacing-lg)'}}>
-          <Text>The provider applies the selected theme token contract.</Text>
-        </div>
-      </Card>
-    </ThemeProviderComponent>
-  ),
-};

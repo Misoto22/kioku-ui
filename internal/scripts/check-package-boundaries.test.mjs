@@ -34,6 +34,34 @@ test('rejects forbidden core package dependencies', async () => {
   ]);
 });
 
+test('rejects named skins, literal defaults, and persistence ownership in core theme sources', async () => {
+  const problems = await packageBoundaryProblems({
+    files: {
+      'packages/core/src/theme/Theme.doc.ts':
+        '\'<ThemeProvider defaultThemeId="washi" themes={themes} />\'',
+      'packages/core/src/theme/Theme.tsx':
+        "const savedTheme = localStorage.getItem('theme');",
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'packages/core/src/theme/Theme.doc.ts hard-codes a default theme ID instead of accepting host configuration',
+    'packages/core/src/theme/Theme.doc.ts names external theme skin "washi"',
+    'packages/core/src/theme/Theme.tsx owns theme persistence instead of accepting a host adapter',
+  ]);
+});
+
+test('accepts host-supplied theme registry, default, and persistence adapters', async () => {
+  const problems = await packageBoundaryProblems({
+    files: {
+      'packages/core/src/theme/Theme.doc.ts':
+        "'<ThemeProvider defaultThemeId={hostDefaultThemeId} persistence={hostPersistence} themes={hostThemes} />'",
+    },
+  });
+
+  assert.deepEqual(problems, []);
+});
+
 test('rejects a host application import in a CommonJS core file', async () => {
   const file = join(process.cwd(), 'packages/core/src/boundary-regression.cjs');
 

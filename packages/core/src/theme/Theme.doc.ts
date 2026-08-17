@@ -28,6 +28,6 @@ export const themeProviderDoc = {
   ],
   inheritedProps: ['No inherited DOM attributes'],
   example:
-    '<ThemeProvider defaultThemeId="washi" themes={themes}>...</ThemeProvider>',
-  storyId: 'themes-kioku--theme-provider',
+    '<ThemeProvider defaultThemeId={hostDefaultThemeId} themes={hostThemes}>...</ThemeProvider>',
+  storyId: 'themes--theme-provider',
 } satisfies ComponentDoc;

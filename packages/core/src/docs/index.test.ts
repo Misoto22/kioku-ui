@@ -91,4 +91,18 @@ describe('componentDocs', () => {
       ThemeProvider: ['children', 'defaultThemeId', 'persistence', 'themes'],
     });
   });
+
+  it('documents ThemeProvider with host-supplied theme configuration', () => {
+    expect(
+      componentDocs.find(({name}) => name === 'ThemeProvider')?.example,
+    ).toBe(
+      '<ThemeProvider defaultThemeId={hostDefaultThemeId} themes={hostThemes}>...</ThemeProvider>',
+    );
+  });
+
+  it('links ThemeProvider metadata to a product-neutral Storybook fixture', () => {
+    expect(
+      componentDocs.find(({name}) => name === 'ThemeProvider')?.storyId,
+    ).toBe('themes--theme-provider');
+  });
 });

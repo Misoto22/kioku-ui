@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  accessibilityAuditScope,
   accessibilityBaselineScopeProblems,
   accessibilityViolationFingerprints,
   newAccessibilityViolations,
@@ -86,27 +87,70 @@ test('accessibility fingerprints are stable across axe result ordering', () => {
   ]);
 });
 
-test('a reduced baseline surface cannot pass as an empty fingerprint set', () => {
+const fullScope = {
+  modes: ['light', 'dark'],
+  storyIds: ['controls--button', 'controls--toggle'],
+  themes: ['washi', 'muji', 'sumi'],
+};
+
+test('audit scope is derived from Storybook toolbar values and canonical story IDs', () => {
+  const index = {
+    entries: {
+      'docs--introduction': {id: 'docs--introduction', type: 'docs'},
+      'controls--toggle': {id: 'controls--toggle', type: 'story'},
+      'controls--button': {id: 'controls--button', type: 'story'},
+    },
+  };
+  const globalTypes = {
+    mode: {toolbar: {items: [{value: 'dim'}, {value: 'bright'}]}},
+    theme: {toolbar: {items: [{value: 'linen'}, {value: 'graphite'}]}},
+  };
+
+  assert.deepEqual(accessibilityAuditScope(index, globalTypes), {
+    modes: ['dim', 'bright'],
+    storyIds: ['controls--button', 'controls--toggle'],
+    themes: ['linen', 'graphite'],
+  });
+});
+
+test('a changed Storybook theme cannot reuse the committed baseline', () => {
   const baseline = {
     scope: {
-      modes: ['light'],
-      storyCount: 33,
-      themes: ['washi', 'muji'],
+      ...fullScope,
+      themes: ['washi', 'muji', 'graphite'],
     },
     version: 1,
     violations: [],
   };
 
-  assert.deepEqual(
-    accessibilityBaselineScopeProblems(baseline, {
-      modes: ['light', 'dark'],
-      storyCount: 34,
-      themes: ['washi', 'muji', 'sumi'],
-    }),
-    [
-      'story count: expected 34, received 33',
-      'themes: expected [washi, muji, sumi], received [washi, muji]',
-      'modes: expected [light, dark], received [light]',
-    ],
-  );
+  assert.deepEqual(accessibilityBaselineScopeProblems(baseline, fullScope), [
+    'themes: expected [washi, muji, sumi], received [washi, muji, graphite]',
+  ]);
+});
+
+test('a changed Storybook mode cannot reuse the committed baseline', () => {
+  const baseline = {
+    scope: {...fullScope, modes: ['light', 'contrast']},
+    version: 1,
+    violations: [],
+  };
+
+  assert.deepEqual(accessibilityBaselineScopeProblems(baseline, fullScope), [
+    'modes: expected [light, dark], received [light, contrast]',
+  ]);
+});
+
+test('an equal-count Storybook story replacement cannot reuse the baseline', () => {
+  const baseline = {
+    scope: {
+      ...fullScope,
+      storyIds: ['controls--button', 'controls--segmented-control'],
+    },
+    version: 1,
+    violations: [],
+  };
+
+  assert.deepEqual(accessibilityBaselineScopeProblems(baseline, fullScope), [
+    'story IDs: expected [controls--button, controls--toggle], received [controls--button, controls--segmented-control]',
+  ]);
 });
