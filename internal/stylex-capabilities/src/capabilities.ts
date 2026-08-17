@@ -72,7 +72,11 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
   const problems = new Set<string>();
   const reportedNodes = new Set<number>();
 
+  type CallableNode =
+    ts.ArrowFunction | ts.FunctionDeclaration | ts.FunctionExpression;
   type BindingValue =
+    | {elements: readonly BindingValue[]; kind: 'aggregate'}
+    | {kind: 'callable'; nodes: readonly CallableNode[]; optional: boolean}
     | {kind: 'member'; method: string; reported: boolean; importName: string}
     | {kind: 'maybe-stylex'; reported: boolean}
     | {importName: string; kind: 'namespace'}
@@ -83,18 +87,37 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
   }
   interface Scope {
     bindings: Map<string, BindingId>;
-    kind: 'block' | 'catch' | 'function' | 'loop' | 'source' | 'switch';
+    kind:
+      | 'block'
+      | 'catch'
+      | 'class-static'
+      | 'function'
+      | 'loop'
+      | 'source'
+      | 'switch';
     parent?: Scope;
   }
   type FlowState = ReadonlyMap<BindingId, BindingValue>;
   interface Evaluation {
+    completes: boolean;
     flow: FlowState;
+    throws?: FlowState;
     value: BindingValue;
+  }
+  interface Transfer {
+    break?: FlowState;
+    continue?: FlowState;
+    normal?: FlowState;
+    return?: FlowState;
+    throw?: FlowState;
   }
 
   const otherValue = {kind: 'other'} as const satisfies BindingValue;
   const rootScope: Scope = {bindings: new Map(), kind: 'source'};
   const childScopes = new WeakMap<ts.Node, Scope>();
+  const bindingScopes = new WeakMap<BindingId, Scope>();
+  const functionDefinitionScopes = new WeakMap<CallableNode, Scope>();
+  let functionCallDepth = 0;
   let nextBindingId = 0;
 
   const methodValue = (
@@ -106,12 +129,43 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     kind: 'maybe-stylex',
     reported,
   });
+  const aggregateValue = (elements: readonly BindingValue[]): BindingValue => ({
+    elements,
+    kind: 'aggregate',
+  });
+  const callableValue = (
+    nodes: readonly CallableNode[],
+    optional = false,
+  ): BindingValue => ({kind: 'callable', nodes, optional});
+  const containsStylexValue = (value: BindingValue): boolean =>
+    value.kind === 'namespace' ||
+    value.kind === 'member' ||
+    value.kind === 'maybe-stylex' ||
+    (value.kind === 'aggregate' && value.elements.some(containsStylexValue));
   const stylexValueWasReported = (value: BindingValue) =>
     (value.kind === 'member' || value.kind === 'maybe-stylex') &&
     value.reported;
-  const sameBindingValue = (left: BindingValue, right: BindingValue) => {
+  const sameBindingValue = (
+    left: BindingValue,
+    right: BindingValue,
+  ): boolean => {
     if (left.kind !== right.kind) return false;
     if (left.kind === 'other') return true;
+    if (left.kind === 'aggregate' && right.kind === 'aggregate') {
+      return (
+        left.elements.length === right.elements.length &&
+        left.elements.every((value, index) =>
+          sameBindingValue(value, right.elements[index] ?? otherValue),
+        )
+      );
+    }
+    if (left.kind === 'callable' && right.kind === 'callable') {
+      return (
+        left.optional === right.optional &&
+        left.nodes.length === right.nodes.length &&
+        left.nodes.every((node, index) => node === right.nodes[index])
+      );
+    }
     if (left.kind === 'namespace' && right.kind === 'namespace') {
       return left.importName === right.importName;
     }
@@ -132,6 +186,28 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     left: BindingValue,
     right: BindingValue,
   ): BindingValue => {
+    if (sameBindingValue(left, right)) return left;
+    if (left.kind === 'aggregate' && right.kind === 'aggregate') {
+      if (left.elements.length === right.elements.length) {
+        return aggregateValue(
+          left.elements.map((value, index) =>
+            joinBindingValues(value, right.elements[index] ?? otherValue),
+          ),
+        );
+      }
+    }
+    if (left.kind === 'callable' && right.kind === 'callable') {
+      return callableValue(
+        [...new Set([...left.nodes, ...right.nodes])],
+        left.optional || right.optional,
+      );
+    }
+    if (left.kind === 'callable' && right.kind === 'other') {
+      return callableValue(left.nodes, true);
+    }
+    if (left.kind === 'other' && right.kind === 'callable') {
+      return callableValue(right.nodes, true);
+    }
     if (left.kind === 'other' && right.kind === 'other') return otherValue;
     if (left.kind === 'namespace' && right.kind === 'namespace') {
       return {
@@ -150,10 +226,11 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         left.importName === right.importName ? left.importName : '',
       );
     }
-    const stylexValues = [left, right].filter(
-      (value) => value.kind !== 'other',
-    );
-    return maybeStylexValue(stylexValues.every(stylexValueWasReported));
+    if (containsStylexValue(left) || containsStylexValue(right)) {
+      const stylexValues = [left, right].filter(containsStylexValue);
+      return maybeStylexValue(stylexValues.every(stylexValueWasReported));
+    }
+    return otherValue;
   };
   const setBindingValue = (
     flow: FlowState,
@@ -187,6 +264,30 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       ),
     );
   };
+  const joinOptionalFlows = (...states: Array<FlowState | undefined>) => {
+    const present = states.filter(
+      (state): state is FlowState => state !== undefined,
+    );
+    return present.length > 0 ? joinFlowStates(...present) : undefined;
+  };
+  const normalTransfer = (normal: FlowState): Transfer => ({normal});
+  const joinTransfers = (...transfers: Transfer[]): Transfer => ({
+    break: joinOptionalFlows(...transfers.map((result) => result.break)),
+    continue: joinOptionalFlows(...transfers.map((result) => result.continue)),
+    normal: joinOptionalFlows(...transfers.map((result) => result.normal)),
+    return: joinOptionalFlows(...transfers.map((result) => result.return)),
+    throw: joinOptionalFlows(...transfers.map((result) => result.throw)),
+  });
+  const transferFromEvaluation = (evaluation: Evaluation): Transfer => ({
+    normal: evaluation.completes ? evaluation.flow : undefined,
+    throw: evaluation.throws,
+  });
+  const evaluation = (
+    flow: FlowState,
+    value: BindingValue = otherValue,
+    throws?: FlowState,
+    completes = true,
+  ): Evaluation => ({completes, flow, throws, value});
 
   const report = (node: ts.Node, capability: string) => {
     const position = node.getStart();
@@ -227,6 +328,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     if (!binding) {
       binding = {id: nextBindingId++, name};
       scope.bindings.set(name, binding);
+      bindingScopes.set(binding, scope);
     }
     return {
       binding,
@@ -255,7 +357,11 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
   };
   const nearestFunctionScope = (scope: Scope) => {
     let current = scope;
-    while (current.kind !== 'function' && current.kind !== 'source') {
+    while (
+      current.kind !== 'class-static' &&
+      current.kind !== 'function' &&
+      current.kind !== 'source'
+    ) {
       current = current.parent ?? current;
     }
     return current;
@@ -280,10 +386,19 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
           ts.isClassDeclaration(statement)) &&
         statement.name
       ) {
-        const declaration = declareBinding(scope, statement.name.text, next);
-        next = resetLexical
-          ? setBindingValue(declaration.flow, declaration.binding, otherValue)
-          : declaration.flow;
+        const value = ts.isFunctionDeclaration(statement)
+          ? callableValue([statement])
+          : otherValue;
+        if (ts.isFunctionDeclaration(statement)) {
+          functionDefinitionScopes.set(statement, scope);
+        }
+        const declaration = declareBinding(
+          scope,
+          statement.name.text,
+          next,
+          value,
+        );
+        next = setBindingValue(declaration.flow, declaration.binding, value);
       } else if (ts.isVariableStatement(statement)) {
         const blockScoped =
           (statement.declarationList.flags & ts.NodeFlags.BlockScoped) !== 0;
@@ -304,16 +419,22 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     node: ts.Node,
     scope: Scope,
     flow: FlowState,
+    reset = false,
   ) => {
     let next = flow;
     const visitVar = (child: ts.Node) => {
-      if (child !== node && ts.isFunctionLike(child)) return;
+      if (
+        child !== node &&
+        (ts.isFunctionLike(child) || ts.isClassStaticBlockDeclaration(child))
+      ) {
+        return;
+      }
       if (
         ts.isVariableDeclarationList(child) &&
         (child.flags & ts.NodeFlags.BlockScoped) === 0
       ) {
         for (const declaration of child.declarations) {
-          next = bindOther(scope, declaration.name, next);
+          next = bindOther(scope, declaration.name, next, reset);
         }
       }
       ts.forEachChild(child, visitVar);
@@ -424,10 +545,20 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     flow: FlowState,
   ) {
     if (!ts.isComputedPropertyName(name)) {
-      return {flow, name: propertyName(name)};
+      return {
+        completes: true,
+        flow,
+        name: propertyName(name),
+        throws: undefined as FlowState | undefined,
+      };
     }
     const evaluated = evaluateExpression(name.expression, scope, flow);
-    return {flow: evaluated.flow, name: propertyName(name)};
+    return {
+      completes: evaluated.completes,
+      flow: evaluated.flow,
+      name: propertyName(name),
+      throws: evaluated.throws,
+    };
   }
 
   function destructuredValue(
@@ -528,11 +659,19 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
     if (ts.isArrayLiteralExpression(normalized)) {
       let next = flow;
-      for (const element of normalized.elements) {
+      for (const [index, element] of normalized.elements.entries()) {
         if (ts.isOmittedExpression(element)) continue;
+        const elementValue =
+          value.kind === 'aggregate'
+            ? ts.isSpreadElement(element)
+              ? aggregateValue(value.elements.slice(index))
+              : (value.elements[index] ?? otherValue)
+            : value.kind === 'maybe-stylex'
+              ? value
+              : otherValue;
         next = assignTarget(
           ts.isSpreadElement(element) ? element.expression : element,
-          value.kind === 'maybe-stylex' ? value : otherValue,
+          elementValue,
           scope,
           next,
         );
@@ -568,7 +707,7 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       return setBindingValue(declaration.flow, declaration.binding, value);
     }
     let next = flow;
-    for (const element of name.elements) {
+    for (const [index, element] of name.elements.entries()) {
       if (ts.isOmittedExpression(element)) continue;
       let importedName: string | undefined;
       if (ts.isObjectBindingPattern(name)) {
@@ -588,14 +727,18 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         ? element.name.text
         : undefined;
       let elementValue = element.dotDotDotToken
-        ? value.kind === 'namespace' || value.kind === 'maybe-stylex'
-          ? maybeStylexValue()
-          : otherValue
+        ? value.kind === 'aggregate'
+          ? aggregateValue(value.elements.slice(index))
+          : value.kind === 'namespace' || value.kind === 'maybe-stylex'
+            ? maybeStylexValue()
+            : otherValue
         : ts.isObjectBindingPattern(name)
           ? destructuredValue(element, importedName, localName, value)
-          : value.kind === 'maybe-stylex'
-            ? value
-            : otherValue;
+          : value.kind === 'aggregate'
+            ? (value.elements[index] ?? otherValue)
+            : value.kind === 'namespace' || value.kind === 'maybe-stylex'
+              ? maybeStylexValue()
+              : otherValue;
       if (
         element.dotDotDotToken &&
         (value.kind === 'namespace' || value.kind === 'maybe-stylex')
@@ -618,18 +761,29 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     flow: FlowState,
   ): Evaluation {
     const receiver = evaluateExpression(expression.expression, scope, flow);
+    if (!receiver.completes) {
+      return evaluation(receiver.flow, otherValue, receiver.throws, false);
+    }
     let next = receiver.flow;
+    let throws = receiver.throws;
     if (ts.isElementAccessExpression(expression)) {
-      next = evaluateExpression(
+      const argument = evaluateExpression(
         expression.argumentExpression,
         scope,
         next,
-      ).flow;
+      );
+      throws = joinOptionalFlows(throws, argument.throws);
+      if (!argument.completes) {
+        return evaluation(argument.flow, otherValue, throws, false);
+      }
+      next = argument.flow;
     }
     const method = memberName(expression);
     if (receiver.value.kind === 'namespace' && method) {
       return {
+        completes: true,
         flow: next,
+        throws,
         value: methodValue(method, false, receiver.value.importName),
       };
     }
@@ -640,20 +794,25 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       if (!stylexValueWasReported(receiver.value)) {
         report(expression, ambiguousFlowCapability(expression.expression));
       }
-      return {flow: next, value: maybeStylexValue(true)};
+      return evaluation(next, maybeStylexValue(true), throws);
     }
-    return {flow: next, value: otherValue};
+    return evaluation(next, otherValue, throws);
   }
 
   function evaluateObjectLiteral(
     expression: ts.ObjectLiteralExpression,
     scope: Scope,
     flow: FlowState,
-  ): FlowState {
+  ): Evaluation {
     let next = flow;
+    let throws: FlowState | undefined;
     for (const property of expression.properties) {
       if (ts.isPropertyAssignment(property)) {
         const evaluatedName = evaluatePropertyName(property.name, scope, next);
+        throws = joinOptionalFlows(throws, evaluatedName.throws);
+        if (!evaluatedName.completes) {
+          return evaluation(evaluatedName.flow, otherValue, throws, false);
+        }
         next = evaluatedName.flow;
         const name = evaluatedName.name;
         if (name?.startsWith(':global(')) {
@@ -663,24 +822,56 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         } else if (name?.startsWith(':') && name !== ':focus-visible') {
           report(property, `selector ${name}`);
         }
-        next = evaluateExpression(property.initializer, scope, next).flow;
+        const initializer = evaluateExpression(
+          property.initializer,
+          scope,
+          next,
+        );
+        throws = joinOptionalFlows(throws, initializer.throws);
+        if (!initializer.completes) {
+          return evaluation(initializer.flow, otherValue, throws, false);
+        }
+        next = initializer.flow;
       } else if (ts.isShorthandPropertyAssignment(property)) {
-        next = evaluateExpression(property.name, scope, next).flow;
+        const shorthand = evaluateExpression(property.name, scope, next);
+        throws = joinOptionalFlows(throws, shorthand.throws);
+        if (!shorthand.completes) {
+          return evaluation(shorthand.flow, otherValue, throws, false);
+        }
+        next = shorthand.flow;
         if (property.objectAssignmentInitializer) {
           const fallback = evaluateExpression(
             property.objectAssignmentInitializer,
             scope,
             next,
           );
+          throws = joinOptionalFlows(throws, fallback.throws);
+          if (!fallback.completes) {
+            return evaluation(fallback.flow, otherValue, throws, false);
+          }
           next = joinFlowStates(next, fallback.flow);
         }
       } else if (ts.isSpreadAssignment(property)) {
-        next = evaluateExpression(property.expression, scope, next).flow;
-      } else if (ts.isMethodDeclaration(property)) {
-        next = visit(property, scope, next);
+        const spread = evaluateExpression(property.expression, scope, next);
+        throws = joinOptionalFlows(throws, spread.throws);
+        if (!spread.completes) {
+          return evaluation(spread.flow, otherValue, throws, false);
+        }
+        next = spread.flow;
+      } else if (
+        ts.isMethodDeclaration(property) ||
+        ts.isGetAccessorDeclaration(property) ||
+        ts.isSetAccessorDeclaration(property)
+      ) {
+        const method = visitFunctionLike(property, scope, next);
+        throws = joinOptionalFlows(throws, method.throw);
+        if (!method.normal) {
+          return evaluation(method.throw ?? next, otherValue, throws, false);
+        }
+        next = method.normal;
       }
     }
-    return next;
+    return evaluation(next, otherValue, throws);
   }
 
   function evaluateExpression(
@@ -694,16 +885,19 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
     if (ts.isIdentifier(normalized)) {
       const binding = resolveBinding(scope, normalized.text);
-      return {
+      return evaluation(
         flow,
-        value: binding ? (flow.get(binding) ?? otherValue) : otherValue,
-      };
+        binding ? (flow.get(binding) ?? otherValue) : otherValue,
+      );
     }
     if (isMemberExpression(normalized)) {
       return evaluateMemberExpression(normalized, scope, flow);
     }
     if (ts.isConditionalExpression(normalized)) {
       const condition = evaluateExpression(normalized.condition, scope, flow);
+      if (!condition.completes) {
+        return evaluation(condition.flow, otherValue, condition.throws, false);
+      }
       const whenTrue = evaluateExpression(
         normalized.whenTrue,
         scope,
@@ -714,52 +908,92 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         scope,
         condition.flow,
       );
-      return {
-        flow: joinFlowStates(whenTrue.flow, whenFalse.flow),
-        value: joinBindingValues(whenTrue.value, whenFalse.value),
-      };
+      const normalFlows = [whenTrue, whenFalse]
+        .filter((branch) => branch.completes)
+        .map((branch) => branch.flow);
+      const throws = joinOptionalFlows(
+        condition.throws,
+        whenTrue.throws,
+        whenFalse.throws,
+      );
+      if (normalFlows.length === 0) {
+        return evaluation(condition.flow, otherValue, throws, false);
+      }
+      const values = [whenTrue, whenFalse].filter((branch) => branch.completes);
+      return evaluation(
+        joinFlowStates(...normalFlows),
+        values.length === 2
+          ? joinBindingValues(values[0]!.value, values[1]!.value)
+          : values[0]!.value,
+        throws,
+      );
     }
     if (ts.isBinaryExpression(normalized)) {
       const operator = normalized.operatorToken.kind;
       if (operator === ts.SyntaxKind.EqualsToken) {
         if (isMemberExpression(normalizeExpression(normalized.left))) {
           const target = evaluateExpression(normalized.left, scope, flow);
+          if (!target.completes) return target;
           const right = evaluateExpression(
             normalized.right,
             scope,
             target.flow,
           );
-          return {flow: right.flow, value: right.value};
+          return evaluation(
+            right.flow,
+            right.value,
+            joinOptionalFlows(target.throws, right.throws),
+            right.completes,
+          );
         }
         const right = evaluateExpression(normalized.right, scope, flow);
-        return {
-          flow: assignTarget(normalized.left, right.value, scope, right.flow),
-          value: right.value,
-        };
+        if (!right.completes) return right;
+        return evaluation(
+          assignTarget(normalized.left, right.value, scope, right.flow),
+          right.value,
+          right.throws,
+        );
       }
       if (logicalAssignmentOperators.has(operator)) {
         const left = evaluateExpression(normalized.left, scope, flow);
+        if (!left.completes) return left;
         const right = evaluateExpression(normalized.right, scope, left.flow);
+        const throws = joinOptionalFlows(left.throws, right.throws);
+        if (!right.completes) {
+          return evaluation(left.flow, left.value, throws);
+        }
         const assigned = assignTarget(
           normalized.left,
           right.value,
           scope,
           right.flow,
         );
-        return {
-          flow: joinFlowStates(left.flow, assigned),
-          value: joinBindingValues(left.value, right.value),
-        };
+        return evaluation(
+          joinFlowStates(left.flow, assigned),
+          joinBindingValues(left.value, right.value),
+          throws,
+        );
       }
       if (valueReplacingAssignmentOperators.has(operator)) {
         const left = evaluateExpression(normalized.left, scope, flow);
+        if (!left.completes) return left;
         const right = evaluateExpression(normalized.right, scope, left.flow);
-        return {
-          flow: assignTarget(normalized.left, otherValue, scope, right.flow),
-          value: otherValue,
-        };
+        if (!right.completes) {
+          return evaluation(
+            right.flow,
+            otherValue,
+            joinOptionalFlows(left.throws, right.throws),
+            false,
+          );
+        }
+        return evaluation(
+          assignTarget(normalized.left, otherValue, scope, right.flow),
+          otherValue,
+          joinOptionalFlows(left.throws, right.throws),
+        );
       }
       const left = evaluateExpression(normalized.left, scope, flow);
+      if (!left.completes) return left;
       if (
         normalized.operatorToken.kind ===
           ts.SyntaxKind.AmpersandAmpersandToken ||
@@ -767,22 +1001,29 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         normalized.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
       ) {
         const right = evaluateExpression(normalized.right, scope, left.flow);
-        return {
-          flow: joinFlowStates(left.flow, right.flow),
-          value: joinBindingValues(left.value, right.value),
-        };
+        const throws = joinOptionalFlows(left.throws, right.throws);
+        if (!right.completes) {
+          return evaluation(left.flow, left.value, throws);
+        }
+        return evaluation(
+          joinFlowStates(left.flow, right.flow),
+          joinBindingValues(left.value, right.value),
+          throws,
+        );
       }
       const right = evaluateExpression(normalized.right, scope, left.flow);
-      return {
-        flow: right.flow,
-        value:
-          normalized.operatorToken.kind === ts.SyntaxKind.CommaToken
-            ? right.value
-            : otherValue,
-      };
+      return evaluation(
+        right.flow,
+        normalized.operatorToken.kind === ts.SyntaxKind.CommaToken
+          ? right.value
+          : otherValue,
+        joinOptionalFlows(left.throws, right.throws),
+        right.completes,
+      );
     }
     if (ts.isCallExpression(normalized)) {
       const callee = evaluateExpression(normalized.expression, scope, flow);
+      if (!callee.completes) return callee;
       const localName = calleeLocalName(normalized.expression);
       if (
         callee.value.kind === 'member' &&
@@ -801,47 +1042,129 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         report(normalized, ambiguousFlowCapability(normalized.expression));
       }
       let next = callee.flow;
+      let throws = callee.throws;
+      const argumentValues: BindingValue[] = [];
       for (const argument of normalized.arguments) {
-        next = evaluateExpression(argument, scope, next).flow;
+        const evaluatedArgument = evaluateExpression(argument, scope, next);
+        throws = joinOptionalFlows(throws, evaluatedArgument.throws);
+        if (!evaluatedArgument.completes) {
+          return evaluation(evaluatedArgument.flow, otherValue, throws, false);
+        }
+        next = evaluatedArgument.flow;
+        argumentValues.push(evaluatedArgument.value);
       }
-      return {flow: next, value: otherValue};
+      if (callee.value.kind === 'callable') {
+        const invoked = invokeLocalFunctions(
+          callee.value,
+          scope,
+          next,
+          argumentValues,
+        );
+        return evaluation(
+          invoked.flow,
+          otherValue,
+          joinOptionalFlows(throws, invoked.throws),
+          invoked.completes,
+        );
+      }
+      return evaluation(next, otherValue, throws);
     }
     if (ts.isObjectLiteralExpression(normalized)) {
-      return {
-        flow: evaluateObjectLiteral(normalized, scope, flow),
-        value: otherValue,
-      };
+      return evaluateObjectLiteral(normalized, scope, flow);
     }
-    if (
-      ts.isArrowFunction(normalized) ||
-      ts.isFunctionExpression(normalized) ||
-      ts.isClassExpression(normalized)
-    ) {
-      visit(normalized, scope, flow);
-      return {flow, value: otherValue};
+    if (ts.isArrayLiteralExpression(normalized)) {
+      let next = flow;
+      let throws: FlowState | undefined;
+      const elements: BindingValue[] = [];
+      for (const element of normalized.elements) {
+        if (ts.isOmittedExpression(element)) {
+          elements.push(otherValue);
+          continue;
+        }
+        const expression = ts.isSpreadElement(element)
+          ? element.expression
+          : element;
+        const item = evaluateExpression(expression, scope, next);
+        throws = joinOptionalFlows(throws, item.throws);
+        if (!item.completes) {
+          return evaluation(item.flow, otherValue, throws, false);
+        }
+        next = item.flow;
+        if (ts.isSpreadElement(element) && item.value.kind === 'aggregate') {
+          elements.push(...item.value.elements);
+        } else {
+          elements.push(item.value);
+        }
+      }
+      return evaluation(next, aggregateValue(elements), throws);
+    }
+    if (ts.isArrowFunction(normalized) || ts.isFunctionExpression(normalized)) {
+      const defined = visitFunctionLike(normalized, scope, flow);
+      return evaluation(
+        defined.normal ?? flow,
+        callableValue([normalized]),
+        defined.throw,
+        defined.normal !== undefined,
+      );
+    }
+    if (ts.isClassExpression(normalized)) {
+      const defined = visitClassLike(normalized, scope, flow);
+      return evaluation(
+        defined.normal ?? flow,
+        otherValue,
+        defined.throw,
+        defined.normal !== undefined,
+      );
     }
     if (ts.isAwaitExpression(normalized) || ts.isYieldExpression(normalized)) {
       return normalized.expression
         ? evaluateExpression(normalized.expression, scope, flow)
-        : {flow, value: otherValue};
+        : evaluation(flow);
     }
-    if (
-      ts.isPrefixUnaryExpression(normalized) ||
-      ts.isPostfixUnaryExpression(normalized)
-    ) {
+    if (ts.isPrefixUnaryExpression(normalized)) {
       const operand = evaluateExpression(normalized.operand, scope, flow);
-      return {
-        flow: assignTarget(normalized.operand, otherValue, scope, operand.flow),
-        value: otherValue,
-      };
+      if (!operand.completes) return operand;
+      const mutates =
+        normalized.operator === ts.SyntaxKind.PlusPlusToken ||
+        normalized.operator === ts.SyntaxKind.MinusMinusToken;
+      return evaluation(
+        mutates
+          ? assignTarget(normalized.operand, otherValue, scope, operand.flow)
+          : operand.flow,
+        otherValue,
+        operand.throws,
+      );
+    }
+    if (ts.isPostfixUnaryExpression(normalized)) {
+      const operand = evaluateExpression(normalized.operand, scope, flow);
+      if (!operand.completes) return operand;
+      return evaluation(
+        assignTarget(normalized.operand, otherValue, scope, operand.flow),
+        otherValue,
+        operand.throws,
+      );
     }
     let next = flow;
+    let throws: FlowState | undefined;
+    let completes = true;
     ts.forEachChild(normalized, (child) => {
-      next = ts.isExpression(child)
-        ? evaluateExpression(child, scope, next).flow
-        : visit(child, scope, next);
+      if (!completes) return;
+      if (ts.isExpression(child)) {
+        const childEvaluation = evaluateExpression(child, scope, next);
+        throws = joinOptionalFlows(throws, childEvaluation.throws);
+        next = childEvaluation.flow;
+        completes = childEvaluation.completes;
+      } else {
+        const childTransfer = visit(child, scope, next);
+        throws = joinOptionalFlows(throws, childTransfer.throw);
+        if (childTransfer.normal) {
+          next = childTransfer.normal;
+        } else {
+          completes = false;
+        }
+      }
     });
-    return {flow: next, value: otherValue};
+    return evaluation(next, otherValue, throws, completes);
   }
 
   const predeclareVariableList = (
@@ -859,59 +1182,142 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
     }
     return next;
   };
+
+  const sequenceStatements = (
+    statements: readonly ts.Statement[],
+    scope: Scope,
+    flow: FlowState,
+  ): Transfer => {
+    let result = normalTransfer(flow);
+    for (const statement of statements) {
+      if (!result.normal) break;
+      const statementResult = visit(statement, scope, result.normal);
+      result = {
+        break: joinOptionalFlows(result.break, statementResult.break),
+        continue: joinOptionalFlows(result.continue, statementResult.continue),
+        normal: statementResult.normal,
+        return: joinOptionalFlows(result.return, statementResult.return),
+        throw: joinOptionalFlows(result.throw, statementResult.throw),
+      };
+    }
+    return result;
+  };
+
+  const sequenceChildNodes = (
+    node: ts.Node,
+    scope: Scope,
+    flow: FlowState,
+  ): Transfer => {
+    let result = normalTransfer(flow);
+    ts.forEachChild(node, (child) => {
+      if (!result.normal) return;
+      const childResult = visit(child, scope, result.normal);
+      result = {
+        break: joinOptionalFlows(result.break, childResult.break),
+        continue: joinOptionalFlows(result.continue, childResult.continue),
+        normal: childResult.normal,
+        return: joinOptionalFlows(result.return, childResult.return),
+        throw: joinOptionalFlows(result.throw, childResult.throw),
+      };
+    });
+    return result;
+  };
+
   const visitLoopInitializer = (
     initializer: ts.ForInitializer | undefined,
     scope: Scope,
     flow: FlowState,
-  ) => {
-    if (!initializer) return flow;
+  ): Transfer => {
+    if (!initializer) return normalTransfer(flow);
     if (ts.isVariableDeclarationList(initializer)) {
       let next = predeclareVariableList(initializer, scope, flow);
+      let result = normalTransfer(next);
       for (const declaration of initializer.declarations) {
-        next = visit(declaration, scope, next);
+        if (!result.normal) break;
+        const declarationResult = visit(declaration, scope, result.normal);
+        result = joinTransfers(
+          {...result, normal: undefined},
+          declarationResult,
+        );
       }
-      return next;
+      return result;
     }
-    return evaluateExpression(initializer, scope, flow).flow;
+    return transferFromEvaluation(evaluateExpression(initializer, scope, flow));
   };
-  const analyzeZeroOrMore = (
+
+  const analyzeLoopHeader = (
     entry: FlowState,
-    transfer: (header: FlowState) => FlowState,
+    transfer: (header: FlowState) => Transfer,
   ) => {
     let header = entry;
     let iterations = 0;
+    let result = transfer(header);
     while (iterations++ <= nextBindingId + 4) {
-      const joined = joinFlowStates(entry, transfer(header));
-      if (sameFlowState(header, joined)) return joined;
+      const backedge = joinOptionalFlows(result.normal, result.continue);
+      const joined = backedge ? joinFlowStates(entry, backedge) : entry;
+      if (sameFlowState(header, joined)) return {header, result};
       header = joined;
+      result = transfer(header);
     }
-    return header;
+    return {header, result};
   };
 
-  function visitFunctionLike(
-    node: ts.SignatureDeclaration,
-    scope: Scope,
-    flow: FlowState,
-  ) {
-    let definitionFlow = flow;
-    if (node.name && ts.isComputedPropertyName(node.name)) {
-      definitionFlow = evaluateExpression(
-        node.name.expression,
-        scope,
-        definitionFlow,
-      ).flow;
+  const scopeContains = (scope: Scope, candidate: Scope) => {
+    let current: Scope | undefined = candidate;
+    while (current) {
+      if (current === scope) return true;
+      current = current.parent;
     }
-    const functionScope = childScope(node, 'function', scope);
-    let functionFlow = definitionFlow;
+    return false;
+  };
+
+  const projectFlow = (
+    base: FlowState,
+    result: FlowState,
+    callScope: Scope,
+  ): FlowState => {
+    let projected = base;
+    for (const binding of result.keys()) {
+      const bindingScope = bindingScopes.get(binding);
+      if (
+        !base.has(binding) &&
+        (!bindingScope || !scopeContains(bindingScope, callScope))
+      ) {
+        continue;
+      }
+      projected = setBindingValue(
+        projected,
+        binding,
+        result.get(binding) ?? otherValue,
+      );
+    }
+    return projected;
+  };
+
+  function analyzeFunctionExecution(
+    node: ts.SignatureDeclaration,
+    definitionScope: Scope,
+    flow: FlowState,
+    argumentValues?: readonly BindingValue[],
+  ): Transfer {
+    const functionScope = childScope(node, 'function', definitionScope);
+    let functionFlow = flow;
     if (
       (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) &&
       node.name
     ) {
-      functionFlow = declareBinding(
+      const value = callableValue([node]);
+      const declaration = declareBinding(
         functionScope,
         node.name.text,
         functionFlow,
-      ).flow;
+        value,
+      );
+      functionFlow = setBindingValue(
+        declaration.flow,
+        declaration.binding,
+        value,
+      );
     }
     for (const parameter of node.parameters) {
       functionFlow = bindOther(
@@ -921,14 +1327,20 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         true,
       );
     }
-    for (const parameter of node.parameters) {
-      let parameterValue: BindingValue = otherValue;
-      if (parameter.initializer) {
+    let throws: FlowState | undefined;
+    for (const [index, parameter] of node.parameters.entries()) {
+      let parameterValue = argumentValues?.[index] ?? otherValue;
+      if (
+        parameter.initializer &&
+        (argumentValues === undefined || index >= argumentValues.length)
+      ) {
         const initializer = evaluateExpression(
           parameter.initializer,
           functionScope,
           functionFlow,
         );
+        throws = joinOptionalFlows(throws, initializer.throws);
+        if (!initializer.completes) return {throw: throws};
         functionFlow = initializer.flow;
         parameterValue = initializer.value;
       }
@@ -939,37 +1351,184 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         functionFlow,
       );
     }
-    if ('body' in node && node.body) {
-      functionFlow = predeclareVarBindings(
-        node.body,
-        functionScope,
-        functionFlow,
-      );
-      visit(node.body, functionScope, functionFlow);
+    if (!('body' in node) || !node.body) {
+      return {normal: functionFlow, throw: throws};
     }
-    return definitionFlow;
+    functionFlow = predeclareVarBindings(
+      node.body,
+      functionScope,
+      functionFlow,
+      true,
+    );
+    const bodyResult = ts.isBlock(node.body)
+      ? visit(node.body, functionScope, functionFlow)
+      : transferFromEvaluation(
+          evaluateExpression(node.body, functionScope, functionFlow),
+        );
+    return {
+      ...bodyResult,
+      throw: joinOptionalFlows(throws, bodyResult.throw),
+    };
   }
 
-  function visit(node: ts.Node, scope: Scope, flow: FlowState): FlowState {
+  function visitFunctionLike(
+    node: ts.SignatureDeclaration,
+    scope: Scope,
+    flow: FlowState,
+  ): Transfer {
+    let definitionFlow = flow;
+    let throws: FlowState | undefined;
+    if (node.name && ts.isComputedPropertyName(node.name)) {
+      const name = evaluateExpression(
+        node.name.expression,
+        scope,
+        definitionFlow,
+      );
+      throws = name.throws;
+      if (!name.completes) return {throw: throws};
+      definitionFlow = name.flow;
+    }
+    if (
+      ts.isFunctionDeclaration(node) ||
+      ts.isFunctionExpression(node) ||
+      ts.isArrowFunction(node)
+    ) {
+      functionDefinitionScopes.set(node, scope);
+    }
+    analyzeFunctionExecution(node, scope, definitionFlow);
+    return {normal: definitionFlow, throw: throws};
+  }
+
+  function invokeLocalFunctions(
+    callable: Extract<BindingValue, {kind: 'callable'}>,
+    callScope: Scope,
+    flow: FlowState,
+    argumentValues: readonly BindingValue[],
+  ): Evaluation {
+    const normalFlows: FlowState[] = callable.optional ? [flow] : [];
+    const throwFlows: FlowState[] = [];
+    for (const node of callable.nodes) {
+      if (functionCallDepth >= nextBindingId * 2 + 8) {
+        normalFlows.push(flow);
+        continue;
+      }
+      const definitionScope = functionDefinitionScopes.get(node) ?? callScope;
+      functionCallDepth++;
+      let result: Transfer;
+      try {
+        result = analyzeFunctionExecution(
+          node,
+          definitionScope,
+          flow,
+          argumentValues,
+        );
+      } finally {
+        functionCallDepth--;
+      }
+      const normal = joinOptionalFlows(result.normal, result.return);
+      if (normal) normalFlows.push(projectFlow(flow, normal, callScope));
+      if (result.throw) {
+        throwFlows.push(projectFlow(flow, result.throw, callScope));
+      }
+    }
+    const throws =
+      throwFlows.length > 0 ? joinFlowStates(...throwFlows) : undefined;
+    if (normalFlows.length === 0) {
+      return evaluation(throws ?? flow, otherValue, throws, false);
+    }
+    return evaluation(joinFlowStates(...normalFlows), otherValue, throws);
+  }
+
+  function visitClassLike(
+    node: ts.ClassLikeDeclaration,
+    scope: Scope,
+    flow: FlowState,
+  ): Transfer {
+    let result = normalTransfer(flow);
+    for (const heritageClause of node.heritageClauses ?? []) {
+      for (const type of heritageClause.types) {
+        if (!result.normal) break;
+        const heritage = evaluateExpression(
+          type.expression,
+          scope,
+          result.normal,
+        );
+        result = joinTransfers(
+          {...result, normal: undefined},
+          transferFromEvaluation(heritage),
+        );
+      }
+    }
+    for (const member of node.members) {
+      if (!result.normal) break;
+      const memberResult = ts.isClassStaticBlockDeclaration(member)
+        ? visit(member, scope, result.normal)
+        : ts.isMethodDeclaration(member) ||
+            ts.isGetAccessorDeclaration(member) ||
+            ts.isSetAccessorDeclaration(member) ||
+            ts.isConstructorDeclaration(member)
+          ? visitFunctionLike(member, scope, result.normal)
+          : visit(member, scope, result.normal);
+      result = joinTransfers({...result, normal: undefined}, memberResult);
+    }
+    return result;
+  }
+
+  const applyFinally = (
+    result: Transfer,
+    finallyBlock: ts.Block,
+    scope: Scope,
+  ): Transfer => {
+    const completions: Array<keyof Transfer> = [
+      'normal',
+      'break',
+      'continue',
+      'return',
+      'throw',
+    ];
+    let combined: Transfer = {};
+    for (const completion of completions) {
+      const completionFlow = result[completion];
+      if (!completionFlow) continue;
+      const finalResult = visit(finallyBlock, scope, completionFlow);
+      const resumed: Transfer = {
+        break: finalResult.break,
+        continue: finalResult.continue,
+        return: finalResult.return,
+        throw: finalResult.throw,
+      };
+      if (finalResult.normal) resumed[completion] = finalResult.normal;
+      combined = joinTransfers(combined, resumed);
+    }
+    return combined;
+  };
+
+  function visit(node: ts.Node, scope: Scope, flow: FlowState): Transfer {
     if (ts.isSourceFile(node)) {
       let next = predeclareStatements(node.statements, scope, flow);
       next = predeclareVarBindings(node, scope, next);
-      for (const statement of node.statements) {
-        next = visit(statement, scope, next);
-      }
-      return next;
+      return sequenceStatements(node.statements, scope, next);
     }
-    if (ts.isImportDeclaration(node)) return flow;
+    if (ts.isImportDeclaration(node)) return normalTransfer(flow);
     if (ts.isIfStatement(node)) {
       const condition = evaluateExpression(node.expression, scope, flow);
+      if (!condition.completes) return {throw: condition.throws};
       const whenTrue = visit(node.thenStatement, scope, condition.flow);
       const whenFalse = node.elseStatement
         ? visit(node.elseStatement, scope, condition.flow)
-        : condition.flow;
-      return joinFlowStates(whenTrue, whenFalse);
+        : normalTransfer(condition.flow);
+      return {
+        ...joinTransfers(whenTrue, whenFalse),
+        throw: joinOptionalFlows(
+          condition.throws,
+          whenTrue.throw,
+          whenFalse.throw,
+        ),
+      };
     }
     if (ts.isSwitchStatement(node)) {
       const discriminant = evaluateExpression(node.expression, scope, flow);
+      if (!discriminant.completes) return {throw: discriminant.throws};
       const switchScope = childScope(node, 'switch', scope);
       const statements = node.caseBlock.clauses.flatMap((clause) => [
         ...clause.statements,
@@ -980,65 +1539,125 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
         discriminant.flow,
         true,
       );
-      const branches: FlowState[] = node.caseBlock.clauses.some(
-        ts.isDefaultClause,
-      )
-        ? []
-        : [entry];
-      for (const clause of node.caseBlock.clauses) {
-        let branch = entry;
-        if (ts.isCaseClause(clause)) {
-          branch = evaluateExpression(
-            clause.expression,
+      const evaluateSelection = (start?: number): Transfer => {
+        let selection = normalTransfer(entry);
+        const startClause =
+          start === undefined ? undefined : node.caseBlock.clauses[start];
+        const limit =
+          start === undefined ||
+          (startClause && ts.isDefaultClause(startClause))
+            ? node.caseBlock.clauses.length - 1
+            : start;
+        for (let index = 0; index <= (limit ?? -1); index++) {
+          const candidate = node.caseBlock.clauses[index];
+          if (
+            !selection.normal ||
+            !candidate ||
+            ts.isDefaultClause(candidate)
+          ) {
+            continue;
+          }
+          const expression = evaluateExpression(
+            candidate.expression,
             switchScope,
-            branch,
-          ).flow;
+            selection.normal,
+          );
+          selection = {
+            normal: expression.completes ? expression.flow : undefined,
+            throw: joinOptionalFlows(selection.throw, expression.throws),
+          };
         }
-        for (const statement of clause.statements) {
-          branch = visit(statement, switchScope, branch);
-        }
-        branches.push(branch);
-      }
-      let sequential = entry;
-      for (const clause of node.caseBlock.clauses) {
-        if (ts.isCaseClause(clause)) {
-          sequential = evaluateExpression(
-            clause.expression,
+        return selection;
+      };
+      let combined: Transfer = node.caseBlock.clauses.some(ts.isDefaultClause)
+        ? {}
+        : evaluateSelection();
+      for (const [start] of node.caseBlock.clauses.entries()) {
+        let branch = evaluateSelection(start);
+        for (
+          let index = start;
+          index < node.caseBlock.clauses.length && branch.normal;
+          index++
+        ) {
+          const fallthrough = sequenceStatements(
+            node.caseBlock.clauses[index]!.statements,
             switchScope,
-            sequential,
-          ).flow;
+            branch.normal,
+          );
+          branch = {
+            break: joinOptionalFlows(branch.break, fallthrough.break),
+            continue: joinOptionalFlows(branch.continue, fallthrough.continue),
+            normal: fallthrough.normal,
+            return: joinOptionalFlows(branch.return, fallthrough.return),
+            throw: joinOptionalFlows(branch.throw, fallthrough.throw),
+          };
         }
-        for (const statement of clause.statements) {
-          sequential = visit(statement, switchScope, sequential);
-        }
-        branches.push(sequential);
+        branch = {
+          continue: branch.continue,
+          normal: joinOptionalFlows(branch.normal, branch.break),
+          return: branch.return,
+          throw: branch.throw,
+        };
+        combined = joinTransfers(combined, branch);
       }
-      return joinFlowStates(...branches);
+      return {
+        ...combined,
+        throw: joinOptionalFlows(discriminant.throws, combined.throw),
+      };
     }
     if (ts.isForStatement(node)) {
       const loopScope = childScope(node, 'loop', scope);
-      let entry = visitLoopInitializer(node.initializer, loopScope, flow);
-      if (node.condition) {
-        entry = evaluateExpression(node.condition, loopScope, entry).flow;
-      }
-      return analyzeZeroOrMore(entry, (header) => {
-        let backedge = visit(node.statement, loopScope, header);
-        if (node.incrementor) {
-          backedge = evaluateExpression(
-            node.incrementor,
-            loopScope,
-            backedge,
-          ).flow;
+      const initialized = visitLoopInitializer(
+        node.initializer,
+        loopScope,
+        flow,
+      );
+      if (!initialized.normal) return initialized;
+      const transfer = (header: FlowState): Transfer => {
+        const condition = node.condition
+          ? evaluateExpression(node.condition, loopScope, header)
+          : evaluation(header);
+        if (!condition.completes) return {throw: condition.throws};
+        const body = visit(node.statement, loopScope, condition.flow);
+        const backedge = joinOptionalFlows(body.normal, body.continue);
+        let increment: Transfer = backedge ? normalTransfer(backedge) : {};
+        if (backedge && node.incrementor) {
+          increment = transferFromEvaluation(
+            evaluateExpression(node.incrementor, loopScope, backedge),
+          );
         }
-        if (node.condition) {
-          backedge = evaluateExpression(
-            node.condition,
-            loopScope,
-            backedge,
-          ).flow;
-        }
-        return backedge;
-      });
+        return {
+          break: body.break,
+          normal: increment.normal,
+          return: body.return,
+          throw: joinOptionalFlows(
+            condition.throws,
+            body.throw,
+            increment.throw,
+          ),
+        };
+      };
+      const analyzed = analyzeLoopHeader(initialized.normal, transfer);
+      const exitCondition = node.condition
+        ? evaluateExpression(node.condition, loopScope, analyzed.header)
+        : undefined;
+      const exits = exitCondition
+        ? joinOptionalFlows(
+            exitCondition.completes ? exitCondition.flow : undefined,
+            analyzed.result.break,
+          )
+        : analyzed.result.break;
+      return {
+        break: initialized.break,
+        continue: initialized.continue,
+        normal: exits,
+        return: joinOptionalFlows(initialized.return, analyzed.result.return),
+        throw: joinOptionalFlows(
+          initialized.throw,
+          analyzed.result.throw,
+          exitCondition?.throws,
+        ),
+      };
     }
     if (ts.isForInStatement(node) || ts.isForOfStatement(node)) {
       const loopScope = childScope(node, 'loop', scope);
@@ -1046,8 +1665,10 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       if (ts.isVariableDeclarationList(node.initializer)) {
         entry = predeclareVariableList(node.initializer, loopScope, entry);
       }
-      entry = evaluateExpression(node.expression, loopScope, entry).flow;
-      return analyzeZeroOrMore(entry, (header) => {
+      const iterable = evaluateExpression(node.expression, loopScope, entry);
+      if (!iterable.completes) return {throw: iterable.throws};
+      entry = iterable.flow;
+      const transfer = (header: FlowState): Transfer => {
         let iteration = header;
         if (ts.isVariableDeclarationList(node.initializer)) {
           for (const declaration of node.initializer.declarations) {
@@ -1066,39 +1687,102 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
             iteration,
           );
         }
-        return visit(node.statement, loopScope, iteration);
-      });
+        const body = visit(node.statement, loopScope, iteration);
+        return {
+          break: body.break,
+          normal: joinOptionalFlows(body.normal, body.continue),
+          return: body.return,
+          throw: body.throw,
+        };
+      };
+      const analyzed = analyzeLoopHeader(entry, transfer);
+      return {
+        normal: joinOptionalFlows(analyzed.header, analyzed.result.break),
+        return: analyzed.result.return,
+        throw: joinOptionalFlows(iterable.throws, analyzed.result.throw),
+      };
     }
     if (ts.isWhileStatement(node)) {
-      const entry = evaluateExpression(node.expression, scope, flow).flow;
-      return analyzeZeroOrMore(entry, (header) => {
-        const body = visit(node.statement, scope, header);
-        return evaluateExpression(node.expression, scope, body).flow;
-      });
+      const transfer = (header: FlowState): Transfer => {
+        const condition = evaluateExpression(node.expression, scope, header);
+        if (!condition.completes) return {throw: condition.throws};
+        const body = visit(node.statement, scope, condition.flow);
+        return {
+          break: body.break,
+          normal: joinOptionalFlows(body.normal, body.continue),
+          return: body.return,
+          throw: joinOptionalFlows(condition.throws, body.throw),
+        };
+      };
+      const analyzed = analyzeLoopHeader(flow, transfer);
+      const exitCondition = evaluateExpression(
+        node.expression,
+        scope,
+        analyzed.header,
+      );
+      return {
+        normal: joinOptionalFlows(
+          exitCondition.completes ? exitCondition.flow : undefined,
+          analyzed.result.break,
+        ),
+        return: analyzed.result.return,
+        throw: joinOptionalFlows(analyzed.result.throw, exitCondition.throws),
+      };
     }
     if (ts.isDoStatement(node)) {
-      return analyzeZeroOrMore(flow, (header) => {
+      const execute = (header: FlowState): Transfer => {
         const body = visit(node.statement, scope, header);
-        return evaluateExpression(node.expression, scope, body).flow;
-      });
+        const conditionEntry = joinOptionalFlows(body.normal, body.continue);
+        const condition = conditionEntry
+          ? evaluateExpression(node.expression, scope, conditionEntry)
+          : undefined;
+        return {
+          break: body.break,
+          normal: condition?.completes ? condition.flow : undefined,
+          return: body.return,
+          throw: joinOptionalFlows(body.throw, condition?.throws),
+        };
+      };
+      const first = execute(flow);
+      if (!first.normal) {
+        return {
+          normal: first.break,
+          return: first.return,
+          throw: first.throw,
+        };
+      }
+      const analyzed = analyzeLoopHeader(first.normal, execute);
+      return {
+        normal: joinOptionalFlows(
+          first.normal,
+          first.break,
+          analyzed.header,
+          analyzed.result.break,
+        ),
+        return: joinOptionalFlows(first.return, analyzed.result.return),
+        throw: joinOptionalFlows(first.throw, analyzed.result.throw),
+      };
     }
     if (ts.isTryStatement(node)) {
-      const tryFlow = visit(node.tryBlock, scope, flow);
-      const catchFlow = node.catchClause
-        ? visit(node.catchClause, scope, flow)
-        : flow;
-      const joined = joinFlowStates(tryFlow, catchFlow);
+      const tried = visit(node.tryBlock, scope, flow);
+      let result = tried;
+      if (node.catchClause && tried.throw) {
+        const caught = visit(node.catchClause, scope, tried.throw);
+        result = joinTransfers({...tried, throw: undefined}, caught);
+      }
       return node.finallyBlock
-        ? visit(node.finallyBlock, scope, joined)
-        : joined;
+        ? applyFinally(result, node.finallyBlock, scope)
+        : result;
     }
     if (ts.isBlock(node)) {
       const blockScope = childScope(node, 'block', scope);
       let next = predeclareStatements(node.statements, blockScope, flow, true);
-      for (const statement of node.statements) {
-        next = visit(statement, blockScope, next);
-      }
-      return next;
+      return sequenceStatements(node.statements, blockScope, next);
+    }
+    if (ts.isClassStaticBlockDeclaration(node)) {
+      const staticScope = childScope(node, 'class-static', scope);
+      let next = predeclareVarBindings(node.body, staticScope, flow, true);
+      return visit(node.body, staticScope, next);
     }
     if (ts.isCatchClause(node)) {
       const catchScope = childScope(node, 'catch', scope);
@@ -1114,25 +1798,57 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       }
       return visit(node.block, catchScope, next);
     }
+    if (ts.isBreakStatement(node)) {
+      return {break: flow};
+    }
+    if (ts.isContinueStatement(node)) {
+      return {continue: flow};
+    }
+    if (ts.isReturnStatement(node)) {
+      if (!node.expression) return {return: flow};
+      const returned = evaluateExpression(node.expression, scope, flow);
+      return {
+        return: returned.completes ? returned.flow : undefined,
+        throw: returned.throws,
+      };
+    }
+    if (ts.isThrowStatement(node)) {
+      const thrown = evaluateExpression(node.expression, scope, flow);
+      return {
+        throw: joinOptionalFlows(
+          thrown.throws,
+          thrown.completes ? thrown.flow : undefined,
+        ),
+      };
+    }
     if (ts.isFunctionLike(node)) {
       return visitFunctionLike(node, scope, flow);
+    }
+    if (ts.isClassDeclaration(node)) {
+      return visitClassLike(node, scope, flow);
     }
     if (ts.isVariableDeclaration(node)) {
       const initializer = node.initializer
         ? evaluateExpression(node.initializer, scope, flow)
-        : {flow, value: otherValue};
-      return initializeBindingName(
-        node.name,
-        initializer.value,
-        variableScope(node, scope),
-        initializer.flow,
-      );
+        : evaluation(flow);
+      return {
+        normal: initializer.completes
+          ? initializeBindingName(
+              node.name,
+              initializer.value,
+              variableScope(node, scope),
+              initializer.flow,
+            )
+          : undefined,
+        throw: initializer.throws,
+      };
     }
     if (ts.isExpression(node)) {
-      return evaluateExpression(node, scope, flow).flow;
+      return transferFromEvaluation(evaluateExpression(node, scope, flow));
     }
     if (ts.isPropertyAssignment(node)) {
       const evaluatedName = evaluatePropertyName(node.name, scope, flow);
+      if (!evaluatedName.completes) return {throw: evaluatedName.throws};
       const name = evaluatedName.name;
       if (name?.startsWith(':global(')) {
         report(node, 'arbitrary-global-selector');
@@ -1141,14 +1857,17 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       } else if (name?.startsWith(':') && name !== ':focus-visible') {
         report(node, `selector ${name}`);
       }
-      return evaluateExpression(node.initializer, scope, evaluatedName.flow)
-        .flow;
+      const initializer = evaluateExpression(
+        node.initializer,
+        scope,
+        evaluatedName.flow,
+      );
+      return {
+        ...transferFromEvaluation(initializer),
+        throw: joinOptionalFlows(evaluatedName.throws, initializer.throws),
+      };
     }
-    let next = flow;
-    ts.forEachChild(node, (child) => {
-      next = visit(child, scope, next);
-    });
-    return next;
+    return sequenceChildNodes(node, scope, flow);
   }
 
   visit(sourceFile, rootScope, rootFlow);

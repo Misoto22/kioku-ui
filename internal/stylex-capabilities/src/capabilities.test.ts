@@ -582,6 +582,308 @@ stylex.firstThatWorks('red', 'blue');`,
     ]);
   });
 
+  it('preserves aliases through non-mutating prefix unary reads', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+let sx = stylex;
+!sx;
++sx;
+-sx;
+~sx;
+sx.firstThatWorks('red', 'blue');
+++sx;
+sx.firstThatWorks('local', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'prefix-unary.stylex.ts',
+      ),
+    ).toEqual([
+      'prefix-unary.stylex.ts:10 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'prefix-unary.stylex.ts:7 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('applies captured binding effects only when a local function is called', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = stylex;
+function clearAlias() { sx = local; }
+sx.firstThatWorks('before-call', 'fallback');
+clearAlias();
+sx.firstThatWorks('after-call', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'captured-clear.stylex.ts',
+      ),
+    ).toEqual([
+      'captured-clear.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'captured-clear.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+function activateAlias() { sx = stylex; }
+sx.firstThatWorks('before-call', 'fallback');
+activateAlias();
+sx.firstThatWorks('after-call', 'fallback');`,
+        'captured-activate.stylex.ts',
+      ),
+    ).toEqual([
+      'captured-activate.stylex.ts:7 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('uses late capture state when a nested named function is invoked', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+function activateAlias() {
+  function useLatestCapture() {
+    sx.firstThatWorks('red', 'blue');
+  }
+  sx = stylex;
+  useLatestCapture();
+}
+activateAlias();`,
+        'late-capture.stylex.ts',
+      ),
+    ).toEqual([
+      'late-capture.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('stops normal flow at return and throw completions', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+function activateAlias() { sx = stylex; return; sx = local; }
+activateAlias();
+sx.firstThatWorks('red', 'blue');`,
+        'return-completion.stylex.ts',
+      ),
+    ).toEqual([
+      'return-completion.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+function activateAlias() { sx = stylex; throw failure; sx = local; }
+try { activateAlias(); } catch {}
+sx.firstThatWorks('red', 'blue');`,
+        'throw-completion.stylex.ts',
+      ),
+    ).toEqual([
+      'throw-completion.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('excludes statements unreachable after loop break and continue', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = stylex;
+for (;;) {
+  break;
+  sx = local;
+}
+sx.firstThatWorks('red', 'blue');
+let sy = stylex;
+while (ready) {
+  continue;
+  sy = local;
+}
+sy.firstThatWorks('red', 'blue');`,
+        'loop-completion.stylex.ts',
+      ),
+    ).toEqual([
+      'loop-completion.stylex.ts:14 uses unsupported StyleX capability: stylex.firstThatWorks via sy',
+      'loop-completion.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('executes a do loop body at least once', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = stylex;
+do { sx = local; } while (ready);
+sx.firstThatWorks('local', 'fallback');
+stylex.firstThatWorks('red', 'blue');`,
+        'mandatory-do.stylex.ts',
+      ),
+    ).toEqual([
+      'mandatory-do.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('does not fall through a switch path after break', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+switch (kind) {
+  case 'seed':
+    sx = stylex;
+    break;
+  case 'use':
+    sx.firstThatWorks('local', 'fallback');
+    break;
+}
+stylex.firstThatWorks('red', 'blue');`,
+        'switch-completion.stylex.ts',
+      ),
+    ).toEqual([
+      'switch-completion.stylex.ts:12 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('preserves condition and case-selection side effects on exit paths', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+while ((sx = stylex, ready)) { break; }
+sx.firstThatWorks('red', 'blue');`,
+        'loop-condition-effect.stylex.ts',
+      ),
+    ).toEqual([
+      'loop-condition-effect.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+switch (kind) {
+  case (sx = stylex, 'first'):
+    break;
+  case 'second':
+    sx.firstThatWorks('red', 'blue');
+    break;
+}`,
+        'switch-selection-effect.stylex.ts',
+      ),
+    ).toEqual([
+      'switch-selection-effect.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+    ]);
+  });
+
+  it('bounds recursive local calls without losing captured effects', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = local;
+let pending = local;
+function rotateAlias() {
+  sx = pending;
+  pending = stylex;
+  if (again) rotateAlias();
+}
+rotateAlias();
+sx.firstThatWorks('red', 'blue');`,
+        'recursive-capture.stylex.ts',
+      ),
+    ).toEqual([
+      'recursive-capture.stylex.ts:11 uses unsupported StyleX capability: ambiguous StyleX flow via sx',
+    ]);
+  });
+
+  it('visits computed accessor names and accessor bodies', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const object = {
+  get [stylex.firstThatWorks('getter', 'fallback')]() {
+    return stylex.firstThatWorks('getter-body', 'fallback');
+  },
+  set [stylex.firstThatWorks('setter', 'fallback')](value) {
+    stylex.firstThatWorks('setter-body', 'fallback');
+  },
+};`,
+        'computed-accessor.stylex.ts',
+      ),
+    ).toEqual([
+      'computed-accessor.stylex.ts:3 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'computed-accessor.stylex.ts:4 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'computed-accessor.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'computed-accessor.stylex.ts:7 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('analyzes ordinary class expressions without recursive traversal', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const Example = class {};
+stylex.firstThatWorks('red', 'blue');`,
+        'class-expression.stylex.ts',
+      ),
+    ).toEqual([
+      'class-expression.stylex.ts:3 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('keeps class static block var shadows inside the static block', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+class Example {
+  static {
+    var stylex = local;
+    stylex.firstThatWorks('local', 'fallback');
+  }
+}
+stylex.firstThatWorks('red', 'blue');`,
+        'static-block-shadow.stylex.ts',
+      ),
+    ).toEqual([
+      'static-block-shadow.stylex.ts:9 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('preserves exact values through statically known array destructuring', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+const [sx, choose] = [stylex, stylex.firstThatWorks];
+sx.firstThatWorks('red', 'blue');
+choose('red', 'blue');
+let sy;
+[sy] = [stylex];
+sy.firstThatWorks('red', 'blue');
+const [localShadow] = [local];
+localShadow.firstThatWorks('local', 'fallback');
+const [pathAlias] = ready ? [stylex] : [local];
+pathAlias.firstThatWorks('red', 'blue');`,
+        'array-aggregate.stylex.ts',
+      ),
+    ).toEqual([
+      'array-aggregate.stylex.ts:12 uses unsupported StyleX capability: ambiguous StyleX flow via pathAlias',
+      'array-aggregate.stylex.ts:4 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'array-aggregate.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via choose',
+      'array-aggregate.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks via sy',
+    ]);
+  });
+
   it('keeps public core authoring within the declared capability policy', async () => {
     await expect(workspaceStylexCapabilityProblems()).resolves.toEqual([]);
   });
