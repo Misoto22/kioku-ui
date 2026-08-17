@@ -14,6 +14,17 @@ import {
   validateThemeDefinition,
   type ThemeDefinition,
 } from '../tokens/contracts.js';
+import {semanticTokens} from '../authoring.stylex.js';
+
+interface CompiledStyleXVarGroup {
+  readonly __varGroupHash__: string;
+}
+
+// StyleX emits semantic-token bridge variables for this generated scope. The
+// host theme values live on ThemeProvider, so the scope must live there too.
+const semanticTokenScopeClass = (
+  semanticTokens as unknown as CompiledStyleXVarGroup
+).__varGroupHash__;
 
 export interface ThemePersistence {
   read(): string | undefined;
@@ -93,7 +104,11 @@ export function ThemeProvider({
 
   return (
     <ThemeContext value={value}>
-      <div data-theme={theme.id} style={themeStyle(theme)}>
+      <div
+        className={semanticTokenScopeClass}
+        data-theme={theme.id}
+        style={themeStyle(theme)}
+      >
         {children}
       </div>
     </ThemeContext>

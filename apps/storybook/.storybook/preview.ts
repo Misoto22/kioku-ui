@@ -1,4 +1,5 @@
 import '@misoto22/kioku-ui/reset.css';
+import '@misoto22/kioku-ui/styles.css';
 import '@misoto22/kioku-ui-theme-kioku/theme.css';
 
 import {ThemeProvider} from '@misoto22/kioku-ui/theme';

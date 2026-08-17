@@ -56,16 +56,40 @@ export const Section: Story = {
   ),
 };
 
+function CardFixture() {
+  return (
+    <CardComponent style={{maxWidth: '34rem'}}>
+      <CardHeaderComponent>
+        <HeadingComponent level={2}>Delivery summary</HeadingComponent>
+      </CardHeaderComponent>
+      <DividerComponent />
+      <SectionComponent padding="md">
+        <StackComponent gap="xs">
+          <TextComponent>Orders are ready for dispatch.</TextComponent>
+          <TextComponent size="sm">Updated a few moments ago</TextComponent>
+        </StackComponent>
+      </SectionComponent>
+      <DividerComponent />
+      <CardFooterComponent>
+        <TextComponent size="sm">View delivery details</TextComponent>
+      </CardFooterComponent>
+    </CardComponent>
+  );
+}
+
 export const Card: Story = {
-  render: () => <CardComponent>Card content</CardComponent>,
+  parameters: {controls: {disable: true}},
+  render: () => <CardFixture />,
 };
 
 export const CardHeader: Story = {
-  render: () => <CardHeaderComponent>Card title</CardHeaderComponent>,
+  parameters: {controls: {disable: true}},
+  render: () => <CardFixture />,
 };
 
 export const CardFooter: Story = {
-  render: () => <CardFooterComponent>Card footer</CardFooterComponent>,
+  parameters: {controls: {disable: true}},
+  render: () => <CardFixture />,
 };
 
 export const Divider: Story = {

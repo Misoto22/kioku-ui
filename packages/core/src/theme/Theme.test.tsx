@@ -11,6 +11,13 @@ import {
 } from '../tokens/contracts.js';
 import {ThemeProvider, useTheme} from './Theme.js';
 
+vi.mock('@stylexjs/stylex', () => ({
+  defineVars: (variables: Record<string, string>) => ({
+    ...variables,
+    __varGroupHash__: 'semantic-token-scope',
+  }),
+}));
+
 afterEach(() => {
   cleanup();
 });
@@ -72,6 +79,13 @@ describe('ThemeProvider', () => {
     expect(
       root?.style.getPropertyValue(tokenCustomProperties['color.canvas']),
     ).toBe('paper-color.canvas');
+  });
+
+  it('applies the compiled semantic StyleX variable scope to its theme root', () => {
+    const {getByTestId} = renderUi(provider(<Probe />));
+    const root = getByTestId('theme').parentElement;
+
+    expect(root?.classList.contains('semantic-token-scope')).toBe(true);
   });
 
   it('uses a host persistence adapter and writes later selections through it', () => {
