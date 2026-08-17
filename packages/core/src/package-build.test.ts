@@ -1660,7 +1660,7 @@ void [
     ]);
   });
 
-  it('loads and renders components through the public package name', async () => {
+  it('loads and renders the complete visual-system surface through the public package name', async () => {
     const fixtureRoot = await mkdtemp(join(packageRoot, '.test-runtime-'));
     temporaryDirectories.push(fixtureRoot);
     const loader = await createCssIgnoringLoader(fixtureRoot);
@@ -1670,9 +1670,30 @@ void [
       runtime,
       `import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {Alert, AsyncState, Button} from '${packageName}';
+import {
+  Alert,
+  AsyncState,
+  Button,
+  Card,
+  EmptyState,
+  Heading,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+  Text,
+} from '${packageName}';
 
-const button = renderToStaticMarkup(createElement(Button, {variant: 'secondary'}, 'Save'));
+const render = (component, props, children) =>
+  renderToStaticMarkup(createElement(component, props, children));
+
+const button = render(
+  Button,
+  {loading: true, size: 'lg', variant: 'destructive'},
+  'Delete release',
+);
 const alert = renderToStaticMarkup(createElement(Alert, {tone: 'success'}, 'Saved'));
 const customAlert = renderToStaticMarkup(
   createElement(
@@ -1688,23 +1709,135 @@ const ready = renderToStaticMarkup(
     (count) => createElement('span', null, count + ' items'),
   ),
 );
+const text = render(Text, {tone: 'secondary'}, 'Supporting copy');
+const heading = render(
+  Heading,
+  {family: 'display', level: 2},
+  'Release review',
+);
+const card = render(Card, {elevation: 'medium'}, 'Release details');
+const emptyState = render(EmptyState, {
+  detail: 'Create a release candidate to continue.',
+  size: 'compact',
+  title: 'No release candidates',
+  visual: createElement('span', {'aria-hidden': true}, '◇'),
+});
+const table = render(Table, {density: 'compact', dividers: 'grid'}, [
+  createElement(
+    TableHead,
+    {key: 'head'},
+    createElement(
+      TableRow,
+      null,
+      createElement(TableHeaderCell, null, 'Status'),
+    ),
+  ),
+  createElement(
+    TableBody,
+    {key: 'body'},
+    createElement(
+      TableRow,
+      null,
+      createElement(TableCell, null, 'Ready'),
+    ),
+  ),
+]);
 
-if (
-  !button.includes('<button') ||
-  !button.includes('Save') ||
-  !alert.includes('data-alert-icon="success"') ||
-  !customAlert.includes('data-alert-icon="custom"') ||
-  !ready.includes('3 items')
-) {
-  throw new Error('The public component runtime did not render expected markup.');
-}
+process.stdout.write(JSON.stringify({
+  alert,
+  button,
+  card,
+  customAlert,
+  emptyState,
+  heading,
+  ready,
+  table,
+  text,
+}));
 `,
     );
 
-    await run(
+    const {stdout} = await run(
       process.execPath,
       ['--experimental-loader', pathToFileURL(loader).href, runtime],
       {cwd: fixtureRoot},
+    );
+    const markup = JSON.parse(stdout) as Record<string, string>;
+    expect(markup.button).toContain('<button');
+    expect(markup.button).toContain('Delete release');
+    expect(markup.button).toContain('aria-busy="true"');
+    expect(markup.button).toContain('disabled=""');
+    expect(markup.alert).toContain('data-alert-icon="success"');
+    expect(markup.customAlert).toContain('data-alert-icon="custom"');
+    expect(markup.ready).toContain('3 items');
+    expect(markup.text).toContain('Supporting copy');
+    expect(markup.heading).toMatch(/^<h2\b/);
+    expect(markup.card).toMatch(/^<article\b/);
+    expect(markup.emptyState).toContain('No release candidates');
+    expect(markup.emptyState.indexOf('◇')).toBeLessThan(
+      markup.emptyState.indexOf('No release candidates'),
+    );
+    expect(markup.table).toMatch(/^<table\b/);
+    expect(markup.table).toContain('<th');
+    expect(markup.table).toContain('<td');
+
+    const packageCss = await readFile(
+      join(packageRoot, 'dist/styles/stylex.css'),
+      'utf8',
+    );
+    const variable = (customProperty: string) =>
+      semanticVariable(packageCss, customProperty);
+
+    expectRenderedRule(
+      packageCss,
+      markup.button,
+      `height:var(${variable('--kioku-ui-size-control-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.button,
+      `background-color:var(${variable('--kioku-ui-status-danger-surface')})`,
+    );
+    expectRenderedRule(packageCss, markup.button, 'cursor:progress');
+    expectRenderedRule(
+      packageCss,
+      markup.text,
+      `color:var(${variable('--kioku-ui-color-text-secondary')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.heading,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-display')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.card,
+      `box-shadow:var(${variable('--kioku-ui-elevation-medium')})`,
+    );
+    const emptyState = elementMarkup(markup.emptyState, 'div', 1);
+    expectRenderedRule(
+      packageCss,
+      emptyState,
+      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    const tableRow = elementMarkup(markup.table, 'tr', 1);
+    const tableCell = elementMarkup(markup.table, 'td');
+    expectRenderedRule(
+      packageCss,
+      tableCell,
+      `padding-block:var(${variable('--kioku-ui-spacing-sm')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      tableRow,
+      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
+    );
+    expectRenderedRule(
+      packageCss,
+      tableCell,
+      `border-inline-end-color:var(${variable('--kioku-ui-border-default')})`,
+      ':not(:last-child)',
     );
   });
 
