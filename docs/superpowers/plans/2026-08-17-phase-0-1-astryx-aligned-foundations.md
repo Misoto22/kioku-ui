@@ -705,6 +705,38 @@ git add apps/storybook apps/sandbox internal/stylex-capabilities internal/vibe-t
 git commit -m "chore: add design-system quality gates"
 ```
 
+### Task 9A: Escalate StyleX capability flow analysis to a conservative data-flow model
+
+**Why this is an escalation:**
+
+Task 9 reached its five review/fix rounds with the release matrix green but with two reproducible capability-policy false negatives: mutation of a StyleX alias inside zero-iteration loop paths, and unsupported calls nested in computed destructuring-key expressions. Do not add a sixth syntax-specific patch. Replace the current execution-order simulation with an explicit conservative flow analysis.
+
+**Files:**
+- Modify: `internal/stylex-capabilities/src/capabilities.ts`
+- Modify: `internal/stylex-capabilities/src/capabilities.test.ts`
+- Modify: `internal/stylex-capabilities/src/capabilities.test.ts` fixtures as needed
+- Modify: `internal/stylex-capabilities/README.md` if the accepted-flow policy needs user-facing clarification
+
+**Interfaces:**
+- Consumes: TypeScript AST and the supported StyleX capability policy.
+- Produces: an analysis that never silently accepts a call that may resolve to an unsupported StyleX capability. Dynamic or path-dependent flows may be rejected with an explicit ambiguity diagnostic; they must not be treated as safe.
+
+- [ ] **Step 1: Write failing path-merge and computed-expression fixtures**
+
+Add RED cases for the confirmed zero-iteration loop preservation and computed destructuring-key call. Add positive and negative fixtures for a possibly-mutated alias, a direct local shadow, and a dynamic computed key so the semantic boundary is explicit.
+
+- [ ] **Step 2: Define a conservative binding lattice and path merge**
+
+Represent each lexical binding as one of `other`, `namespace`, `member(name)`, or `maybe-stylex`. Join branch/loop paths instead of applying a simulated iteration mutation unconditionally. A call through `maybe-stylex` must yield a deterministic policy diagnostic rather than pass silently. Preserve lexical identity and do not flag unrelated local shadows.
+
+- [ ] **Step 3: Traverse every evaluated expression**
+
+Visit computed property-name expressions before extracting a static key. Continue resolving static string-literal keys for member and binding-pattern aliases; retain conservative diagnostics for dynamic keys that might carry StyleX capability flow.
+
+- [ ] **Step 4: Verify the complete policy and release matrix**
+
+Run the focused capability suite, strict typecheck, `pnpm check`, two plain `pnpm -r test` runs, `pnpm build`, `pnpm verify-exports`, sandbox and four frozen consumer builds, plus normal `pnpm a11y:audit`. Commit as a separately reviewed escalation task.
+
 ### Task 10: Prove package release readiness without publishing
 
 **Files:**
