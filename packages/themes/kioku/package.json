@@ -1,0 +1,16 @@
+{
+  "name": "@misoto22/kioku-ui-theme-kioku",
+  "version": "0.0.0",
+  "description": "Kioku visual theme for Kioku UI.",
+  "license": "MIT",
+  "type": "module",
+  "files": ["dist"],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "peerDependencies": {
+    "@misoto22/kioku-ui": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
