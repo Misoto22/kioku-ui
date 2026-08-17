@@ -62,14 +62,12 @@ function CardFixture() {
       <CardHeaderComponent>
         <HeadingComponent level={2}>Delivery summary</HeadingComponent>
       </CardHeaderComponent>
-      <DividerComponent />
       <SectionComponent padding="md">
         <StackComponent gap="xs">
           <TextComponent>Orders are ready for dispatch.</TextComponent>
           <TextComponent size="sm">Updated a few moments ago</TextComponent>
         </StackComponent>
       </SectionComponent>
-      <DividerComponent />
       <CardFooterComponent>
         <TextComponent size="sm">View delivery details</TextComponent>
       </CardFooterComponent>
