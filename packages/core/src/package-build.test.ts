@@ -181,9 +181,10 @@ function expectRenderedMediaRule(
 }
 
 describe('published package build', () => {
+  // A full StyleX + tsc build of the package, well past the default hook budget.
   beforeAll(async () => {
     await runPnpm(['build']);
-  });
+  }, 180_000);
 
   afterAll(async () => {
     await Promise.all(

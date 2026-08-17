@@ -27,9 +27,10 @@ const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const run = promisify(execFile);
 const temporaryDirectories: string[] = [];
 
+// A full build of the package, well past the default hook budget.
 beforeAll(async () => {
   await run(pnpm, ['build'], {cwd: packageRoot});
-});
+}, 180_000);
 
 async function packageManifest(relativeDirectory: string) {
   return JSON.parse(

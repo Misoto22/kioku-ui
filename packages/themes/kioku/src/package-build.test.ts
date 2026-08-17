@@ -25,9 +25,10 @@ async function runPnpm(arguments_: string[], cwd = packageRoot) {
 }
 
 describe('published theme package build', () => {
+  // A full build of the package, well past the default hook budget.
   beforeAll(async () => {
     await runPnpm(['build']);
-  });
+  }, 180_000);
 
   afterAll(async () => {
     await Promise.all(
