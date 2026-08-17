@@ -16,6 +16,22 @@ describe('componentDocs', () => {
       'Divider',
       'Center',
       'VisuallyHidden',
+      'Button',
+      'IconButton',
+      'Badge',
+      'StatusDot',
+      'Field',
+      'TextInput',
+      'TextArea',
+      'Toggle',
+      'SegmentedControl',
+      'EmptyState',
+      'AsyncState',
+      'Spinner',
+      'Skeleton',
+      'Alert',
+      'Table',
+      'MetricGrid',
     ]);
 
     for (const doc of componentDocs) {
