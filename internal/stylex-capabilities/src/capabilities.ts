@@ -69,6 +69,11 @@ function expressionPropertyName(expression: ts.Expression) {
   }
 }
 
+function expressionIdentifierName(expression: ts.Expression) {
+  const normalized = normalizeExpression(expression);
+  return ts.isIdentifier(normalized) ? normalized.text : undefined;
+}
+
 function propertyName(node: ts.PropertyName) {
   if (
     ts.isIdentifier(node) ||
@@ -83,12 +88,12 @@ function propertyName(node: ts.PropertyName) {
 }
 
 function moduleReferenceName(node: ts.Node | undefined) {
-  if (node && ts.isStringLiteralLike(node)) return node.text;
-  if (
-    node &&
-    ts.isLiteralTypeNode(node) &&
-    ts.isStringLiteralLike(node.literal)
-  ) {
+  if (!node) return;
+  if (ts.isExpression(node)) {
+    const normalized = normalizeExpression(node);
+    if (ts.isStringLiteralLike(normalized)) return normalized.text;
+  }
+  if (ts.isLiteralTypeNode(node) && ts.isStringLiteralLike(node.literal)) {
     return node.literal.text;
   }
 }
@@ -302,6 +307,12 @@ export function stylexSourceProblems(source: string, file = 'source.ts') {
       moduleReferenceName(node.arguments[0]) === stylexModule
     ) {
       report(node, 'dynamic StyleX import');
+    } else if (
+      ts.isCallExpression(node) &&
+      expressionIdentifierName(node.expression) === 'require' &&
+      moduleReferenceName(node.arguments[0]) === stylexModule
+    ) {
+      report(node, 'CommonJS StyleX require');
     } else if (
       ts.isImportTypeNode(node) &&
       moduleReferenceName(node.argument) === stylexModule

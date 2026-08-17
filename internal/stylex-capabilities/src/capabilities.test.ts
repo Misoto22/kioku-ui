@@ -128,6 +128,60 @@ type Styles = import('@stylexjs/stylex').StyleXStyles;`,
     ]);
   });
 
+  it('rejects wrapped static StyleX dynamic imports', () => {
+    expect(
+      stylexSourceProblems(
+        `const parenthesized = await import(('@stylexjs/stylex'));
+const asserted = await import('@stylexjs/stylex' as string);
+const satisfied = await import('@stylexjs/stylex' satisfies string);`,
+        'wrapped-dynamic-imports.stylex.ts',
+      ),
+    ).toEqual([
+      'wrapped-dynamic-imports.stylex.ts:1 uses unsupported StyleX capability: dynamic StyleX import',
+      'wrapped-dynamic-imports.stylex.ts:2 uses unsupported StyleX capability: dynamic StyleX import',
+      'wrapped-dynamic-imports.stylex.ts:3 uses unsupported StyleX capability: dynamic StyleX import',
+    ]);
+  });
+
+  it('rejects direct CommonJS and createRequire-bound StyleX requires', () => {
+    expect(
+      stylexSourceProblems(
+        `const sx = require('@stylexjs/stylex');`,
+        'commonjs-require.stylex.ts',
+      ),
+    ).toEqual([
+      'commonjs-require.stylex.ts:1 uses unsupported StyleX capability: CommonJS StyleX require',
+    ]);
+
+    expect(
+      stylexSourceProblems(
+        `import {createRequire} from 'node:module';
+const require = createRequire(import.meta.url);
+const sx = require(('@stylexjs/stylex'));`,
+        'create-require.stylex.ts',
+      ),
+    ).toEqual([
+      'create-require.stylex.ts:3 uses unsupported StyleX capability: CommonJS StyleX require',
+    ]);
+  });
+
+  it('keeps genuinely dynamic and unrelated module loads clean', () => {
+    expect(
+      stylexSourceProblems(
+        `const moduleName = '@stylexjs/stylex';
+await import(moduleName);
+await import(('./local-module'));
+await import('@stylexjs/other' as string);
+require(moduleName);
+require('./local-module');
+const loader = {require: (name: string) => name};
+loader.require('@stylexjs/stylex');
+load('@stylexjs/stylex');`,
+        'unrelated-module-loads.ts',
+      ),
+    ).toEqual([]);
+  });
+
   it('rejects import-equals and every non-value-namespace static import', () => {
     expect(
       stylexSourceProblems(

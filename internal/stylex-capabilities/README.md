@@ -4,8 +4,8 @@ This internal package verifies that authored core sources stay within the
 StyleX syntax supported by the public build integrations. The supported subset
 is deliberately small: use a static value namespace import, then call `create`,
 `defineVars`, `keyframes`, or `props` directly through that import. Default,
-named, type-only, dynamic, import-equals, side-effect, import-type, and
-re-export forms are outside the contract.
+named, type-only, dynamic, import-equals, side-effect, import-type, CommonJS
+`require`, and re-export forms are outside the contract.
 
 The namespace import can use any local name, and a statically named computed
 member is equivalent to dot syntax:
@@ -51,11 +51,22 @@ import type * as stylexTypes from '@stylexjs/stylex';
 import legacy = require('@stylexjs/stylex');
 
 await import('@stylexjs/stylex');
+await import('@stylexjs/stylex' as string);
+await import('@stylexjs/stylex' satisfies string);
 type Styles = import('@stylexjs/stylex').StyleXStyles;
+const required = require('@stylexjs/stylex');
+
+import {createRequire} from 'node:module';
+const require = createRequire(import.meta.url);
+const createdRequire = require('@stylexjs/stylex');
 
 export * as stylex from '@stylexjs/stylex';
 export {create as makeStyles} from '@stylexjs/stylex';
 ```
+
+Parentheses and TypeScript expression wrappers do not hide a static StyleX
+module specifier. Genuinely dynamic specifiers and loads of unrelated modules
+are not classified as StyleX module acquisitions.
 
 These restrictions make policy failures deterministic without attempting to
 simulate JavaScript execution order, closure timing, loop completion, or path
