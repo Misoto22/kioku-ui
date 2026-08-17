@@ -245,6 +245,25 @@ sx.firstThatWorks('outside', 'fallback');`,
     ]);
   });
 
+  it('joins independent switch paths without applying an earlier case mutation', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = stylex;
+switch (kind) {
+  case 'local': sx = local; break;
+  case 'use': sx.firstThatWorks('red', 'blue'); break;
+}
+sx.firstThatWorks('after', 'fallback');`,
+        'switch-flow.stylex.ts',
+      ),
+    ).toEqual([
+      'switch-flow.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'switch-flow.stylex.ts:8 uses unsupported StyleX capability: ambiguous StyleX flow via sx',
+    ]);
+  });
+
   it('normalizes parenthesized namespaces, members, and callees', () => {
     expect(
       stylexSourceProblems(
@@ -284,6 +303,20 @@ choose('red', 'blue');`,
     ]);
   });
 
+  it('joins shorthand destructuring defaults that may introduce a member alias', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+let choose;
+({choose = stylex.firstThatWorks} = {});
+choose('red', 'blue');`,
+        'destructuring-default.stylex.ts',
+      ),
+    ).toEqual([
+      'destructuring-default.stylex.ts:4 uses unsupported StyleX capability: ambiguous StyleX flow via choose',
+    ]);
+  });
+
   it('evaluates chained alias assignments right-to-left for every target', () => {
     expect(
       stylexSourceProblems(
@@ -303,6 +336,25 @@ stylex.firstThatWorks('red', 'blue');`,
       'chained-assignment.stylex.ts:10 uses unsupported StyleX capability: stylex.firstThatWorks',
       'chained-assignment.stylex.ts:4 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
       'chained-assignment.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via sy',
+    ]);
+  });
+
+  it('joins logical assignment paths that may introduce or clear an alias', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx;
+sx ||= stylex;
+sx.firstThatWorks('red', 'blue');
+let sy = stylex;
+sy &&= local;
+sy.firstThatWorks('red', 'blue');`,
+        'logical-assignment.stylex.ts',
+      ),
+    ).toEqual([
+      'logical-assignment.stylex.ts:5 uses unsupported StyleX capability: ambiguous StyleX flow via sx',
+      'logical-assignment.stylex.ts:8 uses unsupported StyleX capability: ambiguous StyleX flow via sy',
     ]);
   });
 
@@ -362,6 +414,7 @@ stylex.firstThatWorks('red', 'blue');`,
       ),
     ).toEqual([
       'for-phase.stylex.ts:5 uses unsupported StyleX capability: stylex.firstThatWorks via sx',
+      'for-phase.stylex.ts:7 uses unsupported StyleX capability: ambiguous StyleX flow via sx',
       'for-phase.stylex.ts:8 uses unsupported StyleX capability: stylex.firstThatWorks',
     ]);
   });
@@ -395,7 +448,93 @@ stylex.firstThatWorks('red', 'blue');`,
         'iteration-target.stylex.ts',
       ),
     ).toEqual([
+      'iteration-target.stylex.ts:13 uses unsupported StyleX capability: ambiguous StyleX flow via ofAlias',
+      'iteration-target.stylex.ts:18 uses unsupported StyleX capability: ambiguous StyleX flow via choose',
       'iteration-target.stylex.ts:23 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'iteration-target.stylex.ts:8 uses unsupported StyleX capability: ambiguous StyleX flow via inAlias',
+    ]);
+  });
+
+  it('merges the zero-iteration path when a loop may overwrite a StyleX alias', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+let sx = stylex;
+for (sx of []) {}
+sx.firstThatWorks('red', 'blue');`,
+        'zero-iteration.stylex.ts',
+      ),
+    ).toEqual([
+      'zero-iteration.stylex.ts:4 uses unsupported StyleX capability: ambiguous StyleX flow via sx',
+    ]);
+  });
+
+  it('joins path-dependent StyleX aliases without flagging a direct local shadow', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {firstThatWorks: (...values: string[]) => values[0]};
+let sx = stylex;
+if (clearAlias) sx = local;
+sx.firstThatWorks('red', 'blue');
+let sy = local;
+if (setAlias) sy = stylex;
+sy.firstThatWorks('red', 'blue');
+{
+  let sx = local;
+  if (replaceLocal) sx = local;
+  sx.firstThatWorks('local', 'fallback');
+}`,
+        'path-dependent.stylex.ts',
+      ),
+    ).toEqual([
+      'path-dependent.stylex.ts:5 uses unsupported StyleX capability: ambiguous StyleX flow via sx',
+      'path-dependent.stylex.ts:8 uses unsupported StyleX capability: ambiguous StyleX flow via sy',
+    ]);
+  });
+
+  it('resets loop-local shadow bindings before each analyzed iteration', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+while (ready) {
+  sx.firstThatWorks('local', 'fallback');
+  let sx = stylex;
+}
+stylex.firstThatWorks('red', 'blue');`,
+        'loop-local-shadow.stylex.ts',
+      ),
+    ).toEqual([
+      'loop-local-shadow.stylex.ts:6 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('visits calls in computed destructuring property names', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {red: 'red'};
+const {[stylex.firstThatWorks('red', 'blue')]: value} = local;`,
+        'computed-property-expression.stylex.ts',
+      ),
+    ).toEqual([
+      'computed-property-expression.stylex.ts:3 uses unsupported StyleX capability: stylex.firstThatWorks',
+    ]);
+  });
+
+  it('visits calls in computed method names at definition time', () => {
+    expect(
+      stylexSourceProblems(
+        `import * as stylex from '@stylexjs/stylex';
+const local = {[stylex.firstThatWorks('red', 'blue')]() {}};
+class Example {
+  [stylex.firstThatWorks('red', 'blue')]() {}
+}`,
+        'computed-method-name.stylex.ts',
+      ),
+    ).toEqual([
+      'computed-method-name.stylex.ts:2 uses unsupported StyleX capability: stylex.firstThatWorks',
+      'computed-method-name.stylex.ts:4 uses unsupported StyleX capability: stylex.firstThatWorks',
     ]);
   });
 
@@ -421,7 +560,7 @@ pick('red', 'blue');`,
     ]);
   });
 
-  it('does not guess dynamic computed StyleX keys or unrelated local members', () => {
+  it('rejects dynamic computed StyleX keys without flagging local members', () => {
     expect(
       stylexSourceProblems(
         `import * as stylex from '@stylexjs/stylex';
@@ -436,6 +575,9 @@ stylex.firstThatWorks('red', 'blue');`,
         'dynamic-computed.stylex.ts',
       ),
     ).toEqual([
+      'dynamic-computed.stylex.ts:4 uses unsupported StyleX capability: ambiguous StyleX flow via stylex',
+      'dynamic-computed.stylex.ts:6 uses unsupported StyleX capability: ambiguous StyleX destructuring key',
+      'dynamic-computed.stylex.ts:7 uses unsupported StyleX capability: ambiguous StyleX flow via choose',
       'dynamic-computed.stylex.ts:9 uses unsupported StyleX capability: stylex.firstThatWorks',
     ]);
   });
