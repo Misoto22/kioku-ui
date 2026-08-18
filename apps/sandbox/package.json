@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter @misoto22/kioku-ui-build build && pnpm --filter @misoto22/kioku-ui build && pnpm --filter @misoto22/kioku-ui-theme-kioku build && vite build",
+    "build": "vite build",
     "dev": "vite",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
