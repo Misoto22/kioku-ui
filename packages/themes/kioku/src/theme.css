@@ -42,6 +42,9 @@
     --kioku-theme-font-family-display
   );
   --kioku-ui-typography-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-ui-typography-font-feature-settings: var(
+    --kioku-theme-font-feature-settings
+  );
   --kioku-ui-typography-font-size-xs: var(--kioku-theme-font-size-xs);
   --kioku-ui-typography-font-size-sm: var(--kioku-theme-font-size-sm);
   --kioku-ui-typography-font-size-md: var(--kioku-theme-font-size-md);
@@ -102,6 +105,7 @@
     sans-serif;
   --kioku-theme-font-family-mono:
     'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --kioku-theme-font-feature-settings: 'palt' 1;
   --kioku-theme-font-size-xs: 11px;
   --kioku-theme-font-size-sm: 12.5px;
   --kioku-theme-font-size-md: 13.5px;
@@ -372,6 +376,9 @@
     --kioku-theme-font-family-display
   );
   --kioku-theme-washi-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-washi-font-feature-settings: var(
+    --kioku-theme-font-feature-settings
+  );
   --kioku-theme-washi-font-size-xs: var(--kioku-theme-font-size-xs);
   --kioku-theme-washi-font-size-sm: var(--kioku-theme-font-size-sm);
   --kioku-theme-washi-font-size-md: var(--kioku-theme-font-size-md);
@@ -494,6 +501,9 @@
     --kioku-theme-font-family-display
   );
   --kioku-theme-muji-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-muji-font-feature-settings: var(
+    --kioku-theme-font-feature-settings
+  );
   --kioku-theme-muji-font-size-xs: var(--kioku-theme-font-size-xs);
   --kioku-theme-muji-font-size-sm: var(--kioku-theme-font-size-sm);
   --kioku-theme-muji-font-size-md: var(--kioku-theme-font-size-md);
@@ -616,6 +626,9 @@
     --kioku-theme-font-family-display
   );
   --kioku-theme-sumi-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-sumi-font-feature-settings: var(
+    --kioku-theme-font-feature-settings
+  );
   --kioku-theme-sumi-font-size-xs: var(--kioku-theme-font-size-xs);
   --kioku-theme-sumi-font-size-sm: var(--kioku-theme-font-size-sm);
   --kioku-theme-sumi-font-size-md: var(--kioku-theme-font-size-md);

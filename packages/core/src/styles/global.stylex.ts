@@ -7,6 +7,7 @@ export const globalStyles = stylex.create({
     backgroundColor: semanticTokens.colorCanvas,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
+    fontFeatureSettings: semanticTokens.fontFeatureSettings,
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightRegular,
     lineHeight: semanticTokens.lineHeightBody,

@@ -32,6 +32,10 @@ const grainMask =
 
 const styles = stylex.create({
   root: {
+    // Inherited, so the theme root sets it once for the tree beneath it. A
+    // Japanese face wants proportional spacing that a Latin one does not, and
+    // which it is belongs to the theme rather than to any component.
+    fontFeatureSettings: semanticTokens.fontFeatureSettings,
     position: 'relative',
     '::after': {
       backgroundColor: semanticTokens.textureGrain,

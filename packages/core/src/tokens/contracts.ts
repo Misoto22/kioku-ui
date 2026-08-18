@@ -36,6 +36,7 @@ type TypographyRole =
   | 'fontFamilyHeading'
   | 'fontFamilyDisplay'
   | 'fontFamilyMono'
+  | 'fontFeatureSettings'
   | 'fontSizeXs'
   | 'fontSizeSm'
   | 'fontSizeMd'
@@ -119,6 +120,7 @@ export const tokenContract = {
     fontFamilyHeading: 'typography.fontFamilyHeading',
     fontFamilyDisplay: 'typography.fontFamilyDisplay',
     fontFamilyMono: 'typography.fontFamilyMono',
+    fontFeatureSettings: 'typography.fontFeatureSettings',
     fontSizeXs: 'typography.fontSizeXs',
     fontSizeSm: 'typography.fontSizeSm',
     fontSizeMd: 'typography.fontSizeMd',

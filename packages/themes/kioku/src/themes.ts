@@ -42,6 +42,7 @@ function themeTokenReferences(id: ThemeId): ThemeDefinition['tokens'] {
     'typography.fontFamilyHeading': variable('font-family-heading'),
     'typography.fontFamilyDisplay': variable('font-family-display'),
     'typography.fontFamilyMono': variable('font-family-mono'),
+    'typography.fontFeatureSettings': variable('font-feature-settings'),
     'typography.fontSizeXs': variable('font-size-xs'),
     'typography.fontSizeSm': variable('font-size-sm'),
     'typography.fontSizeMd': variable('font-size-md'),

@@ -65,6 +65,7 @@ function hostThemeTokens(palette: HostPalette): ThemeDefinition['tokens'] {
     'typography.fontFamilyHeading': 'Inter, system-ui, sans-serif',
     'typography.fontFamilyDisplay': 'Georgia, serif',
     'typography.fontFamilyMono': 'ui-monospace, SFMono-Regular, monospace',
+    'typography.fontFeatureSettings': 'normal',
     'typography.fontSizeXs': '12px',
     'typography.fontSizeSm': '12px',
     'typography.fontSizeMd': '14px',

@@ -415,6 +415,14 @@ describe('compiled theme CSS', () => {
     }
   });
 
+  it('asks Japanese faces for the proportional spacing they are cut for', async () => {
+    for (const theme of themes) {
+      expect(
+        await resolveThemeValue(theme.id, 'typography.fontFeatureSettings'),
+      ).toBe("'palt' 1");
+    }
+  });
+
   it('uses sans-serif component headings and reserves serif for display type', async () => {
     for (const theme of themes) {
       const body = await resolveThemeValue(

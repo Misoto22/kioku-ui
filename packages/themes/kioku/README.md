@@ -39,6 +39,10 @@ Each skin fulfills the spacing roles at both densities, so a reader selecting
 >
 ```
 
+`typography.fontFeatureSettings` asks for `'palt' 1`, the proportional spacing
+the Japanese faces these skins are set in are cut for; a theme whose type is
+Latin says `normal` instead.
+
 `texture.grain` is the paper speckle's own colour. Washi and Muji tint it; Sumi
 sets it transparent, which is how a skin declines the texture.
 
