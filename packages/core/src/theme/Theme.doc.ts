@@ -11,6 +11,11 @@ export const themeProviderDoc = {
       required: true,
     },
     {
+      name: 'defaultDensity',
+      description:
+        'Selects the initial spatial scale when persistence has no value.',
+    },
+    {
       name: 'defaultThemeId',
       description: 'Selects the initial theme when persistence has no value.',
       required: true,

@@ -40,7 +40,7 @@ function themeSelector(id: string) {
 function declarationsFor(
   blocks: readonly CssBlock[],
   id: string,
-  options: {language?: 'zh'} = {},
+  options: {density?: 'standard'; language?: 'zh'} = {},
 ) {
   const declarations = new Map<string, string>();
 
@@ -51,6 +51,9 @@ function declarationsFor(
       }
       if (selector.includes(':lang(zh)')) {
         return options.language === 'zh';
+      }
+      if (selector.includes("[data-density='standard']")) {
+        return options.density === 'standard';
       }
       return true;
     });
@@ -89,7 +92,7 @@ function resolvePrivateValue(
 async function resolveThemeValue(
   id: (typeof themes)[number]['id'],
   tokenName: TokenName,
-  options: {language?: 'zh'} = {},
+  options: {density?: 'standard'; language?: 'zh'} = {},
 ) {
   const css = await readFile(new URL('./theme.css', import.meta.url), 'utf8');
   const declarations = declarationsFor(cssBlocks(css), id, options);
@@ -256,66 +259,123 @@ describe('compiled theme CSS', () => {
 
   it('implements the approved shared geometry and type scale', async () => {
     for (const theme of themes) {
-      expect(await resolveThemeValue(theme.id, 'spacing.xs')).toBe('4px');
-      expect(await resolveThemeValue(theme.id, 'spacing.sm')).toBe('8px');
-      expect(await resolveThemeValue(theme.id, 'spacing.md')).toBe('12px');
-      expect(await resolveThemeValue(theme.id, 'spacing.lg')).toBe('16px');
-      expect(await resolveThemeValue(theme.id, 'spacing.xl')).toBe('24px');
-      expect(await resolveThemeValue(theme.id, 'spacing.2xl')).toBe('32px');
+      expect(await resolveThemeValue(theme.id, 'spacing.xs')).toBe('3px');
+      expect(await resolveThemeValue(theme.id, 'spacing.sm')).toBe('6px');
+      expect(await resolveThemeValue(theme.id, 'spacing.md')).toBe('10px');
+      expect(await resolveThemeValue(theme.id, 'spacing.lg')).toBe('14px');
+      expect(await resolveThemeValue(theme.id, 'spacing.xl')).toBe('20px');
+      expect(await resolveThemeValue(theme.id, 'spacing.2xl')).toBe('28px');
       expect(await resolveThemeValue(theme.id, 'border.width')).toBe('1px');
       expect(await resolveThemeValue(theme.id, 'border.style')).toBe('solid');
-      expect(await resolveThemeValue(theme.id, 'size.controlSm')).toBe('28px');
-      expect(await resolveThemeValue(theme.id, 'size.controlMd')).toBe('32px');
-      expect(await resolveThemeValue(theme.id, 'size.controlLg')).toBe('36px');
+      expect(await resolveThemeValue(theme.id, 'size.controlSm')).toBe('24px');
+      expect(await resolveThemeValue(theme.id, 'size.controlMd')).toBe('28px');
+      expect(await resolveThemeValue(theme.id, 'size.controlLg')).toBe('32px');
       expect(await resolveThemeValue(theme.id, 'size.hitTarget')).toBe('44px');
-      expect(await resolveThemeValue(theme.id, 'radius.inner')).toBe('4px');
-      expect(await resolveThemeValue(theme.id, 'radius.element')).toBe('8px');
-      expect(await resolveThemeValue(theme.id, 'radius.container')).toBe(
-        '12px',
-      );
       expect(await resolveThemeValue(theme.id, 'typography.fontSizeXs')).toBe(
-        '12px',
+        '11px',
       );
       expect(await resolveThemeValue(theme.id, 'typography.fontSizeSm')).toBe(
-        '12px',
+        '12.5px',
       );
       expect(await resolveThemeValue(theme.id, 'typography.fontSizeMd')).toBe(
-        '14px',
+        '13.5px',
       );
       expect(await resolveThemeValue(theme.id, 'typography.fontSizeLg')).toBe(
         '16px',
       );
       expect(await resolveThemeValue(theme.id, 'typography.fontSizeXl')).toBe(
-        '20px',
+        '27px',
       );
       expect(await resolveThemeValue(theme.id, 'typography.fontSize2xl')).toBe(
-        '28px',
+        '30px',
       );
+    }
+  });
+
+  it('cuts every corner to one measurement, controls included', async () => {
+    for (const theme of themes) {
+      for (const role of [
+        'radius.inner',
+        'radius.element',
+        'radius.container',
+        'radius.page',
+      ] as const) {
+        expect(await resolveThemeValue(theme.id, role)).toBe('3px');
+      }
+      expect(await resolveThemeValue(theme.id, 'radius.full')).toBe('999px');
+    }
+  });
+
+  it('widens the same rhythm for readers who select standard density', async () => {
+    for (const theme of themes) {
+      const standard = {density: 'standard'} as const;
+      expect(await resolveThemeValue(theme.id, 'spacing.xs', standard)).toBe(
+        '4px',
+      );
+      expect(await resolveThemeValue(theme.id, 'spacing.2xl', standard)).toBe(
+        '38px',
+      );
+    }
+  });
+
+  it('keeps a card on the same sheet rather than floating it above one', async () => {
+    for (const theme of themes) {
+      for (const role of [
+        'elevation.low',
+        'elevation.medium',
+        'elevation.high',
+      ] as const) {
+        expect(await resolveThemeValue(theme.id, role)).toContain('0 0 0 1px');
+      }
+    }
+  });
+
+  it('tints paper grain per skin and leaves sumi without any', async () => {
+    for (const id of ['washi', 'muji'] as const) {
+      const grain = await resolveThemeValue(id, 'texture.grain');
+      expect(grain, `${id} draws no grain`).toMatch(
+        /light-dark\(\s*rgb\([^)]*\/[^)]*\),\s*rgb\([^)]*\/[^)]*\)\s*\)/,
+      );
+    }
+    expect(await resolveThemeValue('sumi', 'texture.grain')).toBe(
+      'light-dark(transparent, transparent)',
+    );
+  });
+
+  it('keeps every washi light surface off white, paper being the point', async () => {
+    for (const role of [
+      'color.canvas',
+      'color.surface',
+      'color.surfaceRaised',
+      'color.surfaceMuted',
+    ] as const) {
+      const [light] = lightDarkHexPair(await resolveThemeValue('washi', role));
+      expect(light.toUpperCase(), `washi ${role} is white`).not.toBe('#FFFFFF');
     }
   });
 
   it('implements the approved Washi light palette and alpha overlays', async () => {
     expect(
       (await resolveThemeValue('washi', 'color.canvas'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#F5F4EF,');
+    ).toContain('LIGHT-DARK(#EFEBE0,');
     expect(
       (await resolveThemeValue('washi', 'color.surface'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#FFFFFF,');
+    ).toContain('LIGHT-DARK(#F6F3E9,');
     expect(
       (await resolveThemeValue('washi', 'color.surfaceMuted'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#ECEAE2,');
+    ).toContain('LIGHT-DARK(#E7E2D3,');
     expect(
       (await resolveThemeValue('washi', 'color.text'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#24251F,');
+    ).toContain('LIGHT-DARK(#26221C,');
     expect(
       (await resolveThemeValue('washi', 'color.textSecondary'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#62645B,');
+    ).toContain('LIGHT-DARK(#5D574C,');
     expect(
       (await resolveThemeValue('washi', 'color.accent'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#4F6751,');
+    ).toContain('LIGHT-DARK(#2F5D8A,');
     expect(
       (await resolveThemeValue('washi', 'color.focus'))?.toUpperCase(),
-    ).toContain('LIGHT-DARK(#315F77,');
+    ).toContain('LIGHT-DARK(#2F5D8A,');
     expect(await resolveThemeValue('washi', 'color.overlayHover')).toMatch(
       /light-dark\(\s*rgb\([^)]*\/[^)]*\),\s*rgb\([^)]*\/[^)]*\)\s*\)/,
     );

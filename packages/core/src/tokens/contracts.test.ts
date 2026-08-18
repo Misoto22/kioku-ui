@@ -75,6 +75,7 @@ describe('tokenContract', () => {
       'radius',
       'size',
       'elevation',
+      'texture',
       'motion',
     ]);
   });

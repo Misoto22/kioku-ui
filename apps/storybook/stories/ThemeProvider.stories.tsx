@@ -94,6 +94,7 @@ function hostThemeTokens(palette: HostPalette): ThemeDefinition['tokens'] {
     'elevation.low': '0 1px 2px rgb(15 23 42 / 12%)',
     'elevation.medium': '0 4px 12px rgb(15 23 42 / 16%)',
     'elevation.high': '0 10px 28px rgb(15 23 42 / 20%)',
+    'texture.grain': 'transparent',
     'motion.durationFast': '120ms',
     'motion.durationModerate': '220ms',
     'motion.durationSlow': '760ms',

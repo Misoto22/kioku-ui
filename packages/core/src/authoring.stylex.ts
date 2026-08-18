@@ -66,6 +66,7 @@ export const semanticTokens = stylex.defineVars({
   elevationLow: 'var(--kioku-ui-elevation-low)',
   elevationMedium: 'var(--kioku-ui-elevation-medium)',
   elevationHigh: 'var(--kioku-ui-elevation-high)',
+  textureGrain: 'var(--kioku-ui-texture-grain)',
   durationFast: 'var(--kioku-ui-motion-duration-fast)',
   durationModerate: 'var(--kioku-ui-motion-duration-moderate)',
   durationSlow: 'var(--kioku-ui-motion-duration-slow)',

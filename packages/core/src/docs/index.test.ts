@@ -116,7 +116,13 @@ describe('componentDocs', () => {
         'value',
       ],
       Toggle: ['defaultPressed', 'disabled', 'onPressedChange', 'pressed'],
-      ThemeProvider: ['children', 'defaultThemeId', 'persistence', 'themes'],
+      ThemeProvider: [
+        'children',
+        'defaultDensity',
+        'defaultThemeId',
+        'persistence',
+        'themes',
+      ],
     });
   });
 

@@ -12,10 +12,12 @@ import {
 import {ThemeProvider, useTheme} from './Theme.js';
 
 vi.mock('@stylexjs/stylex', () => ({
+  create: (styles: Record<string, unknown>) => styles,
   defineVars: (variables: Record<string, string>) => ({
     ...variables,
     __varGroupHash__: 'semantic-token-scope',
   }),
+  props: () => ({className: 'theme-root'}),
 }));
 
 afterEach(() => {
@@ -40,13 +42,16 @@ const ink = {
 } satisfies ThemeDefinition;
 
 function Probe() {
-  const {setThemeId, theme} = useTheme();
+  const {setDensity, setThemeId, theme} = useTheme();
 
   return (
     <>
       <output data-testid="theme">{theme.id}</output>
       <button onClick={() => setThemeId('paper')} type="button">
         Select paper
+      </button>
+      <button onClick={() => setDensity('compact')} type="button">
+        Select compact
       </button>
     </>
   );
@@ -79,6 +84,42 @@ describe('ThemeProvider', () => {
     expect(
       root?.style.getPropertyValue(tokenCustomProperties['color.canvas']),
     ).toBe('paper-color.canvas');
+  });
+
+  it('selects the compact scale unless the host asks for another', () => {
+    const {getByTestId} = renderUi(provider(<Probe />));
+
+    expect(
+      getByTestId('theme').parentElement?.getAttribute('data-density'),
+    ).toBe('compact');
+  });
+
+  it('reads and writes density through the same host adapter as the theme', () => {
+    const persistence = {
+      read: vi.fn(() => 'paper'),
+      readDensity: vi.fn(() => 'standard'),
+      write: vi.fn(),
+      writeDensity: vi.fn(),
+    };
+    const {getByRole, getByTestId} = renderUi(
+      <ThemeProvider
+        defaultThemeId="paper"
+        persistence={persistence}
+        themes={[paper]}
+      >
+        <Probe />
+      </ThemeProvider>,
+    );
+    const root = getByTestId('theme').parentElement;
+
+    expect(root?.getAttribute('data-density')).toBe('standard');
+
+    act(() => {
+      getByRole('button', {name: 'Select compact'}).click();
+    });
+
+    expect(root?.getAttribute('data-density')).toBe('compact');
+    expect(persistence.writeDensity).toHaveBeenCalledWith('compact');
   });
 
   it('applies the compiled semantic StyleX variable scope to its theme root', () => {
