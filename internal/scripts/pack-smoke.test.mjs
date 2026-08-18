@@ -468,6 +468,50 @@ test('rejects release workflows that can publish pull requests or use npm tokens
   ]);
 });
 
+test('rejects a release workflow that audits without installing browsers', () => {
+  const problems = releaseWorkflowProblems({
+    on: {push: {branches: ['main']}},
+    permissions: {contents: 'read'},
+    concurrency: {
+      group: 'release-${{ github.ref }}',
+      'cancel-in-progress': false,
+    },
+    jobs: {
+      release: {
+        if: "github.repository == 'Misoto22/kioku-ui'",
+        'runs-on': 'ubuntu-latest',
+        environment: 'npm',
+        permissions: {
+          contents: 'write',
+          'id-token': 'write',
+          'pull-requests': 'write',
+        },
+        steps: [
+          {
+            uses: 'actions/setup-node@v6',
+            with: {
+              'node-version': 24,
+              'registry-url': 'https://registry.npmjs.org',
+              'package-manager-cache': false,
+            },
+          },
+          {run: 'pnpm install --frozen-lockfile'},
+          {run: 'pnpm release:verify'},
+          {
+            uses: 'changesets/action@v1',
+            with: {publish: 'pnpm release'},
+            env: {NPM_CONFIG_PROVENANCE: true},
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'release job must install Playwright browsers before pnpm release:verify',
+  ]);
+});
+
 test('rejects a Changeset policy workflow that can execute pull request code', () => {
   const problems =
     packSmokeContract.changesetPolicyWorkflowProblems?.({
