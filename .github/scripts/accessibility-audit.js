@@ -199,38 +199,56 @@ async function auditStories({baseUrl, modes, storyIds, themes}) {
   const audits = [];
   let nextTarget = 0;
 
-  async function auditWithOwnPage() {
+  // A scenario gets a page of its own rather than a worker reusing one across
+  // its whole queue. axe tracks "am I running" on the window it was injected
+  // into, and a page that has already been navigated 350 times carries whatever
+  // that state settled on; once it reads as running, every later scenario on
+  // that page throws "Axe is already running" and the run dies. A document that
+  // has never run axe cannot be in that state. The extra newPage costs a few
+  // milliseconds against a navigation that costs tens, and it buys hermetic
+  // scenarios: no leftover portal, timer, or focus from the previous story.
+  async function auditOneScenario({mode, storyId, theme}) {
     const page = await context.newPage();
 
     try {
-      for (
-        let index = nextTarget++;
-        index < targets.length;
-        index = nextTarget++
-      ) {
-        const {mode, storyId, theme} = targets[index];
-        const url = new URL('/iframe.html', baseUrl);
-        url.searchParams.set('id', storyId);
-        url.searchParams.set('viewMode', 'story');
-        url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
-        await page.goto(url.href, {waitUntil: 'networkidle'});
-        await page.waitForFunction(() => {
-          const root = document.querySelector('#storybook-root');
-          return root && root.childElementCount > 0;
-        });
+      const url = new URL('/iframe.html', baseUrl);
+      url.searchParams.set('id', storyId);
+      url.searchParams.set('viewMode', 'story');
+      url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
+      await page.goto(url.href, {waitUntil: 'networkidle'});
+      await page.waitForFunction(() => {
+        const root = document.querySelector('#storybook-root');
+        return root && root.childElementCount > 0;
+      });
 
-        const results = await new AxeBuilder({page})
-          .include('#storybook-root')
-          .analyze();
-        audits.push({
-          mode,
-          storyId,
-          theme,
-          violations: results.violations,
-        });
-      }
+      const results = await new AxeBuilder({page})
+        .include('#storybook-root')
+        .analyze();
+      audits.push({
+        mode,
+        storyId,
+        theme,
+        violations: results.violations,
+      });
+    } catch (error) {
+      // Name the scenario. Without it the stack points at this file and the
+      // reader has 2142 candidates for which story broke.
+      throw new Error(
+        `Accessibility audit failed on ${storyId} (theme ${theme}, ${mode} mode)`,
+        {cause: error},
+      );
     } finally {
       await page.close();
+    }
+  }
+
+  async function auditFromQueue() {
+    for (
+      let index = nextTarget++;
+      index < targets.length;
+      index = nextTarget++
+    ) {
+      await auditOneScenario(targets[index]);
     }
   }
 
@@ -238,7 +256,7 @@ async function auditStories({baseUrl, modes, storyIds, themes}) {
     await Promise.all(
       Array.from(
         {length: Math.min(auditConcurrency, targets.length)},
-        auditWithOwnPage,
+        auditFromQueue,
       ),
     );
   } finally {
