@@ -1,0 +1,5 @@
+{
+  "title": "Starter theme",
+  "description": "A complete token-contract implementation to rename and recolour.",
+  "files": ["starter.theme.ts"]
+}

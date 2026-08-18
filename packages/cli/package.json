@@ -2,5 +2,25 @@
   "name": "@misoto22/kioku-ui-cli",
   "version": "0.0.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "description": "Scaffolds Kioku UI templates, blocks, and themes into a host application.",
+  "bin": {
+    "kioku-ui": "./src/bin.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "assets",
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest run src"
+  },
+  "devDependencies": {
+    "@misoto22/kioku-ui": "workspace:*",
+    "@types/react": "^19.2.18",
+    "react": "^19.0.0",
+    "vitest": "^4.1.10"
+  }
 }

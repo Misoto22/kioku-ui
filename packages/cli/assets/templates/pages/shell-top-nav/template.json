@@ -1,0 +1,5 @@
+{
+  "title": "Top navigation shell",
+  "description": "A wide-viewport banner with horizontal navigation, collapsing to a drawer on narrow screens.",
+  "files": ["TopNavShell.tsx"]
+}

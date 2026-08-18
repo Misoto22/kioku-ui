@@ -1,0 +1,5 @@
+{
+  "title": "Full navigation shell",
+  "description": "Banner, rail, main region, and an in-page outline — every region a documentation-style application needs.",
+  "files": ["NavShell.tsx"]
+}

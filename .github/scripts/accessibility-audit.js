@@ -1,5 +1,6 @@
 import {createServer} from 'node:http';
 import {readFile, writeFile} from 'node:fs/promises';
+import {availableParallelism} from 'node:os';
 import {extname, join, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -151,9 +152,17 @@ async function serveDirectory(directory) {
         return;
       }
 
+      // Read before writing the head: a miss here must still be able to
+      // answer 404, and writeHead already having run makes that throw
+      // ERR_HTTP_HEADERS_SENT, which takes the whole audit down with it.
+      const body = await readFile(path);
       response.writeHead(200, {'content-type': contentType(path)});
-      response.end(await readFile(path));
+      response.end(body);
     } catch {
+      if (response.headersSent) {
+        response.end();
+        return;
+      }
       response.writeHead(404).end('Not found');
     }
   });
@@ -173,10 +182,17 @@ async function serveDirectory(directory) {
   };
 }
 
-// axe runs inside the page, so each scenario is CPU-bound on one core. A hosted
-// runner has four; six pages keep them busy across the navigation waits without
-// oversubscribing far enough to slow any single scenario down.
-const auditConcurrency = 6;
+// axe runs inside the page, so each scenario is CPU-bound on one core. Six was
+// picked for a four-core runner on the theory that navigation waits would leave
+// slack; they do not, and the sixth page just made every other page slower until
+// navigations were passing 30 seconds on a server that had answered in
+// milliseconds. Take the core count and leave one for the static server.
+const auditConcurrency = Math.max(2, Math.min(8, availableParallelism() - 1));
+
+// A scenario that has genuinely hung is a bug worth failing on, but a scenario
+// waiting behind five others on a loaded runner is not. 30s could not tell them
+// apart; 90s can.
+const navigationTimeout = 90_000;
 
 async function auditStories({baseUrl, modes, storyIds, themes}) {
   const [{AxeBuilder}, {chromium}] = await Promise.all([
@@ -191,38 +207,64 @@ async function auditStories({baseUrl, modes, storyIds, themes}) {
   const audits = [];
   let nextTarget = 0;
 
-  async function auditWithOwnPage() {
+  // A scenario gets a page of its own rather than a worker reusing one across
+  // its whole queue. axe tracks "am I running" on the window it was injected
+  // into, and a page that has already been navigated 350 times carries whatever
+  // that state settled on; once it reads as running, every later scenario on
+  // that page throws "Axe is already running" and the run dies. A document that
+  // has never run axe cannot be in that state. The extra newPage costs a few
+  // milliseconds against a navigation that costs tens, and it buys hermetic
+  // scenarios: no leftover portal, timer, or focus from the previous story.
+  async function auditOneScenario({mode, storyId, theme}) {
     const page = await context.newPage();
 
     try {
-      for (
-        let index = nextTarget++;
-        index < targets.length;
-        index = nextTarget++
-      ) {
-        const {mode, storyId, theme} = targets[index];
-        const url = new URL('/iframe.html', baseUrl);
-        url.searchParams.set('id', storyId);
-        url.searchParams.set('viewMode', 'story');
-        url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
-        await page.goto(url.href, {waitUntil: 'networkidle'});
-        await page.waitForFunction(() => {
-          const root = document.querySelector('#storybook-root');
-          return root && root.childElementCount > 0;
-        });
+      const url = new URL('/iframe.html', baseUrl);
+      url.searchParams.set('id', storyId);
+      url.searchParams.set('viewMode', 'story');
+      url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
+      // `load` covers the stylesheets and fonts axe needs to judge contrast.
+      // Not `networkidle`: it wants 500ms of silence, and six pages sharing
+      // one static server rarely give it any, so scenarios were timing out
+      // over a page that had been ready for seconds. The DOM check below is
+      // the real gate — it says the story rendered, which is what we scan.
+      await page.goto(url.href, {
+        timeout: navigationTimeout,
+        waitUntil: 'load',
+      });
+      await page.waitForFunction(() => {
+        const root = document.querySelector('#storybook-root');
+        return root && root.childElementCount > 0;
+      });
 
-        const results = await new AxeBuilder({page})
-          .include('#storybook-root')
-          .analyze();
-        audits.push({
-          mode,
-          storyId,
-          theme,
-          violations: results.violations,
-        });
-      }
+      const results = await new AxeBuilder({page})
+        .include('#storybook-root')
+        .analyze();
+      audits.push({
+        mode,
+        storyId,
+        theme,
+        violations: results.violations,
+      });
+    } catch (error) {
+      // Name the scenario. Without it the stack points at this file and the
+      // reader has 2142 candidates for which story broke.
+      throw new Error(
+        `Accessibility audit failed on ${storyId} (theme ${theme}, ${mode} mode)`,
+        {cause: error},
+      );
     } finally {
       await page.close();
+    }
+  }
+
+  async function auditFromQueue() {
+    for (
+      let index = nextTarget++;
+      index < targets.length;
+      index = nextTarget++
+    ) {
+      await auditOneScenario(targets[index]);
     }
   }
 
@@ -230,7 +272,7 @@ async function auditStories({baseUrl, modes, storyIds, themes}) {
     await Promise.all(
       Array.from(
         {length: Math.min(auditConcurrency, targets.length)},
-        auditWithOwnPage,
+        auditFromQueue,
       ),
     );
   } finally {

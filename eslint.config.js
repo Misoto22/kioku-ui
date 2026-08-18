@@ -1,3 +1,4 @@
+import kioku from './internal/eslint-plugin-kioku/src/index.mjs';
 import tseslint from 'typescript-eslint';
 
 export default [
@@ -33,6 +34,16 @@ export default [
     },
     rules: {
       '@typescript-eslint/no-unused-vars': 'error',
+    },
+  },
+  {
+    // Only the component sources answer to the token contract; tests, stories,
+    // and templates legitimately spell out literal values.
+    files: ['packages/core/src/**/*.tsx'],
+    ignores: ['packages/core/src/**/*.test.tsx'],
+    plugins: {kioku},
+    rules: {
+      'kioku/no-raw-design-values': 'error',
     },
   },
 ];

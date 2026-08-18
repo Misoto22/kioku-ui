@@ -1,0 +1,22 @@
+<!--
+  The Kioku theme pack names these families in its font-family tokens but ships
+  no @font-face of its own: delivering font files is a host application's
+  decision, not a theme pack's. Storybook is such a host, so it loads them here
+  — without this, every preview silently falls back to the system UI font and
+  shows something the theme never asked for.
+
+  The weights match what the first host application already requests, so a
+  component looks the same in this Storybook as it does in that product.
+  Note that Zen Kaku Gothic New has no 600 face, which is what the themes'
+  `font-weight-strong` asks for; requesting 700 is what keeps the browser from
+  synthesising a bold.
+
+  A consuming application must load the same families. See the theme pack's
+  README for the full list.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600&family=Noto+Sans+SC:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+/>

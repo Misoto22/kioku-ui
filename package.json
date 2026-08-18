@@ -19,10 +19,12 @@
     "check:package-boundaries": "node internal/scripts/check-package-boundaries.mjs",
     "check:repo": "node internal/scripts/check-workspace.mjs",
     "docsite": "pnpm --dir apps/docsite dev",
+    "docsite:build": "pnpm --dir apps/docsite build",
     "examples:build": "pnpm --dir apps/example-vite install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-vite build && pnpm --dir apps/example-nextjs install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-nextjs build && pnpm --dir apps/example-vite-source install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-vite-source build && pnpm --dir apps/example-nextjs-source install --ignore-workspace --frozen-lockfile && pnpm --dir apps/example-nextjs-source build",
     "format": "prettier --check .",
     "lint": "eslint .",
     "pack:smoke": "node internal/scripts/pack-smoke.mjs",
+    "prepare": "node scripts/install-git-hooks.mjs",
     "release": "changeset publish",
     "release:verify": "pnpm pack:smoke && pnpm check && pnpm format && pnpm a11y:audit && pnpm build && pnpm verify-exports && pnpm examples:build",
     "sandbox:build": "pnpm --dir apps/sandbox build",
@@ -31,8 +33,8 @@
     "sync:exports": "pnpm verify-exports",
     "test": "node --test internal/scripts/**/*.test.mjs && pnpm -r --workspace-concurrency=1 --if-present test",
     "typecheck": "tsc --noEmit && pnpm -r --workspace-concurrency=1 --if-present typecheck",
-    "visual:capture": "pnpm storybook:build && node internal/scripts/capture-storybook-visuals.mjs",
-    "verify-exports": "pnpm build:packages && node internal/scripts/verify-exports.mjs"
+    "verify-exports": "pnpm build:packages && node internal/scripts/verify-exports.mjs",
+    "visual:capture": "pnpm storybook:build && node internal/scripts/capture-storybook-visuals.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

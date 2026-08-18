@@ -1,0 +1,5 @@
+{
+  "title": "Side navigation shell",
+  "description": "A persistent rail with grouped destinations and an account footer.",
+  "files": ["SideNavShell.tsx"]
+}

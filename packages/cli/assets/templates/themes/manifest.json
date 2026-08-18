@@ -1,0 +1,4 @@
+{
+  "description": "Theme starting points distributed as source. Copy one, rename it, and register it with your ThemeProvider.",
+  "templates": ["starter"]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Data table",
+  "description": "A sortable-looking table with status badges, timestamps, and row actions.",
+  "files": ["DataTable.tsx"]
+}

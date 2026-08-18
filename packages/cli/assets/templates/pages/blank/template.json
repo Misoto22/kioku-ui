@@ -1,0 +1,5 @@
+{
+  "title": "Blank page",
+  "description": "An empty page inside the application shell.",
+  "files": ["BlankPage.tsx"]
+}

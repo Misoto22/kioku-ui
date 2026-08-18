@@ -1,0 +1,5 @@
+{
+  "title": "Login",
+  "description": "A plain centred sign-in form with an inline error summary.",
+  "files": ["LoginPage.tsx"]
+}

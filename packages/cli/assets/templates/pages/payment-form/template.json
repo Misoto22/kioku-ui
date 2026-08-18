@@ -1,0 +1,5 @@
+{
+  "title": "Payment form",
+  "description": "A checkout form whose card fields are mounted by a payment provider, so card data never reaches your code.",
+  "files": ["PaymentFormPage.tsx"]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Split login",
+  "description": "A two-column sign-in page with a brand panel beside the form.",
+  "files": ["LoginSplitPage.tsx"]
+}

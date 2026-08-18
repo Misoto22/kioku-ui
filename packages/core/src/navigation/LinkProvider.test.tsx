@@ -1,7 +1,16 @@
 // @vitest-environment jsdom
 
 import {cleanup, render as renderUi} from '@testing-library/react';
-import {afterEach, describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+
+vi.mock('@stylexjs/stylex', () => ({
+  create: <Styles,>(styles: Styles) => styles,
+  defineVars: <Vars,>(variables: Vars) => variables,
+  keyframes: () => 'test-spin',
+  props: (...styles: Array<Record<string, unknown> | undefined | false>) => ({
+    style: Object.assign({}, ...styles.filter(Boolean)),
+  }),
+}));
 
 import {Link, LinkProvider} from './LinkProvider.js';
 
