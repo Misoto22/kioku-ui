@@ -319,6 +319,12 @@ export function releaseWorkflowProblems(workflow) {
     problems.push(
       'release job must install Playwright browsers before pnpm release:verify',
     );
+  } else if (!steps[browserIndex]['timeout-minutes']) {
+    // Releases never cancel an in-progress run, so one hung install blocks
+    // every later release until a human cancels it.
+    problems.push(
+      'release job must bound the Playwright install with a timeout',
+    );
   }
   if (
     String(setupNodeStep?.with?.['node-version']) !== '24' ||

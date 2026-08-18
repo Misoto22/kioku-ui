@@ -169,7 +169,8 @@ test('CI reference builds install their standalone frozen locks', async () => {
   const workflow = parseYaml(
     await readFile('.github/workflows/ci.yml', 'utf8'),
   );
-  const script = workflow.jobs.check.steps
+  const script = Object.values(workflow.jobs)
+    .flatMap((job) => job.steps)
     .map((step) => step.run)
     .filter(Boolean)
     .join(' && ');
@@ -509,6 +510,51 @@ test('rejects a release workflow that audits without installing browsers', () =>
 
   assert.deepEqual(problems, [
     'release job must install Playwright browsers before pnpm release:verify',
+  ]);
+});
+
+test('rejects a release workflow with an unbounded browser install', () => {
+  const problems = releaseWorkflowProblems({
+    on: {push: {branches: ['main']}},
+    permissions: {contents: 'read'},
+    concurrency: {
+      group: 'release-${{ github.ref }}',
+      'cancel-in-progress': false,
+    },
+    jobs: {
+      release: {
+        if: "github.repository == 'Misoto22/kioku-ui'",
+        'runs-on': 'ubuntu-latest',
+        environment: 'npm',
+        permissions: {
+          contents: 'write',
+          'id-token': 'write',
+          'pull-requests': 'write',
+        },
+        steps: [
+          {
+            uses: 'actions/setup-node@v6',
+            with: {
+              'node-version': 24,
+              'registry-url': 'https://registry.npmjs.org',
+              'package-manager-cache': false,
+            },
+          },
+          {run: 'pnpm install --frozen-lockfile'},
+          {run: 'pnpm exec playwright install chromium'},
+          {run: 'pnpm release:verify'},
+          {
+            uses: 'changesets/action@v1',
+            with: {publish: 'pnpm release'},
+            env: {NPM_CONFIG_PROVENANCE: true},
+          },
+        ],
+      },
+    },
+  });
+
+  assert.deepEqual(problems, [
+    'release job must bound the Playwright install with a timeout',
   ]);
 });
 

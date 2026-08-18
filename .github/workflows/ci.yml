@@ -15,14 +15,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.10.0
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/workspace
       - name: Require Changesets for package pull requests
         if: >-
           github.event_name == 'pull_request' &&
@@ -34,12 +27,37 @@ jobs:
       - run: pnpm check:package-boundaries
       - run: pnpm format
       - run: pnpm lint
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/workspace
       - run: pnpm build:packages
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm exec playwright install --with-deps chromium
+
+  accessibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/workspace
+      - run: pnpm build:packages
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium
+        timeout-minutes: 10
       - run: pnpm a11y:audit
-      - run: pnpm storybook:build
+
+  consumers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/workspace
+      - run: pnpm build:packages
       - run: pnpm sandbox:build
       - run: pnpm verify-exports
       - run: pnpm --dir apps/example-vite install --ignore-workspace --frozen-lockfile

@@ -173,46 +173,71 @@ async function serveDirectory(directory) {
   };
 }
 
+// axe runs inside the page, so each scenario is CPU-bound on one core. A hosted
+// runner has four; six pages keep them busy across the navigation waits without
+// oversubscribing far enough to slow any single scenario down.
+const auditConcurrency = 6;
+
 async function auditStories({baseUrl, modes, storyIds, themes}) {
   const [{AxeBuilder}, {chromium}] = await Promise.all([
     import('@axe-core/playwright'),
     import('@playwright/test'),
   ]);
+  const targets = storyIds.flatMap((storyId) =>
+    themes.flatMap((theme) => modes.map((mode) => ({mode, storyId, theme}))),
+  );
   const browser = await chromium.launch({headless: true});
   const context = await browser.newContext({reducedMotion: 'reduce'});
-  const page = await context.newPage();
   const audits = [];
+  let nextTarget = 0;
+
+  async function auditWithOwnPage() {
+    const page = await context.newPage();
+
+    try {
+      for (
+        let index = nextTarget++;
+        index < targets.length;
+        index = nextTarget++
+      ) {
+        const {mode, storyId, theme} = targets[index];
+        const url = new URL('/iframe.html', baseUrl);
+        url.searchParams.set('id', storyId);
+        url.searchParams.set('viewMode', 'story');
+        url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
+        await page.goto(url.href, {waitUntil: 'networkidle'});
+        await page.waitForFunction(() => {
+          const root = document.querySelector('#storybook-root');
+          return root && root.childElementCount > 0;
+        });
+
+        const results = await new AxeBuilder({page})
+          .include('#storybook-root')
+          .analyze();
+        audits.push({
+          mode,
+          storyId,
+          theme,
+          violations: results.violations,
+        });
+      }
+    } finally {
+      await page.close();
+    }
+  }
 
   try {
-    for (const storyId of storyIds) {
-      for (const theme of themes) {
-        for (const mode of modes) {
-          const url = new URL('/iframe.html', baseUrl);
-          url.searchParams.set('id', storyId);
-          url.searchParams.set('viewMode', 'story');
-          url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
-          await page.goto(url.href, {waitUntil: 'networkidle'});
-          await page.waitForFunction(() => {
-            const root = document.querySelector('#storybook-root');
-            return root && root.childElementCount > 0;
-          });
-
-          const results = await new AxeBuilder({page})
-            .include('#storybook-root')
-            .analyze();
-          audits.push({
-            mode,
-            storyId,
-            theme,
-            violations: results.violations,
-          });
-        }
-      }
-    }
+    await Promise.all(
+      Array.from(
+        {length: Math.min(auditConcurrency, targets.length)},
+        auditWithOwnPage,
+      ),
+    );
   } finally {
     await browser.close();
   }
 
+  // Callers fingerprint and sort these, so the interleaved order is fine.
   return audits;
 }
 
