@@ -1653,11 +1653,11 @@ void [
   it('emits syntax-valid JavaScript for representative public runtime components', async () => {
     await run(process.execPath, [
       '--check',
-      join(packageRoot, 'dist/components/Button.js'),
+      join(packageRoot, 'dist/Button/Button.js'),
     ]);
     await run(process.execPath, [
       '--check',
-      join(packageRoot, 'dist/components/AsyncState.js'),
+      join(packageRoot, 'dist/AsyncState/AsyncState.js'),
     ]);
   });
 
