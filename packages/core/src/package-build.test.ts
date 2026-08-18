@@ -670,12 +670,12 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `background-color:var(${variable('--kioku-ui-color-surface')})`,
+        `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
       );
       expectRenderedRule(
         packageCss,
         markup[name],
-        `border-color:var(${variable('--kioku-ui-border-default')})`,
+        `border-color:var(${variable('--kioku-ui-border-strong')})`,
       );
       expectRenderedRule(
         packageCss,
@@ -763,7 +763,7 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+        `background-color:var(${variable('--kioku-ui-color-surface')})`,
       );
       expectRenderedRule(
         packageCss,
@@ -1036,7 +1036,7 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `padding:var(${variable('--kioku-ui-spacing-xl')})`,
+        `padding:var(${variable('--kioku-ui-spacing-lg')})`,
       );
     }
 
@@ -1044,17 +1044,17 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         name === 'cardHeader' ? cardHeader : cardFooter,
-        `margin-inline:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+        `margin-inline:calc(-1 * var(${variable('--kioku-ui-spacing-lg')}))`,
       );
       expectRenderedRule(
         packageCss,
         name === 'cardHeader' ? cardHeader : cardFooter,
-        `padding-block:var(${variable('--kioku-ui-spacing-lg')})`,
+        `padding-block:var(${variable('--kioku-ui-spacing-md')})`,
       );
       expectRenderedRule(
         packageCss,
         name === 'cardHeader' ? cardHeader : cardFooter,
-        `padding-inline:var(${variable('--kioku-ui-spacing-xl')})`,
+        `padding-inline:var(${variable('--kioku-ui-spacing-lg')})`,
       );
     }
     expectRenderedRule(
@@ -1075,12 +1075,12 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       cardHeader,
-      `margin-top:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+      `margin-top:calc(-1 * var(${variable('--kioku-ui-spacing-lg')}))`,
     );
     expectRenderedRule(
       packageCss,
       cardHeader,
-      `margin-bottom:var(${variable('--kioku-ui-spacing-xl')})`,
+      `margin-bottom:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1100,12 +1100,12 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       cardFooter,
-      `margin-top:var(${variable('--kioku-ui-spacing-xl')})`,
+      `margin-top:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     expectRenderedRule(
       packageCss,
       cardFooter,
-      `margin-bottom:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+      `margin-bottom:calc(-1 * var(${variable('--kioku-ui-spacing-lg')}))`,
     );
     expectNoRenderedDeclaration(packageCss, cardHeader, 'border-top');
     expectNoRenderedDeclaration(packageCss, cardFooter, 'border-bottom');

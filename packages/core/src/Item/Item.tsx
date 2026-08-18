@@ -26,11 +26,13 @@ const styles = stylex.create({
   label: {
     color: semanticTokens.colorText,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
   description: {
     color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
 });

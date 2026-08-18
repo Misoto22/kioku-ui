@@ -18,23 +18,40 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     minWidth: 0,
   },
-  panel: {minWidth: 0, overflow: 'auto'},
+  panel: {flexShrink: 0, minWidth: 0, overflow: 'auto'},
   rest: {flexGrow: 1, minWidth: 0, overflow: 'auto'},
   handle: {
+    // The divider is a hairline like every other seam in this system; the
+    // grab area is widened by a pseudo-element instead of the visible box.
     backgroundColor: semanticTokens.borderDefault,
     borderStyle: 'none',
     borderWidth: 0,
     cursor: 'col-resize',
     flexShrink: 0,
-    inlineSize: semanticTokens.spacingXs,
+    inlineSize: semanticTokens.borderWidth,
     padding: 0,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    '::before': {
+      blockSize: '100%',
+      content: '',
+      inlineSize: semanticTokens.spacingSm,
+      insetBlockStart: 0,
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translateX(-50%)',
+    },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover': {backgroundColor: semanticTokens.borderInteractive},
+    ':hover:not(:disabled)': {
+      backgroundColor: semanticTokens.borderInteractive,
+    },
   },
 });
 

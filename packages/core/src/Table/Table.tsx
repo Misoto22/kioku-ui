@@ -34,6 +34,7 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     width: '100%',
   },
   caption: {
@@ -59,7 +60,10 @@ const styles = stylex.create({
   headerCell: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightStrong,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     paddingInline: semanticTokens.spacingMd,
     textAlign: 'start',
   },

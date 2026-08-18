@@ -14,7 +14,7 @@ export const typeaheadDoc = {
     },
   ],
   inheritedProps: [
-    'InputHTMLAttributes<HTMLInputElement> except children, className, onChange, onSelect, type, and value',
+    'InputHTMLAttributes<HTMLInputElement> except children, className, onChange, onKeyDown, onSelect, role, type, value, autoComplete, and the combobox aria attributes',
   ],
   example:
     '<Typeahead inputValue={query} onInputValueChange={setQuery} onSelect={choose} options={matches} />',

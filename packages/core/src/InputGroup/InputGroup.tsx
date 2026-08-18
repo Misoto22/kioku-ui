@@ -11,17 +11,24 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   control: {flexGrow: 1, minWidth: 0},
+  // An affix sits at the same depth as the control it flanks, so the two read
+  // as one field rather than as a chip beside a box.
   addon: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     color: semanticTokens.colorTextSecondary,
     display: 'flex',
     flexShrink: 0,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
+    minHeight: semanticTokens.sizeControlMd,
     paddingInline: semanticTokens.spacingSm,
   },
 });

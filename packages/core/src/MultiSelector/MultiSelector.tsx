@@ -2,11 +2,11 @@ import * as stylex from '@stylexjs/stylex';
 import {useState, type HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
-import {Icon} from '../Icon/index.js';
+import {Stack} from '../Stack/index.js';
+import {Token} from '../Token/index.js';
 import {Typeahead, type TypeaheadOption} from '../Typeahead/index.js';
 
 const styles = stylex.create({
-  root: {display: 'grid', gap: semanticTokens.spacingSm},
   chips: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -14,37 +14,6 @@ const styles = stylex.create({
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
-  },
-  chip: {
-    alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderRadius: semanticTokens.radiusFull,
-    color: semanticTokens.colorText,
-    display: 'inline-flex',
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    gap: semanticTokens.spacingXs,
-    paddingBlock: semanticTokens.spacingXs,
-    paddingInlineEnd: semanticTokens.spacingXs,
-    paddingInlineStart: semanticTokens.spacingSm,
-  },
-  remove: {
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderStyle: 'none',
-    borderWidth: 0,
-    borderRadius: semanticTokens.radiusFull,
-    color: semanticTokens.colorTextSecondary,
-    cursor: 'pointer',
-    display: 'inline-flex',
-    padding: 0,
-    ':focus-visible': {
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
-    },
-    ':hover': {color: semanticTokens.colorText},
   },
 });
 
@@ -85,31 +54,25 @@ export function MultiSelector({
   );
 
   return (
-    <div {...props} {...stylex.props(styles.root)}>
-      <ul {...stylex.props(styles.chips)}>
-        {chosen.map((option) => (
-          <li key={option.value} {...stylex.props(styles.chip)}>
-            {option.label}
-            <button
-              aria-label={removeLabel(option.label)}
-              onClick={() => {
-                onValueChange(value.filter((entry) => entry !== option.value));
-              }}
-              type="button"
-              {...stylex.props(styles.remove)}
-            >
-              <Icon size="sm">
-                <path
-                  d="m6 6 12 12M18 6 6 18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </Icon>
-            </button>
-          </li>
-        ))}
-      </ul>
+    <Stack {...props} gap="sm">
+      {chosen.length === 0 ? null : (
+        <ul {...stylex.props(styles.chips)}>
+          {chosen.map((option) => (
+            <li key={option.value}>
+              <Token
+                onRemove={() => {
+                  onValueChange(
+                    value.filter((entry) => entry !== option.value),
+                  );
+                }}
+                removeLabel={removeLabel(option.label)}
+              >
+                {option.label}
+              </Token>
+            </li>
+          ))}
+        </ul>
+      )}
       <Typeahead
         aria-label={label}
         {...(emptyMessage === undefined ? {} : {emptyMessage})}
@@ -121,6 +84,6 @@ export function MultiSelector({
         }}
         options={available}
       />
-    </div>
+    </Stack>
   );
 }

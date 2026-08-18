@@ -8,7 +8,7 @@ const styles = stylex.create({
     backgroundColor: semanticTokens.colorSurface,
     borderRadius: semanticTokens.radiusContainer,
     color: semanticTokens.colorText,
-    padding: semanticTokens.spacingXl,
+    padding: semanticTokens.spacingLg,
   },
   none: {
     borderColor: semanticTokens.borderDefault,

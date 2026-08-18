@@ -11,6 +11,10 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {reachableElements} from '../hooks/focusableSelector.js';
 import {Icon} from '../Icon/index.js';
 
+// A selected row is marked by a 2px accent bar against its leading edge, not
+// by a fill. `focusWidth` is this system's 2px.
+const selectionMark = `inset ${semanticTokens.focusWidth} 0 0 0 ${semanticTokens.colorAccent}`;
+
 const styles = stylex.create({
   tree: {
     display: 'flex',
@@ -35,15 +39,22 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusElement,
     borderStyle: 'none',
     borderWidth: 0,
-    color: semanticTokens.colorText,
+    boxSizing: 'border-box',
+    color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    fontWeight: semanticTokens.fontWeightRegular,
     gap: semanticTokens.spacingXs,
-    paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingXs,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    paddingBlock: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
     textAlign: 'start',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, box-shadow, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
@@ -51,13 +62,26 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover': {backgroundColor: semanticTokens.colorOverlayHover},
+  },
+  unselected: {
+    boxShadow: 'none',
+    ':hover:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
+    },
   },
   selected: {
-    backgroundColor: semanticTokens.colorOverlayActive,
+    boxShadow: selectionMark,
+    color: semanticTokens.colorText,
     fontWeight: semanticTokens.fontWeightMedium,
   },
-  marker: {flexShrink: 0, width: semanticTokens.fontSizeMd},
+  marker: {
+    flexShrink: 0,
+    transitionDuration: semanticTokens.durationModerate,
+    transitionProperty: 'transform',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    width: semanticTokens.fontSizeMd,
+  },
   markerOpen: {transform: 'rotate(90deg)'},
 });
 
@@ -71,7 +95,7 @@ export interface TreeNode {
 /** Props for a collapsible hierarchy. */
 export interface TreeListProps extends Omit<
   HTMLAttributes<HTMLUListElement>,
-  'children' | 'className' | 'onSelect' | 'role'
+  'aria-label' | 'children' | 'className' | 'onSelect' | 'role'
 > {
   readonly expandedIds: readonly string[];
   readonly label: string;
@@ -159,12 +183,12 @@ export function TreeList({
               onSelect?.(node.id);
             }}
             role="treeitem"
-            tabIndex={node.id === focusedId ? 0 : -1}
-            type="button"
             {...stylex.props(
               styles.node,
-              node.id === selectedId && styles.selected,
+              node.id === selectedId ? styles.selected : styles.unselected,
             )}
+            tabIndex={node.id === focusedId ? 0 : -1}
+            type="button"
           >
             <span
               aria-hidden="true"

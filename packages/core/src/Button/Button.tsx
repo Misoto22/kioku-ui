@@ -32,16 +32,19 @@ const styles = stylex.create({
   },
   sm: {
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     height: semanticTokens.sizeControlSm,
     paddingInline: semanticTokens.spacingSm,
   },
   md: {
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     height: semanticTokens.sizeControlMd,
     paddingInline: semanticTokens.spacingMd,
   },
   lg: {
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     height: semanticTokens.sizeControlLg,
     paddingInline: semanticTokens.spacingLg,
   },

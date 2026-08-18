@@ -1,6 +1,15 @@
+import * as stylex from '@stylexjs/stylex';
 import {useRef, useState, type MouseEvent, type ReactNode} from 'react';
 
 import {DropdownMenu} from '../DropdownMenu/index.js';
+
+const styles = stylex.create({
+  anchor: {
+    height: 0,
+    position: 'fixed',
+    width: 0,
+  },
+});
 
 /** Props for a menu opened by a secondary click on a region. */
 export interface ContextMenuProps {
@@ -32,13 +41,8 @@ export function ContextMenu({children, label, menu}: ContextMenuProps) {
         <span
           aria-hidden="true"
           ref={anchorRef}
-          style={{
-            height: 0,
-            left: point.left,
-            position: 'fixed',
-            top: point.top,
-            width: 0,
-          }}
+          {...stylex.props(styles.anchor)}
+          style={{left: point.left, top: point.top}}
         />
       )}
       <DropdownMenu

@@ -5,7 +5,8 @@ import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
   group: {
-    border: 0,
+    borderStyle: 'none',
+    borderWidth: 0,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
@@ -15,8 +16,11 @@ const styles = stylex.create({
   },
   legend: {
     color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
     padding: 0,
   },
   row: {
@@ -43,16 +47,35 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   label: {
-    color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+  },
+  // The answer that holds is marked in ink and weight, never filled.
+  labelChosen: {
+    color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
+  },
+  labelClear: {
+    color: semanticTokens.colorTextSecondary,
+    fontWeight: semanticTokens.fontWeightRegular,
+  },
+  labelDisabled: {
+    color: semanticTokens.colorDisabledText,
+    fontWeight: semanticTokens.fontWeightRegular,
   },
   description: {
-    color: semanticTokens.colorTextSecondary,
+    color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
-  disabled: {color: semanticTokens.colorDisabledText},
+  descriptionDisabled: {color: semanticTokens.colorDisabledText},
 });
 
 /** One mutually exclusive choice. */
@@ -106,39 +129,52 @@ export function RadioList({
   return (
     <fieldset {...props} {...stylex.props(styles.group)}>
       <legend {...stylex.props(styles.legend)}>{legend}</legend>
-      {options.map(({description, disabled, label, value: optionValue}) => (
-        <label key={optionValue} {...stylex.props(styles.row)}>
-          <input
-            checked={selected === optionValue}
-            disabled={disabled ?? false}
-            name={name}
-            onChange={() => {
-              if (value === undefined) {
-                setInternalValue(optionValue);
-              }
-              onValueChange?.(optionValue);
-            }}
-            type="radio"
-            value={optionValue}
-            {...stylex.props(styles.dot)}
-          />
-          <span {...stylex.props(styles.text)}>
-            <span {...stylex.props(styles.label, disabled && styles.disabled)}>
-              {label}
-            </span>
-            {description === undefined ? null : (
+      {options.map(({description, disabled, label, value: optionValue}) => {
+        const isChosen = selected === optionValue;
+
+        return (
+          <label key={optionValue} {...stylex.props(styles.row)}>
+            <input
+              checked={isChosen}
+              disabled={disabled ?? false}
+              name={name}
+              onChange={() => {
+                if (value === undefined) {
+                  setInternalValue(optionValue);
+                }
+                onValueChange?.(optionValue);
+              }}
+              value={optionValue}
+              {...stylex.props(styles.dot)}
+              type="radio"
+            />
+            <span {...stylex.props(styles.text)}>
               <span
                 {...stylex.props(
-                  styles.description,
-                  disabled && styles.disabled,
+                  styles.label,
+                  disabled
+                    ? styles.labelDisabled
+                    : isChosen
+                      ? styles.labelChosen
+                      : styles.labelClear,
                 )}
               >
-                {description}
+                {label}
               </span>
-            )}
-          </span>
-        </label>
-      ))}
+              {description === undefined ? null : (
+                <span
+                  {...stylex.props(
+                    styles.description,
+                    disabled && styles.descriptionDisabled,
+                  )}
+                >
+                  {description}
+                </span>
+              )}
+            </span>
+          </label>
+        );
+      })}
     </fieldset>
   );
 }

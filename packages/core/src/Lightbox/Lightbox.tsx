@@ -9,23 +9,29 @@ import {Overlay} from '../Overlay/index.js';
 
 const styles = stylex.create({
   surface: {
+    backgroundColor: semanticTokens.colorSurfaceRaised,
+    borderRadius: semanticTokens.radiusContainer,
+    boxShadow: semanticTokens.elevationHigh,
+    color: semanticTokens.colorText,
     display: 'flex',
     flexDirection: 'column',
+    fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingSm,
     maxHeight: '100%',
-    outline: 'none',
+    padding: semanticTokens.spacingLg,
   },
   header: {
     alignItems: 'center',
-    color: semanticTokens.colorTextOnAccent,
     display: 'flex',
     gap: semanticTokens.spacingMd,
     justifyContent: 'space-between',
   },
   title: {
-    color: semanticTokens.colorTextOnAccent,
+    color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
   media: {

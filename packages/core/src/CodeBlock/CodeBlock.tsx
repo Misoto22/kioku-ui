@@ -6,16 +6,21 @@ import {useClipboard} from '../hooks/useClipboard.js';
 import {Button} from '../Button/index.js';
 
 const styles = stylex.create({
+  // The well sinks below the surface it sits on, so it needs no border of
+  // its own: the fill already draws the edge.
   frame: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    borderRadius: semanticTokens.radiusInner,
+    borderStyle: 'none',
     display: 'grid',
     position: 'relative',
   },
   pre: {
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
     marginBlock: 0,
     overflowX: 'auto',
     padding: semanticTokens.spacingMd,
@@ -24,6 +29,8 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
   },
   copy: {

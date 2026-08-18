@@ -9,7 +9,7 @@ export const progressBarDoc = {
     {name: 'value', description: 'Sets progress so far; omit when unknown.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLDivElement> except children, className, and role',
+    'HTMLAttributes<HTMLDivElement> except aria-label, aria-valuemax, aria-valuemin, aria-valuenow, children, className, and role',
   ],
   example: '<ProgressBar label="Uploading" value={40} />',
   storyId: 'core-progress-bar--default',

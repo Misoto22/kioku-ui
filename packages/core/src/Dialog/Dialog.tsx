@@ -4,13 +4,27 @@ import {useId, type HTMLAttributes, type ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {Overlay} from '../Overlay/index.js';
 
+// The scale stops at 38px, so the three surface widths are named multiples of
+// it rather than the rem literals a dialog would otherwise reach for.
+const surfaceWidthSm = `calc(${semanticTokens.spacing2xl} * 10)`;
+const surfaceWidthMd = `calc(${semanticTokens.spacing2xl} * 14)`;
+const surfaceWidthLg = `calc(${semanticTokens.spacing2xl} * 20)`;
+
+const surfaceEnter = stylex.keyframes({
+  from: {opacity: 0, transform: 'translateY(4%)'},
+  to: {opacity: 1, transform: 'translateY(0)'},
+});
+
 const styles = stylex.create({
   surface: {
+    animationDuration: semanticTokens.durationModerate,
+    animationName: {
+      default: surfaceEnter,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingEmphasized,
     backgroundColor: semanticTokens.colorSurfaceRaised,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     boxShadow: semanticTokens.elevationHigh,
     color: semanticTokens.colorText,
     display: 'flex',
@@ -22,20 +36,23 @@ const styles = stylex.create({
     padding: semanticTokens.spacingLg,
     width: '100%',
   },
-  sm: {maxWidth: '24rem'},
-  md: {maxWidth: '32rem'},
-  lg: {maxWidth: '48rem'},
+  sm: {maxWidth: surfaceWidthSm},
+  md: {maxWidth: surfaceWidthMd},
+  lg: {maxWidth: surfaceWidthLg},
   title: {
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeLg,
     fontWeight: semanticTokens.fontWeightStrong,
+    letterSpacing: semanticTokens.letterSpacingHeading,
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
   description: {
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },

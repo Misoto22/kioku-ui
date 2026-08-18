@@ -12,7 +12,7 @@ export const powerSearchDoc = {
     {name: 'submitLabel', description: 'Names the submit control.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLFormElement> except children, className, and onSubmit',
+    'HTMLAttributes<HTMLFormElement> except children, className, onSubmit, and role',
   ],
   example:
     '<PowerSearch label="Search releases" onSearch={run} filters={applied} />',

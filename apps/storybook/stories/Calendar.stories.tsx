@@ -63,8 +63,9 @@ export const Composition: Story = {
       <Stack gap="md">
         <CalendarDemo />
         <Text size="sm" tone="muted">
-          Arrow keys move by day and week, Page Up and Page Down by month, so
-          the whole grid costs one Tab press.
+          Arrow keys move by day and week, Home and End reach the ends of the
+          week, Page Up and Page Down move by month, so the whole grid costs one
+          Tab press.
         </Text>
       </Stack>
     </DemoFrame>

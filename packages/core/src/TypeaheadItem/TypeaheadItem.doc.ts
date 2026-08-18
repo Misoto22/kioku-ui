@@ -10,7 +10,9 @@ export const typeaheadItemDoc = {
     {name: 'leading', description: 'Places content before the label.'},
     {name: 'trailing', description: 'Places content after the label.'},
   ],
-  inheritedProps: ['LiHTMLAttributes<HTMLLIElement> except className and role'],
+  inheritedProps: [
+    'LiHTMLAttributes<HTMLLIElement> except aria-disabled, aria-selected, className, and role',
+  ],
   example: '<TypeaheadItem active>Ada Lovelace</TypeaheadItem>',
   storyId: 'core-typeahead--states',
 } satisfies ComponentDoc;

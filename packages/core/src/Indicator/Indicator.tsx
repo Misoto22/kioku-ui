@@ -6,6 +6,8 @@ import type {StatusTone} from '../Badge/index.js';
 
 const styles = stylex.create({
   anchor: {display: 'inline-flex', position: 'relative'},
+  // The ring is painted in the surface behind the control, so the mark reads
+  // as sitting on top of it rather than fused to its edge.
   badge: {
     alignItems: 'center',
     borderColor: semanticTokens.colorSurface,
@@ -13,12 +15,14 @@ const styles = stylex.create({
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.focusWidth,
     display: 'inline-flex',
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
     fontWeight: semanticTokens.fontWeightMedium,
     insetBlockStart: 0,
     insetInlineEnd: 0,
     justifyContent: 'center',
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: 1,
     minWidth: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingXs,

@@ -3,34 +3,51 @@ import type {HTMLAttributes, ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// A rail wide enough for two words and a glyph. The scale cannot name it, so
+// it is built from the scale rather than written as a length.
+const railWidth = `calc(9 * ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
+  // The rail is a surface standing on the canvas, and the edge between them is
+  // a rule, not a shadow: nothing in this system blurs.
   rail: {
     backgroundColor: semanticTokens.colorSurface,
-    borderInlineEndColor: semanticTokens.borderDefault,
+    borderInlineEndColor: semanticTokens.borderStrong,
     borderInlineEndStyle: semanticTokens.borderStyle,
     borderInlineEndWidth: semanticTokens.borderWidth,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingLg,
-    padding: semanticTokens.spacingMd,
-    width: '16rem',
+    rowGap: semanticTokens.spacingXl,
+    paddingBlock: semanticTokens.spacingLg,
+    paddingInline: semanticTokens.spacingMd,
+    width: railWidth,
   },
   heading: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
-    letterSpacing: '0.06em',
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     margin: 0,
+    paddingBlockEnd: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     textTransform: 'uppercase',
   },
   section: {
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
+    rowGap: semanticTokens.spacingXs,
   },
-  footer: {marginBlockStart: 'auto'},
+  // `auto` pins the block to the end of the rail; it is a position, not the
+  // gutter between siblings, which the rail's own gap already owns.
+  footer: {
+    borderBlockStartColor: semanticTokens.borderDefault,
+    borderBlockStartStyle: semanticTokens.borderStyle,
+    borderBlockStartWidth: semanticTokens.borderWidth,
+    marginBlockStart: 'auto',
+    paddingBlockStart: semanticTokens.spacingMd,
+  },
 });
 
 /** Props for the vertical navigation rail. */

@@ -6,23 +6,35 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   frame: {
     backgroundColor: semanticTokens.colorCanvas,
+    color: semanticTokens.colorText,
     display: 'flex',
     flexDirection: 'column',
+    fontFamily: semanticTokens.fontFamilyBody,
     minHeight: '100%',
   },
   body: {display: 'flex', flexGrow: 1, minHeight: 0},
-  aside: {flexShrink: 0},
+  rail: {flexShrink: 0},
+  // The trailing rail is the one region that carries no surface of its own, so
+  // the frame draws the rule that parts it from the content.
+  asideRail: {
+    borderInlineStartColor: semanticTokens.borderStrong,
+    borderInlineStartStyle: semanticTokens.borderStyle,
+    borderInlineStartWidth: semanticTokens.borderWidth,
+    flexShrink: 0,
+    paddingBlock: semanticTokens.spacingLg,
+    paddingInline: semanticTokens.spacingMd,
+  },
   content: {
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
-    gap: semanticTokens.spacingLg,
     minWidth: 0,
-    padding: semanticTokens.spacingLg,
+    padding: semanticTokens.spacingXl,
+    rowGap: semanticTokens.spacingXl,
   },
-  flush: {gap: 0, padding: 0},
+  flush: {padding: 0, rowGap: 0},
   footer: {
-    borderBlockStartColor: semanticTokens.borderDefault,
+    borderBlockStartColor: semanticTokens.borderStrong,
     borderBlockStartStyle: semanticTokens.borderStyle,
     borderBlockStartWidth: semanticTokens.borderWidth,
     paddingBlock: semanticTokens.spacingMd,
@@ -68,7 +80,7 @@ export function Layout({
       {header}
       <div {...stylex.props(styles.body)}>
         {sidebar === undefined ? null : (
-          <div {...stylex.props(styles.aside)}>{sidebar}</div>
+          <div {...stylex.props(styles.rail)}>{sidebar}</div>
         )}
         <main
           {...(mainId === undefined ? {} : {id: mainId})}
@@ -77,7 +89,7 @@ export function Layout({
           {children}
         </main>
         {aside === undefined ? null : (
-          <div {...stylex.props(styles.aside)}>{aside}</div>
+          <div {...stylex.props(styles.asideRail)}>{aside}</div>
         )}
       </div>
       {footer === undefined ? null : (

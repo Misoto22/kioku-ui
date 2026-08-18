@@ -3,6 +3,13 @@ import type {HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// Carries the stub of an unknown-length task across its track: from just
+// off the leading edge to just past the trailing one.
+const sweep = stylex.keyframes({
+  from: {transform: 'translateX(-100%)'},
+  to: {transform: 'translateX(250%)'},
+});
+
 const styles = stylex.create({
   track: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
@@ -14,19 +21,35 @@ const styles = stylex.create({
   },
   fill: {
     backgroundColor: semanticTokens.colorAccent,
+    borderRadius: semanticTokens.radiusFull,
     display: 'block',
     height: '100%',
     transitionDuration: semanticTokens.durationModerate,
     transitionProperty: 'inline-size',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
-  indeterminate: {inlineSize: '40%'},
+  indeterminate: {
+    animationDuration: semanticTokens.durationSlow,
+    animationIterationCount: 'infinite',
+    animationName: {
+      default: sweep,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingStandard,
+    inlineSize: '40%',
+  },
 });
 
 /** Props for a determinate or indeterminate progress track. */
 export interface ProgressBarProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'children' | 'className' | 'role'
+  | 'aria-label'
+  | 'aria-valuemax'
+  | 'aria-valuemin'
+  | 'aria-valuenow'
+  | 'children'
+  | 'className'
+  | 'role'
 > {
   readonly label: string;
   readonly max?: number;
@@ -58,6 +81,8 @@ export function ProgressBar({
     >
       <span
         {...stylex.props(styles.fill, !determinate && styles.indeterminate)}
+        // The width is data, so it stays inline — after stylex.props, which
+        // would otherwise overwrite the style attribute it is carried in.
         style={
           clamped === undefined
             ? undefined

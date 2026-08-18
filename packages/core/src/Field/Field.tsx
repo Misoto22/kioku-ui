@@ -27,6 +27,7 @@ const styles = stylex.create({
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     fontWeight: semanticTokens.fontWeightMedium,
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
@@ -38,6 +39,7 @@ const styles = stylex.create({
   message: {
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     margin: 0,
   },
   description: {color: semanticTokens.colorTextSecondary},

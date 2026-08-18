@@ -6,7 +6,8 @@ import {CheckboxInput} from '../CheckboxInput/index.js';
 
 const styles = stylex.create({
   group: {
-    border: 0,
+    borderStyle: 'none',
+    borderWidth: 0,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
@@ -16,8 +17,11 @@ const styles = stylex.create({
   },
   legend: {
     color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
     padding: 0,
   },
 });

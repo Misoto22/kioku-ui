@@ -7,28 +7,35 @@ import type {StatusTone} from '../Badge/index.js';
 const styles = stylex.create({
   banner: {
     alignItems: 'center',
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     gap: semanticTokens.spacingMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingLg,
   },
   info: {
     backgroundColor: semanticTokens.statusInfoSurface,
+    borderColor: semanticTokens.statusInfoText,
     color: semanticTokens.statusInfoText,
   },
   success: {
     backgroundColor: semanticTokens.statusSuccessSurface,
+    borderColor: semanticTokens.statusSuccessText,
     color: semanticTokens.statusSuccessText,
   },
   warning: {
     backgroundColor: semanticTokens.statusWarningSurface,
+    borderColor: semanticTokens.statusWarningText,
     color: semanticTokens.statusWarningText,
   },
   danger: {
     backgroundColor: semanticTokens.statusDangerSurface,
+    borderColor: semanticTokens.statusDangerText,
     color: semanticTokens.statusDangerText,
   },
   message: {flexGrow: 1, minWidth: 0},
@@ -43,7 +50,7 @@ const styles = stylex.create({
 /** Props for a page-width announcement. */
 export interface BannerProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'children' | 'className'
+  'children' | 'className' | 'role'
 > {
   readonly actions?: ReactNode;
   readonly children: ReactNode;
@@ -61,10 +68,13 @@ export function Banner({
   tone = 'info',
   ...props
 }: BannerProps) {
+  const isDanger = tone === 'danger';
+
   return (
     <div
       {...props}
-      {...(tone === 'danger' ? {role: 'alert'} : {role: 'status'})}
+      aria-live={isDanger ? 'assertive' : 'polite'}
+      role={isDanger ? 'alert' : 'status'}
       {...stylex.props(styles.banner, styles[tone])}
     >
       <div {...stylex.props(styles.message)}>{children}</div>

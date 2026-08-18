@@ -14,25 +14,34 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     fontWeight: semanticTokens.fontWeightMedium,
     justifyContent: 'center',
+    lineHeight: 1,
     overflow: 'hidden',
     userSelect: 'none',
   },
   sm: {
     fontSize: semanticTokens.fontSizeXs,
     height: semanticTokens.sizeControlSm,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     width: semanticTokens.sizeControlSm,
   },
   md: {
     fontSize: semanticTokens.fontSizeSm,
     height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     width: semanticTokens.sizeControlMd,
   },
   lg: {
     fontSize: semanticTokens.fontSizeMd,
     height: semanticTokens.sizeControlLg,
+    letterSpacing: semanticTokens.letterSpacingBody,
     width: semanticTokens.sizeControlLg,
   },
-  image: {height: '100%', objectFit: 'cover', width: '100%'},
+  image: {
+    display: 'block',
+    height: '100%',
+    objectFit: 'cover',
+    width: '100%',
+  },
 });
 
 /** Sizes an avatar can occupy, aligned to the control scale. */

@@ -12,6 +12,10 @@ import {useInternationalization} from '../i18n/index.js';
 import {Button} from '../Button/index.js';
 import {Spinner} from '../Spinner/index.js';
 
+// A line of chat stops being readable long before it reaches the width of the
+// transcript, so the bubble caps itself in spacing steps.
+const bubbleMaxWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
   layout: {
     display: 'grid',
@@ -36,32 +40,44 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   fromReader: {alignItems: 'flex-end'},
+  // A message is a small surface in the transcript, not a coloured balloon:
+  // the accent stays reserved for focus, marks and links.
   bubble: {
     borderRadius: semanticTokens.radiusContainer,
+    borderStyle: 'none',
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
-    maxWidth: '42rem',
+    maxWidth: bubbleMaxWidth,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingMd,
   },
   bubbleReader: {
-    backgroundColor: semanticTokens.colorAccent,
-    color: semanticTokens.colorTextOnAccent,
+    backgroundColor: semanticTokens.colorSurfaceRaised,
+    boxShadow: semanticTokens.elevationLow,
+    color: semanticTokens.colorText,
   },
   bubbleAssistant: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
+    backgroundColor: semanticTokens.colorSurface,
+    boxShadow: semanticTokens.elevationLow,
     color: semanticTokens.colorText,
   },
   bubbleSystem: {
     backgroundColor: 'transparent',
-    color: semanticTokens.colorTextMuted,
+    boxShadow: 'none',
+    color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     paddingInline: 0,
     textAlign: 'center',
   },
   author: {
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightBody,
   },
   composer: {
     alignItems: 'flex-end',
@@ -69,20 +85,31 @@ const styles = stylex.create({
     gap: semanticTokens.spacingSm,
   },
   input: {
-    backgroundColor: semanticTokens.colorSurface,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     color: semanticTokens.colorText,
     flexGrow: 1,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingSm,
     resize: 'vertical',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':disabled': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      borderColor: semanticTokens.borderDisabled,
+      color: semanticTokens.colorDisabledText,
+    },
     ':focus-visible': {
       borderColor: semanticTokens.borderInteractive,
       outlineColor: semanticTokens.colorFocus,
@@ -90,17 +117,22 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.borderInteractive,
+    },
   },
   toolCalls: {
     borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusElement,
+    borderRadius: semanticTokens.radiusInner,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyMono,
-    fontSize: semanticTokens.fontSizeSm,
+    fontSize: semanticTokens.fontSizeXs,
     gap: semanticTokens.spacingXs,
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
     listStyleType: 'none',
     marginBlock: 0,
     padding: semanticTokens.spacingSm,
@@ -114,19 +146,23 @@ const styles = stylex.create({
     justifyContent: 'space-between',
   },
   metadata: {
-    color: semanticTokens.colorTextMuted,
+    color: semanticTokens.colorTextSecondary,
     display: 'flex',
     flexWrap: 'wrap',
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
     gap: semanticTokens.spacingSm,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightBody,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
   },
   systemMessage: {
-    color: semanticTokens.colorTextMuted,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     textAlign: 'center',
@@ -135,6 +171,12 @@ const styles = stylex.create({
 
 /** Who produced a chat message. */
 export type ChatAuthor = 'assistant' | 'reader' | 'system';
+
+const bubbleAuthors = {
+  assistant: styles.bubbleAssistant,
+  reader: styles.bubbleReader,
+  system: styles.bubbleSystem,
+} satisfies Record<ChatAuthor, (typeof styles)[keyof typeof styles]>;
 
 /** Props for the message-and-composer frame. */
 export interface ChatLayoutProps extends Omit<
@@ -157,14 +199,16 @@ export function ChatLayout({children, composer, ...props}: ChatLayoutProps) {
 /** Props for the scrolling transcript. */
 export interface ChatMessageListProps extends Omit<
   HTMLAttributes<HTMLUListElement>,
-  'className'
+  'aria-atomic' | 'aria-label' | 'aria-live' | 'aria-relevant' | 'className'
 > {
   readonly label: string;
 }
 
 /**
- * Holds the transcript. New messages are announced politely, so a screen
- * reader hears a reply arrive without losing the reader's place.
+ * Holds the transcript. A message is announced politely as it lands: the
+ * region is not atomic, so a reply arriving does not replay the conversation,
+ * and only additions are relevant, so a reply that streams in is announced
+ * once rather than re-read on every token.
  */
 export function ChatMessageList({
   children,
@@ -174,8 +218,10 @@ export function ChatMessageList({
   return (
     <ul
       {...props}
+      aria-atomic="false"
       aria-label={label}
       aria-live="polite"
+      aria-relevant="additions"
       {...stylex.props(styles.list)}
     >
       {children}
@@ -205,12 +251,6 @@ export function ChatMessage({
   ...props
 }: ChatMessageProps) {
   const {messages} = useInternationalization();
-  const bubble =
-    author === 'reader'
-      ? styles.bubbleReader
-      : author === 'system'
-        ? styles.bubbleSystem
-        : styles.bubbleAssistant;
 
   return (
     <li
@@ -223,7 +263,7 @@ export function ChatMessage({
       {authorName === undefined ? null : (
         <span {...stylex.props(styles.author)}>{authorName}</span>
       )}
-      <div {...stylex.props(styles.bubble, bubble)}>
+      <div {...stylex.props(styles.bubble, bubbleAuthors[author])}>
         {pending ? <Spinner label={messages.chatWaitingForReply} /> : children}
       </div>
     </li>
@@ -241,7 +281,7 @@ export interface ChatToolCall {
 /** Props for the tool calls behind a reply. */
 export interface ChatToolCallsProps extends Omit<
   HTMLAttributes<HTMLUListElement>,
-  'children' | 'className'
+  'aria-label' | 'children' | 'className'
 > {
   readonly calls: readonly ChatToolCall[];
   readonly label?: string;

@@ -8,6 +8,11 @@ import {
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// Selection is a 2px accent bar pressed against the leading edge, never a
+// fill or a tinted card. `focusWidth` is this system's 2px, so the bar and
+// the focus ring stay the same weight when a theme changes it.
+const selectionMark = `inset ${semanticTokens.focusWidth} 0 0 0 ${semanticTokens.colorAccent}`;
+
 const styles = stylex.create({
   label: {
     backgroundColor: semanticTokens.colorSurface,
@@ -21,17 +26,24 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingSm,
     padding: semanticTokens.spacingLg,
-    ':focus-within': {
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, box-shadow, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+  },
+  unselected: {
+    boxShadow: 'none',
+    ':hover:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      borderColor: semanticTokens.borderInteractive,
     },
   },
-  selected: {borderColor: semanticTokens.colorAccent},
+  selected: {
+    boxShadow: selectionMark,
+  },
   disabled: {
     backgroundColor: semanticTokens.colorDisabledSurface,
     borderColor: semanticTokens.borderDisabled,
+    boxShadow: 'none',
     color: semanticTokens.colorDisabledText,
     cursor: 'default',
   },
@@ -41,6 +53,12 @@ const styles = stylex.create({
     flexShrink: 0,
     inlineSize: semanticTokens.spacingMd,
     marginBlockStart: semanticTokens.spacingXs,
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   content: {
     display: 'flex',
@@ -48,26 +66,49 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   title: {
+    color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeMd,
-    fontWeight: semanticTokens.fontWeightMedium,
+    fontWeight: semanticTokens.fontWeightRegular,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
+  titleSelected: {
+    color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
+  },
+  titleDisabled: {color: semanticTokens.colorDisabledText},
   description: {
     color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
+  descriptionDisabled: {color: semanticTokens.colorDisabledText},
 });
 
-/** Props for a card that carries its own selection control. */
-export interface SelectableCardProps extends Omit<
+type SharedSelectableCardProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  'children' | 'className' | 'type'
-> {
+  'checked' | 'children' | 'className' | 'defaultChecked' | 'type'
+> & {
   readonly description?: ReactNode;
   readonly label: ReactNode;
   readonly multiple?: boolean;
-}
+};
+
+type ControlledSelectableCardProps = SharedSelectableCardProps & {
+  readonly checked: boolean;
+  readonly defaultChecked?: never;
+  readonly onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+};
+
+type UncontrolledSelectableCardProps = SharedSelectableCardProps & {
+  readonly checked?: never;
+  readonly defaultChecked?: boolean;
+};
+
+/** Props for a card that carries its own selection control. */
+export type SelectableCardProps =
+  ControlledSelectableCardProps | UncontrolledSelectableCardProps;
 
 /**
  * A card that records a choice. The whole surface is the label, so a click
@@ -87,6 +128,7 @@ export function SelectableCard({
 }: SelectableCardProps) {
   const [internalChecked, setInternalChecked] = useState(defaultChecked);
   const isChecked = checked ?? internalChecked;
+  const isSelected = isChecked && !disabled;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (checked === undefined) {
@@ -99,8 +141,11 @@ export function SelectableCard({
     <label
       {...stylex.props(
         styles.label,
-        isChecked && !disabled && styles.selected,
-        disabled && styles.disabled,
+        disabled
+          ? styles.disabled
+          : isSelected
+            ? styles.selected
+            : styles.unselected,
       )}
     >
       <input
@@ -108,13 +153,28 @@ export function SelectableCard({
         checked={isChecked}
         disabled={disabled}
         onChange={handleChange}
-        type={multiple ? 'checkbox' : 'radio'}
         {...stylex.props(styles.control)}
+        type={multiple ? 'checkbox' : 'radio'}
       />
       <span {...stylex.props(styles.content)}>
-        <span {...stylex.props(styles.title)}>{label}</span>
+        <span
+          {...stylex.props(
+            styles.title,
+            isSelected && styles.titleSelected,
+            disabled && styles.titleDisabled,
+          )}
+        >
+          {label}
+        </span>
         {description === undefined ? null : (
-          <span {...stylex.props(styles.description)}>{description}</span>
+          <span
+            {...stylex.props(
+              styles.description,
+              disabled && styles.descriptionDisabled,
+            )}
+          >
+            {description}
+          </span>
         )}
       </span>
     </label>

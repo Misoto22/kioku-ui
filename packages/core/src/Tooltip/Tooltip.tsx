@@ -20,19 +20,21 @@ import {
 } from '../hooks/useAnchoredPosition.js';
 import {Layer} from '../Layer/index.js';
 
+// A tooltip stays narrow enough to read in one or two lines; the scale stops
+// at 38px, so the cap is a named multiple of it rather than a rem literal.
+const surfaceMaxWidth = `calc(${semanticTokens.spacing2xl} * 8)`;
+
 const styles = stylex.create({
   surface: {
     backgroundColor: semanticTokens.colorSurfaceRaised,
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    boxShadow: semanticTokens.elevationLow,
+    borderRadius: semanticTokens.radiusContainer,
+    boxShadow: semanticTokens.elevationMedium,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
-    maxWidth: '20rem',
+    maxWidth: surfaceMaxWidth,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     pointerEvents: 'none',

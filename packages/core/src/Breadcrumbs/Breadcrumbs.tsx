@@ -8,33 +8,46 @@ const styles = stylex.create({
   nav: {fontFamily: semanticTokens.fontFamilyBody},
   list: {
     alignItems: 'center',
+    columnGap: semanticTokens.spacingXs,
     display: 'flex',
     flexWrap: 'wrap',
-    gap: semanticTokens.spacingXs,
     listStyleType: 'none',
     marginBlock: 0,
+    marginInline: 0,
     paddingInlineStart: 0,
+    rowGap: semanticTokens.spacingXs,
   },
   item: {
     alignItems: 'center',
+    columnGap: semanticTokens.spacingXs,
     display: 'flex',
-    gap: semanticTokens.spacingXs,
   },
+  // A trail is text and separators. There is no chip, no fill and no radius
+  // here: the path is read, not clicked as a set of objects.
   separator: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
   },
   current: {
     color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
   },
   // The trail reads as one line, so the links match the current-page text
   // rather than inheriting the surrounding body size.
   link: {
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     textDecorationLine: 'none',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,

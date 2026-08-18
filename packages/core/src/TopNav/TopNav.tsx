@@ -4,34 +4,38 @@ import type {HTMLAttributes, ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
+  // The masthead is a surface over the canvas, parted from the page by a rule
+  // rather than a shadow.
   bar: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurface,
-    borderBlockEndColor: semanticTokens.borderDefault,
+    borderBlockEndColor: semanticTokens.borderStrong,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
+    columnGap: semanticTokens.spacingLg,
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingLg,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingLg,
   },
   brand: {
     alignItems: 'center',
     color: semanticTokens.colorText,
+    columnGap: semanticTokens.spacingSm,
     display: 'flex',
     flexShrink: 0,
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeLg,
     fontWeight: semanticTokens.fontWeightStrong,
-    gap: semanticTokens.spacingSm,
+    letterSpacing: semanticTokens.letterSpacingHeading,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
   navigation: {flexGrow: 1, minWidth: 0},
   actions: {
     alignItems: 'center',
+    columnGap: semanticTokens.spacingSm,
     display: 'flex',
     flexShrink: 0,
-    gap: semanticTokens.spacingSm,
   },
 });
 

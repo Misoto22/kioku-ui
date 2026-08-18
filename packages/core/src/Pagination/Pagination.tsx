@@ -15,13 +15,14 @@ const styles = stylex.create({
     marginBlock: 0,
     paddingInlineStart: 0,
   },
-  control: {
+  step: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurface,
     borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     color: semanticTokens.colorText,
     cursor: 'pointer',
     display: 'inline-flex',
@@ -29,6 +30,7 @@ const styles = stylex.create({
     fontSize: semanticTokens.fontSizeSm,
     height: semanticTokens.sizeControlSm,
     justifyContent: 'center',
+    letterSpacing: semanticTokens.letterSpacingLabel,
     minWidth: semanticTokens.sizeControlSm,
     paddingInline: semanticTokens.spacingSm,
     ':disabled': {
@@ -43,18 +45,68 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover:not(:disabled)': {
+    ':active:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayActive,
+      borderColor: semanticTokens.borderInteractive,
+    },
+    ':hover:not(:disabled):not(:active)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      borderColor: semanticTokens.borderInteractive,
+    },
+  },
+  // A page number is a link in a row of links, not a control with an edge:
+  // the strip stays quiet until one number is marked as the current page.
+  page: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderBlockEndColor: 'transparent',
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.focusWidth,
+    borderBlockStartStyle: 'none',
+    borderBlockStartWidth: 0,
+    borderInlineStyle: 'none',
+    borderInlineWidth: 0,
+    borderRadius: semanticTokens.radiusElement,
+    boxSizing: 'border-box',
+    color: semanticTokens.colorTextSecondary,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeSm,
+    fontWeight: semanticTokens.fontWeightRegular,
+    height: semanticTokens.sizeControlSm,
+    justifyContent: 'center',
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    minWidth: semanticTokens.sizeControlSm,
+    paddingInline: semanticTokens.spacingSm,
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
+  },
+  unselected: {
+    ':active:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayActive,
+      color: semanticTokens.colorText,
+    },
+    ':hover:not(:disabled):not(:active)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
   },
   current: {
-    backgroundColor: semanticTokens.colorAccent,
-    borderColor: semanticTokens.colorAccent,
-    color: semanticTokens.colorTextOnAccent,
+    borderBlockEndColor: semanticTokens.colorText,
+    color: semanticTokens.colorText,
+    cursor: 'default',
+    fontWeight: semanticTokens.fontWeightMedium,
   },
   ellipsis: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     paddingInline: semanticTokens.spacingXs,
   },
 });
@@ -121,8 +173,8 @@ export function Pagination({
             onClick={() => {
               onChange(page - 1);
             }}
+            {...stylex.props(styles.step)}
             type="button"
-            {...stylex.props(styles.control)}
           >
             <Icon>
               <path
@@ -142,16 +194,16 @@ export function Pagination({
           ) : (
             <li key={entry}>
               <button
-                aria-current={entry === page ? 'page' : undefined}
+                {...(entry === page ? {'aria-current': 'page'} : {})}
                 aria-label={`Page ${entry}`}
                 onClick={() => {
                   onChange(entry);
                 }}
-                type="button"
                 {...stylex.props(
-                  styles.control,
-                  entry === page && styles.current,
+                  styles.page,
+                  entry === page ? styles.current : styles.unselected,
                 )}
+                type="button"
               >
                 {entry}
               </button>
@@ -165,8 +217,8 @@ export function Pagination({
             onClick={() => {
               onChange(page + 1);
             }}
+            {...stylex.props(styles.step)}
             type="button"
-            {...stylex.props(styles.control)}
           >
             <Icon>
               <path

@@ -9,22 +9,21 @@ import {
 
 import {semanticTokens} from '../authoring.stylex.js';
 import {useInternationalization} from '../i18n/index.js';
-import {Kbd} from '../Kbd/index.js';
 import {Overlay} from '../Overlay/index.js';
+
+// About twenty spacing steps wide: long command names read on one line.
+const surfaceWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
 
 const styles = stylex.create({
   surface: {
     backgroundColor: semanticTokens.colorSurfaceRaised,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     boxShadow: semanticTokens.elevationHigh,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
     maxHeight: '70vh',
-    maxWidth: '36rem',
+    maxWidth: surfaceWidth,
     overflow: 'hidden',
     width: '100%',
   },
@@ -33,16 +32,24 @@ const styles = stylex.create({
     borderBlockEndColor: semanticTokens.borderDefault,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
-    borderInlineStyle: 'none',
-    borderInlineWidth: 0,
     borderBlockStartStyle: 'none',
     borderBlockStartWidth: 0,
+    borderInlineStyle: 'none',
+    borderInlineWidth: 0,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeLg,
-    outline: 'none',
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingLg,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   list: {
     listStyleType: 'none',
@@ -53,9 +60,11 @@ const styles = stylex.create({
   },
   groupLabel: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
-    letterSpacing: '0.06em',
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    marginBlock: 0,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingLg,
     textTransform: 'uppercase',
@@ -65,16 +74,36 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     cursor: 'pointer',
     display: 'flex',
-    fontSize: semanticTokens.fontSizeMd,
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingLg,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
   },
+  idle: {':hover': {backgroundColor: semanticTokens.colorOverlayHover}},
+  // Focus never leaves the field, so the wash is the only sign of the pointer.
   active: {backgroundColor: semanticTokens.colorOverlayHover},
+  label: {
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+  },
+  shortcut: {
+    color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingMono,
+    whiteSpace: 'nowrap',
+  },
   empty: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    marginBlock: 0,
     paddingBlock: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingLg,
   },
@@ -143,6 +172,14 @@ export function CommandPalette({
       }
       return;
     }
+    if (event.key === 'Home' || event.key === 'End') {
+      if (matches.length === 0) {
+        return;
+      }
+      event.preventDefault();
+      setActiveIndex(event.key === 'Home' ? 0 : matches.length - 1);
+      return;
+    }
     if (event.key === 'Enter' && active) {
       event.preventDefault();
       onRun(active);
@@ -170,50 +207,53 @@ export function CommandPalette({
           onKeyDown={handleKeyDown}
           placeholder={resolvedPlaceholder}
           role="combobox"
-          type="text"
           value={query}
           {...stylex.props(styles.input)}
+          type="text"
         />
         <ul id={listboxId} role="listbox" {...stylex.props(styles.list)}>
-          {matches.length === 0 ? (
-            <li {...stylex.props(styles.empty)}>
-              {emptyMessage ?? messages.commandPaletteEmpty}
-            </li>
-          ) : (
-            matches.map((command, index) => {
-              const showGroup =
-                command.group !== undefined && command.group !== lastGroup;
-              lastGroup = command.group;
+          {matches.map((command, index) => {
+            const showGroup =
+              command.group !== undefined && command.group !== lastGroup;
+            lastGroup = command.group;
 
-              return (
-                <li key={command.id} role="none">
-                  {showGroup ? (
-                    <p aria-hidden="true" {...stylex.props(styles.groupLabel)}>
-                      {command.group}
-                    </p>
-                  ) : null}
-                  <div
-                    aria-selected={index === activeIndex}
-                    id={`${optionPrefix}-${index}`}
-                    onClick={() => {
-                      onRun(command);
-                    }}
-                    role="option"
-                    {...stylex.props(
-                      styles.option,
-                      index === activeIndex && styles.active,
-                    )}
-                  >
-                    <span>{command.label}</span>
-                    {command.shortcut === undefined ? null : (
-                      <Kbd>{command.shortcut}</Kbd>
-                    )}
-                  </div>
-                </li>
-              );
-            })
-          )}
+            return (
+              <li key={command.id} role="none">
+                {showGroup ? (
+                  <p aria-hidden="true" {...stylex.props(styles.groupLabel)}>
+                    {command.group}
+                  </p>
+                ) : null}
+                <div
+                  aria-selected={index === activeIndex}
+                  id={`${optionPrefix}-${index}`}
+                  onClick={() => {
+                    onRun(command);
+                  }}
+                  role="option"
+                  {...stylex.props(
+                    styles.option,
+                    index === activeIndex ? styles.active : styles.idle,
+                  )}
+                >
+                  <span {...stylex.props(styles.label)}>{command.label}</span>
+                  {command.shortcut === undefined ? null : (
+                    <kbd {...stylex.props(styles.shortcut)}>
+                      {command.shortcut}
+                    </kbd>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
+        {matches.length === 0 ? (
+          // A listbox may own nothing but options, so the notice sits beside
+          // it and announces itself instead.
+          <p role="status" {...stylex.props(styles.empty)}>
+            {emptyMessage ?? messages.commandPaletteEmpty}
+          </p>
+        ) : null}
       </div>
     </Overlay>
   );

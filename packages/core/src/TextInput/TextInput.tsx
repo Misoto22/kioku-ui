@@ -6,15 +6,16 @@ import {useFieldControl} from '../Field/index.js';
 
 const controlStyles = stylex.create({
   base: {
-    backgroundColor: semanticTokens.colorSurface,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     boxSizing: 'border-box',
-    borderColor: semanticTokens.borderDefault,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     height: semanticTokens.sizeControlMd,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
@@ -40,7 +41,8 @@ const controlStyles = stylex.create({
     },
   },
   readOnly: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
+    backgroundColor: semanticTokens.colorSurface,
+    borderColor: semanticTokens.borderDefault,
     color: semanticTokens.colorText,
   },
   invalid: {

@@ -10,11 +10,14 @@ const styles = stylex.create({
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
   },
+  // The ring is painted in the surface the stack sits on, so the overlap
+  // reads as one avatar in front of another rather than as a merged blob.
   slot: {
     borderColor: semanticTokens.colorSurface,
     borderRadius: semanticTokens.radiusFull,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.focusWidth,
+    display: 'inline-flex',
     marginInlineStart: `calc(-1 * ${semanticTokens.spacingSm})`,
   },
   first: {marginInlineStart: 0},
@@ -24,19 +27,26 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusFull,
     color: semanticTokens.colorTextSecondary,
     display: 'inline-flex',
-    fontSize: semanticTokens.fontSizeSm,
+    flexShrink: 0,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontVariantNumeric: 'tabular-nums',
     fontWeight: semanticTokens.fontWeightMedium,
     justifyContent: 'center',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: 1,
   },
   overflowSm: {
+    fontSize: semanticTokens.fontSizeXs,
     height: semanticTokens.sizeControlSm,
     width: semanticTokens.sizeControlSm,
   },
   overflowMd: {
+    fontSize: semanticTokens.fontSizeSm,
     height: semanticTokens.sizeControlMd,
     width: semanticTokens.sizeControlMd,
   },
   overflowLg: {
+    fontSize: semanticTokens.fontSizeMd,
     height: semanticTokens.sizeControlLg,
     width: semanticTokens.sizeControlLg,
   },

@@ -3,6 +3,12 @@ import {useState, type ImgHTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// A preview is measured in control heights so the ladder stays a ladder:
+// one control tall, two, three. The spacing scale bends with density; a
+// picture box must not.
+const previewMedium = `calc(2 * ${semanticTokens.sizeControlLg})`;
+const previewLarge = `calc(3 * ${semanticTokens.sizeControlLg})`;
+
 const styles = stylex.create({
   frame: {
     alignItems: 'center',
@@ -20,13 +26,20 @@ const styles = stylex.create({
     height: semanticTokens.sizeControlLg,
     width: semanticTokens.sizeControlLg,
   },
-  md: {height: semanticTokens.spacing2xl, width: semanticTokens.spacing2xl},
-  lg: {height: '6rem', width: '6rem'},
-  image: {height: '100%', objectFit: 'cover', width: '100%'},
+  md: {height: previewMedium, width: previewMedium},
+  lg: {height: previewLarge, width: previewLarge},
+  image: {
+    display: 'block',
+    height: '100%',
+    objectFit: 'cover',
+    width: '100%',
+  },
   fallback: {
     color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightBody,
     padding: semanticTokens.spacingXs,
     textAlign: 'center',
   },

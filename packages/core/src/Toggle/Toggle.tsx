@@ -8,13 +8,14 @@ const styles = stylex.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderColor: 'transparent',
-    borderRadius: semanticTokens.radiusFull,
+    borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     gap: semanticTokens.spacingSm,
     justifyContent: 'center',
     minHeight: semanticTokens.sizeHitTarget,
@@ -35,11 +36,14 @@ const styles = stylex.create({
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
   },
+  // The track is squared and the knob is round. A capsule track was the one
+  // control still borrowing its shape from somewhere else: everything around it
+  // turns a 3px corner, and a pill next to a 3px input reads as imported.
   track: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusFull,
+    borderColor: semanticTokens.borderStrong,
+    borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'inline-flex',

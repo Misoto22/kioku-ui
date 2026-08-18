@@ -9,6 +9,7 @@ export const globalStyles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     fontFeatureSettings: semanticTokens.fontFeatureSettings,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     fontWeight: semanticTokens.fontWeightRegular,
     lineHeight: semanticTokens.lineHeightBody,
   },

@@ -25,6 +25,7 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,

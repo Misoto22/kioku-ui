@@ -9,7 +9,10 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusInner,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyMono,
+    // A ratio, not a size: inline code tracks whatever it is set inside.
     fontSize: '0.9375em',
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     paddingInline: semanticTokens.spacingXs,
     wordBreak: 'break-word',
   },

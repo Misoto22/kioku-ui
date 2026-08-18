@@ -4,9 +4,14 @@ import {useId, useState, type HTMLAttributes} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {DateInput} from '../DateInput/index.js';
 
+// The narrowest a date control stays legible at before the pair should stack.
+// The spacing scale has no single step that measures it.
+const boundMinimumWidth = `calc(${semanticTokens.spacing2xl} * 6)`;
+
 const styles = stylex.create({
   group: {
-    border: 0,
+    borderStyle: 'none',
+    borderWidth: 0,
     display: 'flex',
     flexWrap: 'wrap',
     fontFamily: semanticTokens.fontFamilyBody,
@@ -16,8 +21,12 @@ const styles = stylex.create({
   },
   legend: {
     color: semanticTokens.colorText,
+    flexBasis: '100%',
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
     padding: 0,
   },
   bound: {
@@ -25,11 +34,14 @@ const styles = stylex.create({
     flexDirection: 'column',
     flexGrow: 1,
     gap: semanticTokens.spacingXs,
-    minWidth: '10rem',
+    minWidth: boundMinimumWidth,
   },
   label: {
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
   },
 });
 

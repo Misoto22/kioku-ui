@@ -5,7 +5,11 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useListFocus, type ListOrientation} from '../hooks/useListFocus.js';
 
 const styles = stylex.create({
-  group: {display: 'inline-flex', gap: semanticTokens.spacingXs},
+  group: {
+    alignItems: 'center',
+    display: 'inline-flex',
+    gap: semanticTokens.spacingXs,
+  },
   horizontal: {flexDirection: 'row'},
   vertical: {alignItems: 'stretch', flexDirection: 'column'},
 });
@@ -13,7 +17,7 @@ const styles = stylex.create({
 /** Props for a set of related actions treated as one control. */
 export interface ButtonGroupProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'children' | 'className' | 'role'
+  'aria-label' | 'children' | 'className' | 'role'
 > {
   readonly children: ReactNode;
   readonly label: string;

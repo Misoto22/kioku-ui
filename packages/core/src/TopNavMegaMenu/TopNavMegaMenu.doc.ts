@@ -29,7 +29,7 @@ export const topNavMegaMenuFeaturedCardDoc = {
     {name: 'title', description: 'Names the promoted destination.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLAnchorElement> except children, className, and title',
+    'AnchorHTMLAttributes<HTMLAnchorElement> except children, className, href, media, and title',
   ],
   example: '<TopNavMegaMenuFeaturedCard href="/new" title="What’s new" />',
   storyId: 'core-top-nav-mega-menu--default',

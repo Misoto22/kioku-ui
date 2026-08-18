@@ -33,6 +33,26 @@ const metrics = [
   {label: 'Published', value: '7'},
 ];
 
+// Tracking is paired with size rather than chosen per component, so the scale
+// is only honest when it is shown at its own tracking. Each row renders itself
+// with the pair it names.
+const typeScale = [
+  {
+    role: 'Page title',
+    size: 'font-size-2xl',
+    tracking: 'letter-spacing-title',
+  },
+  {role: 'Section', size: 'font-size-xl', tracking: 'letter-spacing-title'},
+  {
+    role: 'Subsection',
+    size: 'font-size-lg',
+    tracking: 'letter-spacing-heading',
+  },
+  {role: 'Body', size: 'font-size-md', tracking: 'letter-spacing-body'},
+  {role: 'Label', size: 'font-size-sm', tracking: 'letter-spacing-label'},
+  {role: 'Eyebrow', size: 'font-size-xs', tracking: 'letter-spacing-eyebrow'},
+];
+
 /**
  * The theme picker with a live sample beneath it. The sample is deliberately
  * ordinary product furniture — a heading, a table, a form, a status — because
@@ -114,6 +134,52 @@ export function ThemesPage() {
             ]}
             value={density}
           />
+        </Stack>
+
+        <Divider />
+
+        <Stack gap="md">
+          <Heading level={2} size="subsection">
+            Type scale
+          </Heading>
+          <Text size="sm" tone="secondary">
+            Every size carries a tracking with it. The smaller the type, the
+            further it opens — a label set at the body&rsquo;s tracking closes
+            into a smudge, and the display face is where that shows first.
+          </Text>
+          <Card>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell scope="col">Role</TableHeaderCell>
+                  <TableHeaderCell scope="col">Size token</TableHeaderCell>
+                  <TableHeaderCell scope="col">Tracking token</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {typeScale.map((row) => (
+                  <TableRow key={row.role}>
+                    <TableCell>
+                      <span
+                        style={{
+                          fontSize: `var(--kioku-ui-typography-${row.size})`,
+                          letterSpacing: `var(--kioku-ui-typography-${row.tracking})`,
+                        }}
+                      >
+                        {row.role}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Code>{row.size}</Code>
+                    </TableCell>
+                    <TableCell>
+                      <Code>{row.tracking}</Code>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         </Stack>
 
         <Divider />

@@ -26,11 +26,13 @@ const styles = stylex.create({
     color: semanticTokens.colorTextSecondary,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
   },
   value: {
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXl,
+    letterSpacing: semanticTokens.letterSpacingTitle,
     fontWeight: semanticTokens.fontWeightStrong,
     margin: 0,
   },
@@ -38,6 +40,7 @@ const styles = stylex.create({
     color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     margin: 0,
   },
 });

@@ -24,16 +24,23 @@ const styles = stylex.create({
   },
   field: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     display: 'flex',
     flexGrow: 1,
     gap: semanticTokens.spacingXs,
+    minHeight: semanticTokens.sizeControlMd,
+    paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':focus-within': {borderColor: semanticTokens.borderInteractive},
+    ':hover': {borderColor: semanticTokens.borderInteractive},
   },
   input: {
     backgroundColor: 'transparent',
@@ -43,9 +50,17 @@ const styles = stylex.create({
     flexGrow: 1,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     minWidth: 0,
-    outline: 'none',
+    padding: 0,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   filters: {
     display: 'flex',
@@ -66,7 +81,7 @@ export interface SearchFilter {
 /** Props for a search field that carries applied filters. */
 export interface PowerSearchProps extends Omit<
   HTMLAttributes<HTMLFormElement>,
-  'children' | 'className' | 'onSubmit'
+  'children' | 'className' | 'onSubmit' | 'role'
 > {
   readonly filters?: readonly SearchFilter[];
   readonly label: string;
@@ -120,9 +135,9 @@ export function PowerSearch({
               setQuery(event.currentTarget.value);
             }}
             placeholder={placeholder}
-            type="search"
             value={query}
             {...stylex.props(styles.input)}
+            type="search"
           />
         </div>
         <Button type="submit">{submitLabel}</Button>

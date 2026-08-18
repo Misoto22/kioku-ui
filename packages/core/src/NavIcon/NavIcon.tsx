@@ -9,9 +9,15 @@ const styles = stylex.create({
     color: 'inherit',
     display: 'inline-flex',
     flexShrink: 0,
+    fontFamily: semanticTokens.fontFamilyBody,
+    // The em basis an `Icon` sizes itself against, so a glyph fills the
+    // square exactly rather than inheriting the label's size.
     fontSize: semanticTokens.fontSizeLg,
-    justifyContent: 'center',
     height: semanticTokens.fontSizeLg,
+    justifyContent: 'center',
+    // One glyph, so it is set solid: tracking has nothing to open here.
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightHeading,
     width: semanticTokens.fontSizeLg,
   },
 });

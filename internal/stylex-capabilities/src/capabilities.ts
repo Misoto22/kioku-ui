@@ -41,6 +41,17 @@ const supportedStyleSelectors = new Set([
   ':hover:not(:active)',
   ':not(:last-child)',
   ':focus-visible',
+  // A range input's track and thumb have no standard pseudo-element, so each
+  // engine exposes its own and ignores the other's. Without these a slider can
+  // only be tinted through `accentColor`, which cannot put the track on the
+  // surface ladder. They are listed rather than matched by prefix because this
+  // set is meant to be read: an unfamiliar selector should have to be argued
+  // for, not slip in behind a wildcard.
+  '::-webkit-slider-runnable-track',
+  '::-webkit-slider-thumb',
+  '::-moz-range-track',
+  '::-moz-range-progress',
+  '::-moz-range-thumb',
 ]);
 const supportedStyleAtRules = new Set([
   '@media (prefers-reduced-motion: reduce)',

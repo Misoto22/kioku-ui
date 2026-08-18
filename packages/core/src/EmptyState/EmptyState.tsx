@@ -23,12 +23,14 @@ const styles = stylex.create({
   title: {
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeLg,
+    letterSpacing: semanticTokens.letterSpacingHeading,
     fontWeight: semanticTokens.fontWeightStrong,
     margin: 0,
     maxInlineSize: copyWidth,
   },
   detail: {
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
     maxInlineSize: copyWidth,

@@ -15,30 +15,46 @@ import {semanticTokens} from '../authoring.stylex.js';
 import type {StatusTone} from '../Badge/index.js';
 import {Layer} from '../Layer/index.js';
 
+// A toast is a floating surface, so its width is set in spacing steps rather
+// than in a literal the token contract cannot theme.
+const regionWidth = `calc(14 * ${semanticTokens.spacing2xl})`;
+
+// Notifications arrive from the edge they are anchored to.
+const enter = stylex.keyframes({
+  from: {opacity: 0, transform: 'translateY(25%)'},
+  to: {opacity: 1, transform: 'translateY(0)'},
+});
+
 const styles = stylex.create({
   region: {
-    bottom: 0,
     display: 'flex',
     flexDirection: 'column',
     gap: semanticTokens.spacingSm,
+    insetBlockEnd: 0,
     insetInlineEnd: 0,
-    maxWidth: '24rem',
+    maxWidth: regionWidth,
     padding: semanticTokens.spacingLg,
     pointerEvents: 'none',
     position: 'fixed',
     width: '100%',
   },
   toast: {
-    borderColor: semanticTokens.borderDefault,
+    animationDuration: semanticTokens.durationModerate,
+    animationName: {
+      default: enter,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingEmphasized,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    boxShadow: semanticTokens.elevationMedium,
+    // A floating surface carries elevation instead of an edge; stacking both
+    // would draw the same line twice.
+    borderStyle: 'none',
+    boxShadow: semanticTokens.elevationHigh,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingXs,
-    padding: semanticTokens.spacingMd,
+    padding: semanticTokens.spacingLg,
     pointerEvents: 'auto',
   },
   info: {
@@ -58,13 +74,17 @@ const styles = stylex.create({
     color: semanticTokens.statusDangerText,
   },
   title: {
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
   description: {
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
@@ -78,7 +98,7 @@ const styles = stylex.create({
 /** Props for one notification surface. */
 export interface ToastProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'children' | 'className' | 'title'
+  'children' | 'className' | 'role' | 'title'
 > {
   readonly action?: ReactNode;
   readonly description?: ReactNode;
@@ -94,8 +114,15 @@ export function Toast({
   tone = 'info',
   ...props
 }: ToastProps) {
+  const isDanger = tone === 'danger';
+
   return (
-    <div {...props} {...stylex.props(styles.toast, styles[tone])}>
+    <div
+      {...props}
+      aria-live={isDanger ? 'assertive' : 'polite'}
+      role={isDanger ? 'alert' : 'status'}
+      {...stylex.props(styles.toast, styles[tone])}
+    >
       <p {...stylex.props(styles.title)}>{title}</p>
       {description === undefined ? null : (
         <p {...stylex.props(styles.description)}>{description}</p>

@@ -11,9 +11,18 @@ const styles = stylex.create({
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
-  page: {fontSize: semanticTokens.fontSize2xl},
-  section: {fontSize: semanticTokens.fontSizeXl},
-  subsection: {fontSize: semanticTokens.fontSizeLg},
+  page: {
+    fontSize: semanticTokens.fontSize2xl,
+    letterSpacing: semanticTokens.letterSpacingTitle,
+  },
+  section: {
+    fontSize: semanticTokens.fontSizeXl,
+    letterSpacing: semanticTokens.letterSpacingTitle,
+  },
+  subsection: {
+    fontSize: semanticTokens.fontSizeLg,
+    letterSpacing: semanticTokens.letterSpacingHeading,
+  },
   interface: {fontFamily: semanticTokens.fontFamilyHeading},
   display: {
     fontFamily: semanticTokens.fontFamilyDisplay,

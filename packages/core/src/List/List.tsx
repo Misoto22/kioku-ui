@@ -11,6 +11,7 @@ const styles = stylex.create({
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     marginBlock: 0,
   },

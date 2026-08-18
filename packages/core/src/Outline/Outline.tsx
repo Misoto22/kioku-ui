@@ -14,27 +14,40 @@ const styles = stylex.create({
     paddingInlineStart: 0,
   },
   entry: {
-    borderInlineStartColor: semanticTokens.borderDefault,
     borderInlineStartStyle: semanticTokens.borderStyle,
     borderInlineStartWidth: semanticTokens.focusWidth,
-    color: semanticTokens.colorTextSecondary,
     display: 'block',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     textDecorationLine: 'none',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover': {color: semanticTokens.colorText},
+  },
+  // Where the reader is, is a mark at the edge and a change of ink — never a
+  // filled row. Hover lives only on the entries that are not the mark.
+  inactive: {
+    borderInlineStartColor: semanticTokens.borderDefault,
+    color: semanticTokens.colorTextSecondary,
+    fontWeight: semanticTokens.fontWeightRegular,
+    ':hover': {
+      borderInlineStartColor: semanticTokens.borderStrong,
+      color: semanticTokens.colorText,
+    },
   },
   current: {
     borderInlineStartColor: semanticTokens.colorAccent,
     color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
   },
   depth1: {paddingInlineStart: semanticTokens.spacingMd},
   depth2: {paddingInlineStart: semanticTokens.spacingXl},
@@ -88,7 +101,7 @@ export function Outline({
                 {...stylex.props(
                   styles.entry,
                   depths[depth],
-                  current && styles.current,
+                  current ? styles.current : styles.inactive,
                 )}
               >
                 {entryLabel}

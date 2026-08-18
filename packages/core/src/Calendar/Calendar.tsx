@@ -1,23 +1,32 @@
 import * as stylex from '@stylexjs/stylex';
-import {useId, useState, type HTMLAttributes, type KeyboardEvent} from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type KeyboardEvent,
+} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 import {useInternationalization} from '../i18n/index.js';
 import {Icon} from '../Icon/index.js';
 import {IconButton} from '../IconButton/index.js';
 
+// Today is a rule twice the hairline along the bottom edge, never a fill:
+// the one filled day in the grid is the day that was actually chosen.
+const todayMark = `inset 0 calc(-2 * ${semanticTokens.borderWidth}) 0 0 ${semanticTokens.colorAccent}`;
+
 const styles = stylex.create({
   calendar: {
     backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    boxShadow: semanticTokens.elevationLow,
     display: 'inline-flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingSm,
-    padding: semanticTokens.spacingMd,
+    gap: semanticTokens.spacingMd,
+    padding: semanticTokens.spacingLg,
   },
   header: {
     alignItems: 'center',
@@ -27,47 +36,70 @@ const styles = stylex.create({
   },
   month: {
     color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
   grid: {borderCollapse: 'collapse'},
   weekday: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     paddingBlock: semanticTokens.spacingXs,
+    textTransform: 'uppercase',
     width: semanticTokens.sizeControlMd,
   },
   cell: {padding: 0},
   day: {
     backgroundColor: 'transparent',
-    borderColor: 'transparent',
+    borderStyle: 'none',
+    borderWidth: 0,
     borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    color: semanticTokens.colorText,
+    boxSizing: 'border-box',
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    padding: 0,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, box-shadow, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: semanticTokens.sizeControlMd,
-    ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
+    ':disabled': {
+      color: semanticTokens.colorDisabledText,
+      cursor: 'default',
+    },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+  },
+  open: {
+    color: semanticTokens.colorText,
     ':hover:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayHover,
     },
   },
-  outside: {color: semanticTokens.colorTextMuted},
-  selected: {
+  outside: {
+    color: semanticTokens.colorTextMuted,
+    ':hover:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
+  },
+  today: {boxShadow: todayMark},
+  // A single square point is small enough to fill without shouting.
+  chosen: {
     backgroundColor: semanticTokens.colorAccent,
-    borderColor: semanticTokens.colorAccent,
     color: semanticTokens.colorTextOnAccent,
+    fontWeight: semanticTokens.fontWeightMedium,
   },
 });
 
@@ -95,14 +127,17 @@ function addMonths(date: Date, months: number) {
   return next;
 }
 
+// getUTCDay is Sunday-first; shift so the week starts on Monday.
+function weekdayIndex(date: Date) {
+  return (date.getUTCDay() + 6) % 7;
+}
+
 // Six rows always, so the grid does not resize as the reader moves between months.
 function monthGrid(anchor: Date) {
   const firstOfMonth = new Date(
     Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth(), 1),
   );
-  // getUTCDay is Sunday-first; shift so the week starts on Monday.
-  const leading = (firstOfMonth.getUTCDay() + 6) % 7;
-  const start = addDays(firstOfMonth, -leading);
+  const start = addDays(firstOfMonth, -weekdayIndex(firstOfMonth));
 
   return Array.from({length: 6}, (_, week) =>
     Array.from({length: 7}, (_, day) => addDays(start, week * 7 + day)),
@@ -135,10 +170,6 @@ type UncontrolledCalendarProps = SharedCalendarProps & {
 /** Props for a month grid of selectable dates. */
 export type CalendarProps = ControlledCalendarProps | UncontrolledCalendarProps;
 
-/**
- * Selects a date from a month grid. Arrow keys move by day and week, Page
- * Up and Page Down move by month, so the whole grid is one tab stop.
- */
 // Dates are held in UTC so a grid cell means the same day in every timezone.
 const defaultFormatDay = (date: Date) =>
   date.toLocaleDateString(undefined, {dateStyle: 'long', timeZone: 'UTC'});
@@ -150,6 +181,11 @@ const defaultFormatMonth = (date: Date) =>
     year: 'numeric',
   });
 
+/**
+ * Selects a date from a month grid. Arrow keys move by day and week, Home and
+ * End reach the ends of the week, Page Up and Page Down move by month, so the
+ * whole grid is one tab stop.
+ */
 export function Calendar({
   defaultValue = '',
   formatDay = defaultFormatDay,
@@ -162,7 +198,7 @@ export function Calendar({
   ...props
 }: CalendarProps) {
   const {messages} = useInternationalization();
-  const gridId = useId();
+  const monthId = useId();
   const [internalValue, setInternalValue] = useState(defaultValue);
   const selected = value ?? internalValue;
   const selectedDate = parseIso(selected);
@@ -171,6 +207,18 @@ export function Calendar({
   );
   const focused = parseIso(focusedIso) ?? new Date(Date.UTC(2000, 0, 1));
   const weeks = monthGrid(focused);
+  const todayIso = toIso(new Date());
+  const dayRefs = useRef(new Map<string, HTMLButtonElement>());
+  // Only keyboard movement drags focus along; a click or a month step must not.
+  const followFocus = useRef(false);
+
+  useEffect(() => {
+    if (!followFocus.current) {
+      return;
+    }
+    followFocus.current = false;
+    dayRefs.current.get(focusedIso)?.focus();
+  }, [focusedIso]);
 
   function outOfRange(date: Date) {
     const iso = toIso(date);
@@ -186,26 +234,35 @@ export function Calendar({
     onValueChange?.(iso);
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    const moves: Record<string, number> = {
+  function moveFocus(date: Date) {
+    followFocus.current = true;
+    setFocusedIso(toIso(date));
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLTableElement>) {
+    const steps: Record<string, number> = {
       ArrowLeft: -1,
       ArrowRight: 1,
       ArrowUp: -7,
       ArrowDown: 7,
     };
 
-    if (event.key in moves) {
+    if (event.key in steps) {
       event.preventDefault();
-      setFocusedIso(toIso(addDays(focused, moves[event.key] ?? 0)));
+      moveFocus(addDays(focused, steps[event.key] ?? 0));
+      return;
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      const offset = weekdayIndex(focused);
+      moveFocus(addDays(focused, event.key === 'Home' ? -offset : 6 - offset));
       return;
     }
     if (event.key === 'PageUp' || event.key === 'PageDown') {
       event.preventDefault();
-      setFocusedIso(toIso(addMonths(focused, event.key === 'PageUp' ? -1 : 1)));
+      moveFocus(addMonths(focused, event.key === 'PageUp' ? -1 : 1));
     }
   }
-
-  const monthLabel = formatMonth(focused);
 
   return (
     <div {...props} {...stylex.props(styles.calendar)}>
@@ -229,10 +286,11 @@ export function Calendar({
         </IconButton>
         <p
           aria-live="polite"
-          id={`${gridId}-month`}
+          id={monthId}
+          role="status"
           {...stylex.props(styles.month)}
         >
-          {monthLabel}
+          {formatMonth(focused)}
         </p>
         <IconButton
           aria-label={messages.calendarNextMonth}
@@ -252,61 +310,71 @@ export function Calendar({
           </Icon>
         </IconButton>
       </div>
-      <div
+      <table
+        aria-describedby={monthId}
         aria-label={label}
         onKeyDown={handleKeyDown}
-        role="application"
+        role="grid"
         {...stylex.props(styles.grid)}
       >
-        <table role="grid" {...stylex.props(styles.grid)}>
-          <thead>
-            <tr>
-              {weekdays.map((weekday) => (
-                <th key={weekday} scope="col" {...stylex.props(styles.weekday)}>
-                  {weekday}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {weeks.map((week) => (
-              <tr key={toIso(week[0] as Date)}>
-                {week.map((date) => {
-                  const iso = toIso(date);
-                  const isSelected =
-                    selectedDate !== undefined && iso === selected;
-                  const outsideMonth =
-                    date.getUTCMonth() !== focused.getUTCMonth();
-
-                  return (
-                    <td key={iso} {...stylex.props(styles.cell)}>
-                      <button
-                        aria-current={isSelected ? 'date' : undefined}
-                        // The visible text is just the day number, which repeats
-                        // across the leading and trailing weeks of the grid.
-                        aria-label={formatDay(date)}
-                        disabled={outOfRange(date)}
-                        onClick={() => {
-                          select(date);
-                        }}
-                        tabIndex={iso === focusedIso ? 0 : -1}
-                        type="button"
-                        {...stylex.props(
-                          styles.day,
-                          outsideMonth && styles.outside,
-                          isSelected && styles.selected,
-                        )}
-                      >
-                        {date.getUTCDate()}
-                      </button>
-                    </td>
-                  );
-                })}
-              </tr>
+        <thead>
+          <tr>
+            {weekdays.map((weekday) => (
+              <th key={weekday} scope="col" {...stylex.props(styles.weekday)}>
+                {weekday}
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {weeks.map((week) => (
+            <tr key={toIso(week[0] as Date)}>
+              {week.map((date) => {
+                const iso = toIso(date);
+                const isSelected =
+                  selectedDate !== undefined && iso === selected;
+                const outsideMonth =
+                  date.getUTCMonth() !== focused.getUTCMonth();
+
+                return (
+                  <td key={iso} {...stylex.props(styles.cell)}>
+                    <button
+                      aria-current={isSelected ? 'date' : undefined}
+                      // The visible text is just the day number, which repeats
+                      // across the leading and trailing weeks of the grid.
+                      aria-label={formatDay(date)}
+                      disabled={outOfRange(date)}
+                      onClick={() => {
+                        select(date);
+                      }}
+                      ref={(element) => {
+                        if (element) {
+                          dayRefs.current.set(iso, element);
+                        } else {
+                          dayRefs.current.delete(iso);
+                        }
+                      }}
+                      tabIndex={iso === focusedIso ? 0 : -1}
+                      {...stylex.props(
+                        styles.day,
+                        isSelected
+                          ? styles.chosen
+                          : outsideMonth
+                            ? styles.outside
+                            : styles.open,
+                        !isSelected && iso === todayIso && styles.today,
+                      )}
+                      type="button"
+                    >
+                      {date.getUTCDate()}
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -14,12 +14,16 @@ import type {Alignment, Placement} from '../hooks/useAnchoredPosition.js';
 import {Item} from '../Item/index.js';
 import {Popover} from '../Popover/index.js';
 
+// A menu stays wide enough for a two-word action plus its shortcut; the scale
+// stops at 38px, so the floor is a named multiple of it rather than a literal.
+const menuMinWidth = `calc(${semanticTokens.spacing2xl} * 5)`;
+
 const styles = stylex.create({
   menu: {
     display: 'flex',
     flexDirection: 'column',
     gap: semanticTokens.spacingXs,
-    minWidth: '12rem',
+    minWidth: menuMinWidth,
   },
   item: {
     backgroundColor: 'transparent',
@@ -30,9 +34,14 @@ const styles = stylex.create({
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     textAlign: 'start',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
     ':disabled': {
       color: semanticTokens.colorDisabledText,

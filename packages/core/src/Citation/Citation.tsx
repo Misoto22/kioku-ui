@@ -6,14 +6,17 @@ import {Link} from '../navigation/index.js';
 
 const styles = stylex.create({
   citation: {
-    color: semanticTokens.colorTextSecondary,
+    color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontStyle: 'normal',
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
   },
   marker: {
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     verticalAlign: 'super',
   },
 });

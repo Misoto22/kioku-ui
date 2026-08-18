@@ -12,7 +12,7 @@ export const buttonGroupDoc = {
     },
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLDivElement> except children, className, and role',
+    'HTMLAttributes<HTMLDivElement> except aria-label, children, className, and role',
   ],
   example: '<ButtonGroup label="Alignment"><Button>Left</Button></ButtonGroup>',
   storyId: 'core-button-group--default',

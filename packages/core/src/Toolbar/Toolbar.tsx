@@ -6,13 +6,28 @@ import {useListFocus} from '../hooks/useListFocus.js';
 import type {ListOrientation} from '../hooks/useListFocus.js';
 
 const styles = stylex.create({
+  // The strip carries no ground of its own: the controls inside it are the
+  // only marks, so the toolbar reads as a row of tools rather than a bar.
   toolbar: {
     alignItems: 'center',
+    color: semanticTokens.colorText,
     display: 'flex',
-    gap: semanticTokens.spacingXs,
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    minWidth: 0,
   },
-  horizontal: {flexDirection: 'row', flexWrap: 'wrap'},
-  vertical: {alignItems: 'stretch', flexDirection: 'column'},
+  horizontal: {
+    columnGap: semanticTokens.spacingXs,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: semanticTokens.spacingXs,
+  },
+  vertical: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
+    rowGap: semanticTokens.spacingXs,
+  },
 });
 
 /** Props for a grouped set of controls that shares one tab stop. */

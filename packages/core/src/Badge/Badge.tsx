@@ -15,6 +15,7 @@ const styles = stylex.create({
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
     fontWeight: semanticTokens.fontWeightMedium,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,

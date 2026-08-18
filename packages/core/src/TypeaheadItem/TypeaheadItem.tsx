@@ -10,9 +10,16 @@ const styles = stylex.create({
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
   },
+  idle: {':hover': {backgroundColor: semanticTokens.colorOverlayHover}},
+  // Focus stays in the combobox, so the wash is the only sign of the pointer.
   active: {backgroundColor: semanticTokens.colorOverlayHover},
   disabled: {color: semanticTokens.colorDisabledText, cursor: 'default'},
 });
@@ -20,7 +27,7 @@ const styles = stylex.create({
 /** Props for one suggestion inside a typeahead listbox. */
 export interface TypeaheadItemProps extends Omit<
   LiHTMLAttributes<HTMLLIElement>,
-  'className' | 'role'
+  'aria-disabled' | 'aria-selected' | 'className' | 'role'
 > {
   readonly active?: boolean;
   readonly description?: ReactNode;
@@ -51,8 +58,7 @@ export function TypeaheadItem({
       role="option"
       {...stylex.props(
         styles.option,
-        active && !disabled && styles.active,
-        disabled && styles.disabled,
+        disabled ? styles.disabled : active ? styles.active : styles.idle,
       )}
     >
       <Item

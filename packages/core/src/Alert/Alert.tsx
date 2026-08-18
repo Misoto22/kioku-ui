@@ -13,6 +13,7 @@ const styles = stylex.create({
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     gap: semanticTokens.spacingMd,
     lineHeight: semanticTokens.lineHeightBody,
     padding: semanticTokens.spacingMd,

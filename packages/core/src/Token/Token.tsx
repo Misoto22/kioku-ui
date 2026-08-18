@@ -9,15 +9,13 @@ const styles = stylex.create({
   token: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusFull,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    color: semanticTokens.colorText,
+    borderRadius: semanticTokens.radiusElement,
+    color: semanticTokens.colorTextSecondary,
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     gap: semanticTokens.spacingXs,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
     maxWidth: '100%',
     paddingBlock: semanticTokens.spacingXs,
@@ -32,7 +30,7 @@ const styles = stylex.create({
   remove: {
     alignItems: 'center',
     backgroundColor: 'transparent',
-    borderRadius: semanticTokens.radiusFull,
+    borderRadius: semanticTokens.radiusInner,
     borderStyle: 'none',
     borderWidth: 0,
     color: semanticTokens.colorTextSecondary,
@@ -40,17 +38,31 @@ const styles = stylex.create({
     display: 'inline-flex',
     flexShrink: 0,
     padding: 0,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    // The visual box tracks the token; the reachable box stays a full target.
+    '::before': {
+      content: '',
+      height: semanticTokens.sizeHitTarget,
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -50%)',
+      width: semanticTokens.sizeHitTarget,
+    },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover': {color: semanticTokens.colorText},
+    ':hover:not(:disabled)': {color: semanticTokens.colorText},
   },
 });
 
-/** Props for one discrete value shown as a pill. */
+/** Props for one discrete value shown as a chip. */
 export interface TokenProps extends Omit<
   HTMLAttributes<HTMLSpanElement>,
   'children' | 'className'
@@ -89,8 +101,8 @@ export function Token({
         <button
           aria-label={removeLabel ?? messages.remove}
           onClick={onRemove}
-          type="button"
           {...stylex.props(styles.remove)}
+          type="button"
         >
           <Icon size="sm">
             <path

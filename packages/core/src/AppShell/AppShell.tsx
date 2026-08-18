@@ -6,19 +6,28 @@ import {useInternationalization} from '../i18n/index.js';
 import {Layout} from '../Layout/index.js';
 
 const styles = stylex.create({
+  // A floating surface, so it carries elevation and no border. It rests above
+  // the banner until a keyboard reader asks for it, then slides into view.
   skipLink: {
     backgroundColor: semanticTokens.colorSurfaceRaised,
     borderRadius: semanticTokens.radiusElement,
+    borderStyle: 'none',
+    boxShadow: semanticTokens.elevationMedium,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    fontWeight: semanticTokens.fontWeightMedium,
     insetBlockStart: semanticTokens.spacingSm,
     insetInlineStart: semanticTokens.spacingSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     position: 'fixed',
     textDecorationLine: 'none',
     transform: 'translateY(-200%)',
+    transitionDuration: semanticTokens.durationModerate,
+    transitionProperty: 'transform',
+    transitionTimingFunction: semanticTokens.easingEmphasized,
     zIndex: 1,
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,

@@ -17,8 +17,13 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
@@ -32,6 +37,12 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':hover:not(:disabled)': {borderColor: semanticTokens.borderInteractive},
+  },
+  invalid: {
+    borderColor: semanticTokens.statusDangerText,
+    ':focus-visible': {borderColor: semanticTokens.statusDangerText},
+    ':hover:not(:disabled)': {borderColor: semanticTokens.statusDangerText},
   },
 });
 
@@ -71,6 +82,9 @@ export type ComplexSelectorProps =
  * elements, so a screen reader announces which group an option belongs to.
  */
 export function ComplexSelector({
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+  disabled,
   groups,
   id,
   onValueChange,
@@ -79,6 +93,14 @@ export function ComplexSelector({
   ...props
 }: ComplexSelectorProps) {
   const field = useFieldControl();
+  const describedBy =
+    [field?.describedBy, ariaDescribedBy].filter(Boolean).join(' ') ||
+    undefined;
+  const resolvedInvalid = ariaInvalid ?? field?.invalid;
+  const invalid =
+    resolvedInvalid !== undefined &&
+    resolvedInvalid !== false &&
+    resolvedInvalid !== 'false';
 
   function handleChange(event: ChangeEvent<HTMLSelectElement>) {
     onValueChange?.(event.currentTarget.value);
@@ -87,11 +109,16 @@ export function ComplexSelector({
   return (
     <select
       {...props}
-      aria-describedby={field?.describedBy}
+      aria-describedby={describedBy}
+      aria-invalid={resolvedInvalid}
+      disabled={disabled}
       id={field?.controlId ?? id}
       onChange={handleChange}
       required={required ?? field?.required}
-      {...stylex.props(styles.control)}
+      {...stylex.props(
+        styles.control,
+        invalid && !disabled ? styles.invalid : undefined,
+      )}
     >
       {placeholder === undefined ? null : (
         <option disabled value="">

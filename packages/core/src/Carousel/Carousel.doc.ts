@@ -12,7 +12,9 @@ export const carouselDoc = {
     {name: 'nextLabel', description: 'Names the forward control.'},
     {name: 'previousLabel', description: 'Names the backward control.'},
   ],
-  inheritedProps: ['HTMLAttributes<HTMLDivElement> except className and role'],
+  inheritedProps: [
+    'HTMLAttributes<HTMLDivElement> except aria-label, aria-roledescription, className, and role',
+  ],
   example: '<Carousel label="Screenshots">{slides}</Carousel>',
   storyId: 'core-carousel--default',
 } satisfies ComponentDoc;

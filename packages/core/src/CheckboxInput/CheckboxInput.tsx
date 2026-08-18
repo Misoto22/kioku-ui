@@ -37,16 +37,35 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   label: {
-    color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+  },
+  // Holding is a mark on the label, not a fill behind the row.
+  labelChecked: {
+    color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
+  },
+  labelClear: {
+    color: semanticTokens.colorTextSecondary,
+    fontWeight: semanticTokens.fontWeightRegular,
+  },
+  labelDisabled: {
+    color: semanticTokens.colorDisabledText,
+    fontWeight: semanticTokens.fontWeightRegular,
   },
   description: {
-    color: semanticTokens.colorTextSecondary,
+    color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
-  disabled: {color: semanticTokens.colorDisabledText},
+  descriptionDisabled: {color: semanticTokens.colorDisabledText},
 });
 
 type SharedCheckboxProps = Omit<
@@ -79,6 +98,7 @@ export type CheckboxInputProps =
  * it never survives a click, because the DOM has no third value to submit.
  */
 export function CheckboxInput({
+  'aria-describedby': ariaDescribedBy,
   checked,
   defaultChecked = false,
   description,
@@ -94,6 +114,9 @@ export function CheckboxInput({
   const boxRef = useRef<HTMLInputElement>(null);
   const [internalChecked, setInternalChecked] = useState(defaultChecked);
   const isChecked = checked ?? internalChecked;
+  const describedBy =
+    [field?.describedBy, ariaDescribedBy].filter(Boolean).join(' ') ||
+    undefined;
 
   useEffect(() => {
     if (boxRef.current) {
@@ -113,23 +136,35 @@ export function CheckboxInput({
     <label {...stylex.props(styles.row)}>
       <input
         {...props}
-        aria-describedby={field?.describedBy}
+        aria-describedby={describedBy}
         checked={isChecked}
         disabled={disabled}
         id={field?.controlId ?? id}
         onChange={handleChange}
         ref={boxRef}
         required={required ?? field?.required}
-        type="checkbox"
         {...stylex.props(styles.box)}
+        type="checkbox"
       />
       <span {...stylex.props(styles.text)}>
-        <span {...stylex.props(styles.label, disabled && styles.disabled)}>
+        <span
+          {...stylex.props(
+            styles.label,
+            disabled
+              ? styles.labelDisabled
+              : isChecked
+                ? styles.labelChecked
+                : styles.labelClear,
+          )}
+        >
           {label}
         </span>
         {description === undefined ? null : (
           <span
-            {...stylex.props(styles.description, disabled && styles.disabled)}
+            {...stylex.props(
+              styles.description,
+              disabled && styles.descriptionDisabled,
+            )}
           >
             {description}
           </span>

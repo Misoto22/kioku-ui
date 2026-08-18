@@ -8,6 +8,7 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontWeight: semanticTokens.fontWeightRegular,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },

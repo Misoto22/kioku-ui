@@ -83,6 +83,13 @@ export interface ThemeProviderProps {
 
 export interface ThemeContextValue {
   readonly density: Density;
+  /**
+   * The element the theme's custom properties are written to. A floating
+   * surface has to portal into this rather than into `document.body`: the
+   * tokens live here, not on the document, so a surface that escapes it
+   * resolves every `var()` to nothing and renders unpainted.
+   */
+  readonly root: HTMLElement | null;
   readonly setDensity: (density: Density) => void;
   readonly setThemeId: (themeId: string) => void;
   readonly theme: ThemeDefinition;
@@ -163,9 +170,10 @@ export function ThemeProvider({
     },
     [defaultDensity, persistence],
   );
+  const [root, setRoot] = useState<HTMLElement | null>(null);
   const value = useMemo(
-    () => ({density, setDensity, setThemeId, theme}),
-    [density, setDensity, setThemeId, theme],
+    () => ({density, root, setDensity, setThemeId, theme}),
+    [density, root, setDensity, setThemeId, theme],
   );
 
   const {className, style} = stylex.props(styles.root);
@@ -178,12 +186,22 @@ export function ThemeProvider({
           .join(' ')}
         data-density={density}
         data-theme={theme.id}
+        ref={setRoot}
         style={{...style, ...themeStyle(theme)}}
       >
         {children}
       </div>
     </ThemeContext>
   );
+}
+
+/**
+ * The theme, or `null` when there is no provider above. `useTheme` throws in
+ * that case, which is right for a component that cannot work unthemed; a
+ * portal boundary can, so it asks without insisting.
+ */
+export function useOptionalTheme(): ThemeContextValue | null {
+  return useContext(ThemeContext) ?? null;
 }
 
 export function useTheme(): ThemeContextValue {
