@@ -7,7 +7,8 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@misoto22/kioku-ui-storybook", "@misoto22/kioku-ui-sandbox"],
+  "ignore": [],
+  "privatePackages": false,
   "snapshot": {
     "useCalculatedVersion": true
   },
