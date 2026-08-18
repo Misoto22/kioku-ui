@@ -64,6 +64,24 @@
   --kioku-ui-typography-line-height-heading: var(
     --kioku-theme-line-height-heading
   );
+  --kioku-ui-typography-letter-spacing-title: var(
+    --kioku-theme-letter-spacing-title
+  );
+  --kioku-ui-typography-letter-spacing-heading: var(
+    --kioku-theme-letter-spacing-heading
+  );
+  --kioku-ui-typography-letter-spacing-body: var(
+    --kioku-theme-letter-spacing-body
+  );
+  --kioku-ui-typography-letter-spacing-label: var(
+    --kioku-theme-letter-spacing-label
+  );
+  --kioku-ui-typography-letter-spacing-eyebrow: var(
+    --kioku-theme-letter-spacing-eyebrow
+  );
+  --kioku-ui-typography-letter-spacing-mono: var(
+    --kioku-theme-letter-spacing-mono
+  );
   --kioku-ui-spacing-xs: var(--kioku-theme-spacing-xs);
   --kioku-ui-spacing-sm: var(--kioku-theme-spacing-sm);
   --kioku-ui-spacing-md: var(--kioku-theme-spacing-md);
@@ -117,6 +135,16 @@
   --kioku-theme-font-weight-strong: 600;
   --kioku-theme-line-height-body: 1.62;
   --kioku-theme-line-height-heading: 1.25;
+
+  /* Tracking runs inverse to size: the smaller the type, the further it is
+     opened. Mincho at 11px closes up into a smudge without it, and mono is
+     the one role that tightens because its figures are already too wide. */
+  --kioku-theme-letter-spacing-title: 0.01em;
+  --kioku-theme-letter-spacing-heading: 0.02em;
+  --kioku-theme-letter-spacing-body: 0;
+  --kioku-theme-letter-spacing-label: 0.04em;
+  --kioku-theme-letter-spacing-eyebrow: 0.1em;
+  --kioku-theme-letter-spacing-mono: -0.01em;
   --kioku-theme-radius-inner: 3px;
   --kioku-theme-radius-element: 3px;
   --kioku-theme-radius-container: 3px;
@@ -394,6 +422,24 @@
   --kioku-theme-washi-line-height-heading: var(
     --kioku-theme-line-height-heading
   );
+  --kioku-theme-washi-letter-spacing-title: var(
+    --kioku-theme-letter-spacing-title
+  );
+  --kioku-theme-washi-letter-spacing-heading: var(
+    --kioku-theme-letter-spacing-heading
+  );
+  --kioku-theme-washi-letter-spacing-body: var(
+    --kioku-theme-letter-spacing-body
+  );
+  --kioku-theme-washi-letter-spacing-label: var(
+    --kioku-theme-letter-spacing-label
+  );
+  --kioku-theme-washi-letter-spacing-eyebrow: var(
+    --kioku-theme-letter-spacing-eyebrow
+  );
+  --kioku-theme-washi-letter-spacing-mono: var(
+    --kioku-theme-letter-spacing-mono
+  );
   --kioku-theme-washi-spacing-xs: var(--kioku-theme-spacing-xs);
   --kioku-theme-washi-spacing-sm: var(--kioku-theme-spacing-sm);
   --kioku-theme-washi-spacing-md: var(--kioku-theme-spacing-md);
@@ -519,6 +565,24 @@
   --kioku-theme-muji-line-height-heading: var(
     --kioku-theme-line-height-heading
   );
+  --kioku-theme-muji-letter-spacing-title: var(
+    --kioku-theme-letter-spacing-title
+  );
+  --kioku-theme-muji-letter-spacing-heading: var(
+    --kioku-theme-letter-spacing-heading
+  );
+  --kioku-theme-muji-letter-spacing-body: var(
+    --kioku-theme-letter-spacing-body
+  );
+  --kioku-theme-muji-letter-spacing-label: var(
+    --kioku-theme-letter-spacing-label
+  );
+  --kioku-theme-muji-letter-spacing-eyebrow: var(
+    --kioku-theme-letter-spacing-eyebrow
+  );
+  --kioku-theme-muji-letter-spacing-mono: var(
+    --kioku-theme-letter-spacing-mono
+  );
   --kioku-theme-muji-spacing-xs: var(--kioku-theme-spacing-xs);
   --kioku-theme-muji-spacing-sm: var(--kioku-theme-spacing-sm);
   --kioku-theme-muji-spacing-md: var(--kioku-theme-spacing-md);
@@ -643,6 +707,24 @@
   --kioku-theme-sumi-line-height-body: var(--kioku-theme-line-height-body);
   --kioku-theme-sumi-line-height-heading: var(
     --kioku-theme-line-height-heading
+  );
+  --kioku-theme-sumi-letter-spacing-title: var(
+    --kioku-theme-letter-spacing-title
+  );
+  --kioku-theme-sumi-letter-spacing-heading: var(
+    --kioku-theme-letter-spacing-heading
+  );
+  --kioku-theme-sumi-letter-spacing-body: var(
+    --kioku-theme-letter-spacing-body
+  );
+  --kioku-theme-sumi-letter-spacing-label: var(
+    --kioku-theme-letter-spacing-label
+  );
+  --kioku-theme-sumi-letter-spacing-eyebrow: var(
+    --kioku-theme-letter-spacing-eyebrow
+  );
+  --kioku-theme-sumi-letter-spacing-mono: var(
+    --kioku-theme-letter-spacing-mono
   );
   --kioku-theme-sumi-spacing-xs: var(--kioku-theme-spacing-xs);
   --kioku-theme-sumi-spacing-sm: var(--kioku-theme-spacing-sm);

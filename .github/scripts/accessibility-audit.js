@@ -215,7 +215,12 @@ async function auditStories({baseUrl, modes, storyIds, themes}) {
       url.searchParams.set('id', storyId);
       url.searchParams.set('viewMode', 'story');
       url.searchParams.set('globals', `theme:${theme};mode:${mode}`);
-      await page.goto(url.href, {waitUntil: 'networkidle'});
+      // `load` covers the stylesheets and fonts axe needs to judge contrast.
+      // Not `networkidle`: it wants 500ms of silence, and six pages sharing
+      // one static server rarely give it any, so scenarios were timing out
+      // over a page that had been ready for seconds. The DOM check below is
+      // the real gate — it says the story rendered, which is what we scan.
+      await page.goto(url.href, {waitUntil: 'load'});
       await page.waitForFunction(() => {
         const root = document.querySelector('#storybook-root');
         return root && root.childElementCount > 0;

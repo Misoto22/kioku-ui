@@ -47,7 +47,13 @@ type TypographyRole =
   | 'fontWeightMedium'
   | 'fontWeightStrong'
   | 'lineHeightBody'
-  | 'lineHeightHeading';
+  | 'lineHeightHeading'
+  | 'letterSpacingTitle'
+  | 'letterSpacingHeading'
+  | 'letterSpacingBody'
+  | 'letterSpacingLabel'
+  | 'letterSpacingEyebrow'
+  | 'letterSpacingMono';
 type SpacingRole = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 type RadiusRole = 'inner' | 'element' | 'container' | 'page' | 'full';
 type SizeRole = 'controlSm' | 'controlMd' | 'controlLg' | 'hitTarget';
@@ -132,6 +138,12 @@ export const tokenContract = {
     fontWeightStrong: 'typography.fontWeightStrong',
     lineHeightBody: 'typography.lineHeightBody',
     lineHeightHeading: 'typography.lineHeightHeading',
+    letterSpacingTitle: 'typography.letterSpacingTitle',
+    letterSpacingHeading: 'typography.letterSpacingHeading',
+    letterSpacingBody: 'typography.letterSpacingBody',
+    letterSpacingLabel: 'typography.letterSpacingLabel',
+    letterSpacingEyebrow: 'typography.letterSpacingEyebrow',
+    letterSpacingMono: 'typography.letterSpacingMono',
   },
   spacing: {
     xs: 'spacing.xs',

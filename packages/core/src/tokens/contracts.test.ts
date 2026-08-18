@@ -130,6 +130,12 @@ describe('tokenContract', () => {
       fontWeightStrong: 'typography.fontWeightStrong',
       lineHeightBody: 'typography.lineHeightBody',
       lineHeightHeading: 'typography.lineHeightHeading',
+      letterSpacingTitle: 'typography.letterSpacingTitle',
+      letterSpacingHeading: 'typography.letterSpacingHeading',
+      letterSpacingBody: 'typography.letterSpacingBody',
+      letterSpacingLabel: 'typography.letterSpacingLabel',
+      letterSpacingEyebrow: 'typography.letterSpacingEyebrow',
+      letterSpacingMono: 'typography.letterSpacingMono',
     });
     expect(tokenContract.radius).toEqual({
       inner: 'radius.inner',
