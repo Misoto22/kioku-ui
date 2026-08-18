@@ -121,8 +121,10 @@ pnpm release:verify     Everything the release workflow runs
 ```
 
 `pnpm typecheck` and `pnpm test` resolve packages through their published `types`
-entry, so `pnpm build:packages` has to run first. `pnpm check` already orders that
-correctly.
+entry, and everything that renders components — `pnpm storybook`,
+`pnpm storybook:build`, `pnpm sandbox:build`, `pnpm a11y:audit` — loads them
+through their published `dist` entry, so `pnpm build:packages` has to run first.
+`pnpm check` already orders that correctly.
 
 **Consuming the compiled packages:**
 

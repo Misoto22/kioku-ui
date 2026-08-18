@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter @misoto22/kioku-ui-build build && pnpm --filter @misoto22/kioku-ui build && pnpm --filter @misoto22/kioku-ui-theme-kioku build && storybook build --output-dir storybook-static",
+    "build": "storybook build --output-dir storybook-static",
     "storybook": "storybook dev --port 6006",
     "test": "vitest run .storybook stories",
     "typecheck": "tsc --noEmit -p tsconfig.json"
