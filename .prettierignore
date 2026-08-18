@@ -1,7 +1,9 @@
+.claude/
 .superpowers/
 apps/example-*/.next/
 apps/example-*/dist/
 apps/example-*/next-env.d.ts
 apps/example-*/pnpm-lock.yaml
+apps/storybook/storybook-static/
 docs/superpowers/
 node_modules/
