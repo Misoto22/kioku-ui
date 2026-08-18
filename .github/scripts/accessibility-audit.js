@@ -1,5 +1,6 @@
 import {createServer} from 'node:http';
 import {readFile, writeFile} from 'node:fs/promises';
+import {availableParallelism} from 'node:os';
 import {extname, join, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -181,10 +182,17 @@ async function serveDirectory(directory) {
   };
 }
 
-// axe runs inside the page, so each scenario is CPU-bound on one core. A hosted
-// runner has four; six pages keep them busy across the navigation waits without
-// oversubscribing far enough to slow any single scenario down.
-const auditConcurrency = 6;
+// axe runs inside the page, so each scenario is CPU-bound on one core. Six was
+// picked for a four-core runner on the theory that navigation waits would leave
+// slack; they do not, and the sixth page just made every other page slower until
+// navigations were passing 30 seconds on a server that had answered in
+// milliseconds. Take the core count and leave one for the static server.
+const auditConcurrency = Math.max(2, Math.min(8, availableParallelism() - 1));
+
+// A scenario that has genuinely hung is a bug worth failing on, but a scenario
+// waiting behind five others on a loaded runner is not. 30s could not tell them
+// apart; 90s can.
+const navigationTimeout = 90_000;
 
 async function auditStories({baseUrl, modes, storyIds, themes}) {
   const [{AxeBuilder}, {chromium}] = await Promise.all([
@@ -220,7 +228,10 @@ async function auditStories({baseUrl, modes, storyIds, themes}) {
       // one static server rarely give it any, so scenarios were timing out
       // over a page that had been ready for seconds. The DOM check below is
       // the real gate — it says the story rendered, which is what we scan.
-      await page.goto(url.href, {waitUntil: 'load'});
+      await page.goto(url.href, {
+        timeout: navigationTimeout,
+        waitUntil: 'load',
+      });
       await page.waitForFunction(() => {
         const root = document.querySelector('#storybook-root');
         return root && root.childElementCount > 0;
