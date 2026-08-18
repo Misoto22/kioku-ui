@@ -169,7 +169,8 @@ test('CI reference builds install their standalone frozen locks', async () => {
   const workflow = parseYaml(
     await readFile('.github/workflows/ci.yml', 'utf8'),
   );
-  const script = workflow.jobs.check.steps
+  const script = Object.values(workflow.jobs)
+    .flatMap((job) => job.steps)
     .map((step) => step.run)
     .filter(Boolean)
     .join(' && ');

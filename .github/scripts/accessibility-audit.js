@@ -173,9 +173,10 @@ async function serveDirectory(directory) {
   };
 }
 
-// axe runs inside the page, so each audit is CPU-bound on one core. A hosted
-// runner has four, and the audit surface is in the hundreds of combinations.
-const auditConcurrency = 4;
+// axe runs inside the page, so each scenario is CPU-bound on one core. A hosted
+// runner has four; six pages keep them busy across the navigation waits without
+// oversubscribing far enough to slow any single scenario down.
+const auditConcurrency = 6;
 
 async function auditStories({baseUrl, modes, storyIds, themes}) {
   const [{AxeBuilder}, {chromium}] = await Promise.all([
