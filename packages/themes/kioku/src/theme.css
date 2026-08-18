@@ -79,6 +79,7 @@
   --kioku-ui-elevation-low: var(--kioku-theme-elevation-low);
   --kioku-ui-elevation-medium: var(--kioku-theme-elevation-medium);
   --kioku-ui-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-ui-texture-grain: var(--kioku-theme-texture-grain);
   --kioku-ui-motion-duration-fast: var(--kioku-theme-motion-duration-fast);
   --kioku-ui-motion-duration-moderate: var(
     --kioku-theme-motion-duration-moderate
@@ -94,180 +95,209 @@
   --kioku-theme-focus-width: 2px;
   --kioku-theme-focus-offset: 2px;
   --kioku-theme-font-family-body:
-    'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
+    'Zen Kaku Gothic New', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
   --kioku-theme-font-family-heading:
-    'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
+    'Zen Kaku Gothic New', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
   --kioku-theme-font-family-mono:
     'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --kioku-theme-font-size-xs: 12px;
-  --kioku-theme-font-size-sm: 12px;
-  --kioku-theme-font-size-md: 14px;
+  --kioku-theme-font-size-xs: 11px;
+  --kioku-theme-font-size-sm: 12.5px;
+  --kioku-theme-font-size-md: 13.5px;
   --kioku-theme-font-size-lg: 16px;
-  --kioku-theme-font-size-xl: 20px;
-  --kioku-theme-font-size-2xl: 28px;
+  --kioku-theme-font-size-xl: 27px;
+  --kioku-theme-font-size-2xl: 30px;
   --kioku-theme-font-weight-regular: 400;
   --kioku-theme-font-weight-medium: 500;
   --kioku-theme-font-weight-strong: 600;
-  --kioku-theme-line-height-body: 1.5;
+  --kioku-theme-line-height-body: 1.62;
   --kioku-theme-line-height-heading: 1.25;
-  --kioku-theme-spacing-xs: 4px;
-  --kioku-theme-spacing-sm: 8px;
-  --kioku-theme-spacing-md: 12px;
-  --kioku-theme-spacing-lg: 16px;
-  --kioku-theme-spacing-xl: 24px;
-  --kioku-theme-spacing-2xl: 32px;
-  --kioku-theme-radius-inner: 4px;
-  --kioku-theme-radius-element: 8px;
-  --kioku-theme-radius-container: 12px;
-  --kioku-theme-radius-page: 16px;
+  --kioku-theme-radius-inner: 3px;
+  --kioku-theme-radius-element: 3px;
+  --kioku-theme-radius-container: 3px;
+  --kioku-theme-radius-page: 3px;
   --kioku-theme-radius-full: 999px;
-  --kioku-theme-size-control-sm: 28px;
-  --kioku-theme-size-control-md: 32px;
-  --kioku-theme-size-control-lg: 36px;
+  --kioku-theme-size-control-sm: 24px;
+  --kioku-theme-size-control-md: 28px;
+  --kioku-theme-size-control-lg: 32px;
   --kioku-theme-size-hit-target: 44px;
   --kioku-theme-motion-duration-fast: 120ms;
   --kioku-theme-motion-duration-moderate: 220ms;
   --kioku-theme-motion-duration-slow: 760ms;
   --kioku-theme-motion-easing-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --kioku-theme-motion-easing-emphasized: cubic-bezier(0.16, 0.84, 0.28, 1);
+
+  /* compact is the default: this is a tool, not a landing page. */
+  --kioku-theme-spacing-xs: 3px;
+  --kioku-theme-spacing-sm: 6px;
+  --kioku-theme-spacing-md: 10px;
+  --kioku-theme-spacing-lg: 14px;
+  --kioku-theme-spacing-xl: 20px;
+  --kioku-theme-spacing-2xl: 28px;
 }
 
-/* 和紙: restrained paper neutrals with moss and indigo interaction colors. */
+/* Density is a matter of eyesight and screen size, so it stays a knob. */
+[data-theme='washi'][data-density='standard'],
+[data-theme='muji'][data-density='standard'],
+[data-theme='sumi'][data-density='standard'] {
+  --kioku-theme-spacing-xs: 4px;
+  --kioku-theme-spacing-sm: 8px;
+  --kioku-theme-spacing-md: 13px;
+  --kioku-theme-spacing-lg: 18px;
+  --kioku-theme-spacing-xl: 26px;
+  --kioku-theme-spacing-2xl: 38px;
+}
+
+/* 和紙: warm paper and sumi ink, with indigo, moss, kerria and madder. */
 [data-theme='washi'] {
-  --kioku-theme-color-canvas: light-dark(#f5f4ef, #191a17);
-  --kioku-theme-color-surface: light-dark(#ffffff, #22231f);
-  --kioku-theme-color-surface-raised: light-dark(#ffffff, #292a25);
-  --kioku-theme-color-surface-muted: light-dark(#eceae2, #30312b);
-  --kioku-theme-color-text: light-dark(#24251f, #f4f3ed);
-  --kioku-theme-color-text-secondary: light-dark(#62645b, #c4c5bc);
-  --kioku-theme-color-text-muted: light-dark(#6e7168, #a5a79d);
-  --kioku-theme-color-text-on-accent: light-dark(#ffffff, #172019);
-  --kioku-theme-color-accent: light-dark(#4f6751, #a7c0a8);
-  --kioku-theme-color-accent-hover: light-dark(#435845, #b6ceb7);
-  --kioku-theme-color-accent-active: light-dark(#384a3a, #c6dcc7);
+  --kioku-theme-color-canvas: light-dark(#efebe0, #191713);
+  --kioku-theme-color-surface: light-dark(#f6f3e9, #211e19);
+  --kioku-theme-color-surface-raised: light-dark(#f6f3e9, #282419);
+  --kioku-theme-color-surface-muted: light-dark(#e7e2d3, #2a2620);
+  --kioku-theme-color-text: light-dark(#26221c, #ece6d9);
+  --kioku-theme-color-text-secondary: light-dark(#5d574c, #a49c8c);
+  --kioku-theme-color-text-muted: light-dark(#696459, #928c82);
+  --kioku-theme-color-text-on-accent: light-dark(#f6f3e9, #191713);
+  --kioku-theme-color-accent: light-dark(#2f5d8a, #7ba6cf);
+  --kioku-theme-color-accent-hover: light-dark(#23486b, #a3c4e2);
+  --kioku-theme-color-accent-active: light-dark(#1b3852, #c0d8ee);
   --kioku-theme-color-overlay-hover: light-dark(
-    rgb(36 37 31 / 6%),
-    rgb(255 255 255 / 8%)
+    rgb(38 34 28 / 4%),
+    rgb(236 230 217 / 6%)
   );
   --kioku-theme-color-overlay-active: light-dark(
-    rgb(36 37 31 / 11%),
-    rgb(255 255 255 / 13%)
+    rgb(38 34 28 / 7%),
+    rgb(236 230 217 / 10%)
   );
-  --kioku-theme-color-disabled-surface: light-dark(#e3e2dc, #33342f);
-  --kioku-theme-color-disabled-text: light-dark(#8b8d84, #85877e);
-  --kioku-theme-color-focus: light-dark(#315f77, #82b6d1);
-  --kioku-theme-border-default: light-dark(#d8d7d0, #3a3b35);
-  --kioku-theme-border-strong: light-dark(#bcbdb4, #55564e);
-  --kioku-theme-border-interactive: light-dark(#4f6751, #a7c0a8);
-  --kioku-theme-border-disabled: light-dark(#dfded8, #33342f);
-  --kioku-theme-status-info-surface: light-dark(#e4edf1, #223641);
-  --kioku-theme-status-info-text: light-dark(#315f77, #abd1e4);
-  --kioku-theme-status-success-surface: light-dark(#e7ede4, #29372a);
-  --kioku-theme-status-success-text: light-dark(#405b42, #b4d1b5);
-  --kioku-theme-status-warning-surface: light-dark(#f5ecd7, #3a3220);
-  --kioku-theme-status-warning-text: light-dark(#75550b, #e5c87d);
-  --kioku-theme-status-danger-surface: light-dark(#f3e3df, #3b2723);
-  --kioku-theme-status-danger-text: light-dark(#843a32, #e4a199);
+  --kioku-theme-color-disabled-surface: light-dark(#e2dccb, #151310);
+  --kioku-theme-color-disabled-text: light-dark(#8a8375, #7d766a);
+  --kioku-theme-color-focus: light-dark(#2f5d8a, #7ba6cf);
+  --kioku-theme-border-default: light-dark(#ddd7c5, #302b24);
+  --kioku-theme-border-strong: light-dark(#c8c0aa, #423b31);
+  --kioku-theme-border-interactive: light-dark(#2f5d8a, #7ba6cf);
+  --kioku-theme-border-disabled: light-dark(#e3ddcd, #2a2620);
+  --kioku-theme-status-info-surface: light-dark(#e3eaf1, #7ba6cf24);
+  --kioku-theme-status-info-text: light-dark(#23486b, #a3c4e2);
+  --kioku-theme-status-success-surface: light-dark(#e6ecdf, #8fae7620);
+  --kioku-theme-status-success-text: light-dark(#4f7043, #8fae76);
+  --kioku-theme-status-warning-surface: light-dark(#f6eed9, #d0a85120);
+  --kioku-theme-status-warning-text: light-dark(#87650e, #d0a851);
+  --kioku-theme-status-danger-surface: light-dark(#f5e3df, #d1786c20);
+  --kioku-theme-status-danger-text: light-dark(#a2453b, #d1786c);
+  --kioku-theme-texture-grain: light-dark(
+    rgb(38 34 28 / 4%),
+    rgb(236 230 217 / 6%)
+  );
   --kioku-theme-font-family-display:
     'Shippori Mincho', 'Hiragino Mincho ProN', serif;
-  --kioku-theme-elevation-low: 0 1px 2px
-    light-dark(rgb(36 37 31 / 8%), rgb(0 0 0 / 28%));
-  --kioku-theme-elevation-medium: 0 4px 12px
-    light-dark(rgb(36 37 31 / 12%), rgb(0 0 0 / 38%));
-  --kioku-theme-elevation-high: 0 10px 28px
-    light-dark(rgb(36 37 31 / 16%), rgb(0 0 0 / 48%));
+  --kioku-theme-elevation-low: 0 0 0 1px light-dark(#ddd7c5, #302b24);
+  --kioku-theme-elevation-medium:
+    0 1px 0 light-dark(rgb(38 34 28 / 4%), rgb(0 0 0 / 22%)),
+    0 0 0 1px light-dark(#ddd7c5, #302b24);
+  --kioku-theme-elevation-high:
+    0 2px 5px light-dark(rgb(38 34 28 / 7%), rgb(0 0 0 / 34%)),
+    0 0 0 1px light-dark(#ddd7c5, #302b24);
 }
 
-/* 無印: cool neutral walls with a restrained green-grey accent. */
+/* 無印: cool walls, light timber where you touch it, green-grey accent. */
 [data-theme='muji'] {
   --kioku-theme-color-canvas: light-dark(#f2f2ef, #1a1c19);
-  --kioku-theme-color-surface: light-dark(#ffffff, #222420);
-  --kioku-theme-color-surface-raised: light-dark(#fcfcfa, #292c27);
-  --kioku-theme-color-surface-muted: light-dark(#e8e9e4, #30332d);
-  --kioku-theme-color-text: light-dark(#2f322c, #edeee9);
-  --kioku-theme-color-text-secondary: light-dark(#62665d, #c1c5bc);
-  --kioku-theme-color-text-muted: light-dark(#6c6f66, #9ea39a);
-  --kioku-theme-color-text-on-accent: light-dark(#ffffff, #172017);
-  --kioku-theme-color-accent: light-dark(#566b52, #a9c2a4);
-  --kioku-theme-color-accent-hover: light-dark(#495c46, #b8cfb3);
-  --kioku-theme-color-accent-active: light-dark(#3d4d3b, #c8ddc3);
+  --kioku-theme-color-surface: light-dark(#f9f9f7, #222420);
+  --kioku-theme-color-surface-raised: light-dark(#f9f9f7, #292c27);
+  --kioku-theme-color-surface-muted: light-dark(#eae4d8, #2b2d27);
+  --kioku-theme-color-text: light-dark(#2f322c, #e7e8e2);
+  --kioku-theme-color-text-secondary: light-dark(#64675d, #9b9e95);
+  --kioku-theme-color-text-muted: light-dark(#656760, #92948d);
+  --kioku-theme-color-text-on-accent: light-dark(#f9f9f7, #1a1c19);
+  --kioku-theme-color-accent: light-dark(#566b52, #9cb597);
+  --kioku-theme-color-accent-hover: light-dark(#41533e, #b8cbb3);
+  --kioku-theme-color-accent-active: light-dark(#33422f, #cbdbc7);
   --kioku-theme-color-overlay-hover: light-dark(
-    rgb(47 50 44 / 6%),
-    rgb(255 255 255 / 8%)
+    rgb(47 50 44 / 4%),
+    rgb(231 232 226 / 6%)
   );
   --kioku-theme-color-overlay-active: light-dark(
-    rgb(47 50 44 / 11%),
-    rgb(255 255 255 / 13%)
+    rgb(47 50 44 / 7%),
+    rgb(231 232 226 / 10%)
   );
-  --kioku-theme-color-disabled-surface: light-dark(#e3e4df, #343730);
-  --kioku-theme-color-disabled-text: light-dark(#898d84, #858a80);
-  --kioku-theme-color-focus: light-dark(#486b45, #9fc49a);
-  --kioku-theme-border-default: light-dark(#d8d9d3, #393d35);
-  --kioku-theme-border-strong: light-dark(#bfc1b8, #555a4f);
-  --kioku-theme-border-interactive: light-dark(#566b52, #a9c2a4);
-  --kioku-theme-border-disabled: light-dark(#dfe0db, #343730);
-  --kioku-theme-status-info-surface: light-dark(#e4e9e0, #2a3628);
+  --kioku-theme-color-disabled-surface: light-dark(#e0d9ca, #141613);
+  --kioku-theme-color-disabled-text: light-dark(#93968b, #75786f);
+  --kioku-theme-color-focus: light-dark(#566b52, #9cb597);
+  --kioku-theme-border-default: light-dark(#dcdcd4, #31342d);
+  --kioku-theme-border-strong: light-dark(#c2c3b8, #43463d);
+  --kioku-theme-border-interactive: light-dark(#566b52, #9cb597);
+  --kioku-theme-border-disabled: light-dark(#e2e2db, #2b2d27);
+  --kioku-theme-status-info-surface: light-dark(#e4e9e0, #9cb59720);
   --kioku-theme-status-info-text: light-dark(#41533e, #b8cbb3);
-  --kioku-theme-status-success-surface: light-dark(#e6ebe0, #2a3628);
-  --kioku-theme-status-success-text: light-dark(#4e6946, #afc6a9);
-  --kioku-theme-status-warning-surface: light-dark(#f1e9d8, #393225);
-  --kioku-theme-status-warning-text: light-dark(#775c29, #dec083);
-  --kioku-theme-status-danger-surface: light-dark(#f2e2dd, #3a2925);
-  --kioku-theme-status-danger-text: light-dark(#86493e, #dba095);
+  --kioku-theme-status-success-surface: light-dark(#e6ebe0, #9cb59720);
+  --kioku-theme-status-success-text: light-dark(#57704d, #9cb597);
+  --kioku-theme-status-warning-surface: light-dark(#f1e9d8, #cbab6b20);
+  --kioku-theme-status-warning-text: light-dark(#806630, #cbab6b);
+  --kioku-theme-status-danger-surface: light-dark(#f2e2dd, #cc8a7c20);
+  --kioku-theme-status-danger-text: light-dark(#95564a, #cc8a7c);
+  --kioku-theme-texture-grain: light-dark(
+    rgb(47 50 44 / 2%),
+    rgb(231 232 226 / 4%)
+  );
   --kioku-theme-font-family-display:
-    'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
-  --kioku-theme-elevation-low: 0 1px 2px
-    light-dark(rgb(47 50 44 / 8%), rgb(0 0 0 / 28%));
-  --kioku-theme-elevation-medium: 0 4px 12px
-    light-dark(rgb(47 50 44 / 12%), rgb(0 0 0 / 38%));
-  --kioku-theme-elevation-high: 0 10px 28px
-    light-dark(rgb(47 50 44 / 16%), rgb(0 0 0 / 48%));
+    'Zen Kaku Gothic New', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --kioku-theme-elevation-low: 0 0 0 1px light-dark(#dcdcd4, #31342d);
+  --kioku-theme-elevation-medium:
+    0 1px 0 light-dark(rgb(47 50 44 / 4%), rgb(0 0 0 / 24%)),
+    0 0 0 1px light-dark(#dcdcd4, #31342d);
+  --kioku-theme-elevation-high:
+    0 2px 5px light-dark(rgb(47 50 44 / 7%), rgb(0 0 0 / 36%)),
+    0 0 0 1px light-dark(#dcdcd4, #31342d);
 }
 
-/* 墨: high-contrast neutrals with one restrained indigo accent. */
+/* 墨: high contrast, near monochrome, one indigo accent, no grain. */
 [data-theme='sumi'] {
   --kioku-theme-color-canvas: light-dark(#f5f5f3, #0f0f0e);
   --kioku-theme-color-surface: light-dark(#ffffff, #191918);
-  --kioku-theme-color-surface-raised: light-dark(#ffffff, #21211f);
-  --kioku-theme-color-surface-muted: light-dark(#eaeae6, #292927);
+  --kioku-theme-color-surface-raised: light-dark(#ffffff, #212120);
+  --kioku-theme-color-surface-muted: light-dark(#edede9, #222220);
   --kioku-theme-color-text: light-dark(#131311, #f2f2ee);
-  --kioku-theme-color-text-secondary: light-dark(#565650, #c4c4bd);
-  --kioku-theme-color-text-muted: light-dark(#6f6f68, #9f9f98);
-  --kioku-theme-color-text-on-accent: light-dark(#ffffff, #101820);
-  --kioku-theme-color-accent: light-dark(#1d4d7c, #8bb9e5);
-  --kioku-theme-color-accent-hover: light-dark(#173f66, #9dc7ec);
-  --kioku-theme-color-accent-active: light-dark(#123452, #b0d4f2);
+  --kioku-theme-color-text-secondary: light-dark(#4a4a46, #a8a8a2);
+  --kioku-theme-color-text-muted: light-dark(#6b6b65, #8a8a84);
+  --kioku-theme-color-text-on-accent: light-dark(#ffffff, #0f0f0e);
+  --kioku-theme-color-accent: light-dark(#1d4d7c, #79aade);
+  --kioku-theme-color-accent-hover: light-dark(#143a60, #a2c6ea);
+  --kioku-theme-color-accent-active: light-dark(#0f2c49, #bcd6f0);
   --kioku-theme-color-overlay-hover: light-dark(
-    rgb(19 19 17 / 6%),
-    rgb(255 255 255 / 9%)
+    rgb(19 19 17 / 4%),
+    rgb(242 242 238 / 6%)
   );
   --kioku-theme-color-overlay-active: light-dark(
-    rgb(19 19 17 / 12%),
-    rgb(255 255 255 / 14%)
+    rgb(19 19 17 / 7%),
+    rgb(242 242 238 / 10%)
   );
-  --kioku-theme-color-disabled-surface: light-dark(#e1e1dd, #2d2d2a);
-  --kioku-theme-color-disabled-text: light-dark(#85857e, #777771);
+  --kioku-theme-color-disabled-surface: light-dark(#e4e4e0, #090908);
+  --kioku-theme-color-disabled-text: light-dark(#7c7c76, #7b7b75);
   --kioku-theme-color-focus: light-dark(#1d4d7c, #79aade);
-  --kioku-theme-border-default: light-dark(#dcdcd8, #2f2f2c);
-  --kioku-theme-border-strong: light-dark(#b4b4ae, #4a4a45);
-  --kioku-theme-border-interactive: light-dark(#1d4d7c, #8bb9e5);
-  --kioku-theme-border-disabled: light-dark(#dededa, #2d2d2a);
-  --kioku-theme-status-info-surface: light-dark(#e3e9f0, #22364a);
+  --kioku-theme-border-default: light-dark(#dcdcd8, #2a2a27);
+  --kioku-theme-border-strong: light-dark(#b4b4ae, #3d3d39);
+  --kioku-theme-border-interactive: light-dark(#1d4d7c, #79aade);
+  --kioku-theme-border-disabled: light-dark(#e2e2de, #222220);
+  --kioku-theme-status-info-surface: light-dark(#e3e9f0, #79aade24);
   --kioku-theme-status-info-text: light-dark(#143a60, #a2c6ea);
-  --kioku-theme-status-success-surface: light-dark(#e4ebe2, #273426);
-  --kioku-theme-status-success-text: light-dark(#355c31, #a5ca9b);
-  --kioku-theme-status-warning-surface: light-dark(#f3ecda, #3a3222);
-  --kioku-theme-status-warning-text: light-dark(#73520b, #e4c67c);
-  --kioku-theme-status-danger-surface: light-dark(#f4e0dd, #3c2623);
-  --kioku-theme-status-danger-text: light-dark(#842a23, #e19a92);
+  --kioku-theme-status-success-surface: light-dark(#e4ebe2, #8bb37f20);
+  --kioku-theme-status-success-text: light-dark(#3f6b3a, #8bb37f);
+  --kioku-theme-status-warning-surface: light-dark(#f3ecda, #d3b16420);
+  --kioku-theme-status-warning-text: light-dark(#8a6510, #d3b164);
+  --kioku-theme-status-danger-surface: light-dark(#f4e0dd, #d5837a20);
+  --kioku-theme-status-danger-text: light-dark(#993229, #d5837a);
+  --kioku-theme-texture-grain: light-dark(transparent, transparent);
   --kioku-theme-font-family-display:
     'Shippori Mincho', 'Hiragino Mincho ProN', serif;
-  --kioku-theme-elevation-low: 0 1px 2px
-    light-dark(rgb(19 19 17 / 9%), rgb(0 0 0 / 36%));
-  --kioku-theme-elevation-medium: 0 4px 14px
-    light-dark(rgb(19 19 17 / 14%), rgb(0 0 0 / 46%));
-  --kioku-theme-elevation-high: 0 12px 30px
-    light-dark(rgb(19 19 17 / 19%), rgb(0 0 0 / 58%));
+  --kioku-theme-elevation-low: 0 0 0 1px light-dark(#dcdcd8, #2a2a27);
+  --kioku-theme-elevation-medium:
+    0 1px 0 light-dark(rgb(19 19 17 / 6%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(#dcdcd8, #2a2a27);
+  --kioku-theme-elevation-high:
+    0 2px 5px light-dark(rgb(19 19 17 / 10%), rgb(0 0 0 / 52%)),
+    0 0 0 1px light-dark(#dcdcd8, #2a2a27);
 }
 
 /* ThemeDefinition values resolve through a dictionary owned by each skin. */
@@ -375,6 +405,7 @@
   --kioku-theme-washi-elevation-low: var(--kioku-theme-elevation-low);
   --kioku-theme-washi-elevation-medium: var(--kioku-theme-elevation-medium);
   --kioku-theme-washi-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-washi-texture-grain: var(--kioku-theme-texture-grain);
   --kioku-theme-washi-motion-duration-fast: var(
     --kioku-theme-motion-duration-fast
   );
@@ -496,6 +527,7 @@
   --kioku-theme-muji-elevation-low: var(--kioku-theme-elevation-low);
   --kioku-theme-muji-elevation-medium: var(--kioku-theme-elevation-medium);
   --kioku-theme-muji-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-muji-texture-grain: var(--kioku-theme-texture-grain);
   --kioku-theme-muji-motion-duration-fast: var(
     --kioku-theme-motion-duration-fast
   );
@@ -617,6 +649,7 @@
   --kioku-theme-sumi-elevation-low: var(--kioku-theme-elevation-low);
   --kioku-theme-sumi-elevation-medium: var(--kioku-theme-elevation-medium);
   --kioku-theme-sumi-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-sumi-texture-grain: var(--kioku-theme-texture-grain);
   --kioku-theme-sumi-motion-duration-fast: var(
     --kioku-theme-motion-duration-fast
   );

@@ -35,8 +35,9 @@ application routes, APIs, data, or business logic — see [Boundaries](#boundari
 ### Features
 
 - **33 components** — layout (`Stack`, `Grid`, `Section`, `Card`), controls (`Button`, `TextInput`, `Toggle`, `SegmentedControl`), data (`Table`, `MetricGrid`), and state (`Alert`, `AsyncState`, `EmptyState`, `Skeleton`, `Spinner`)
-- **68 semantic tokens** across ten groups — color, border, status, focus, typography, spacing, radius, size, elevation, motion — validated by `validateThemeDefinition` at runtime
+- **71 semantic tokens** across eleven groups — color, border, status, focus, typography, spacing, radius, size, elevation, texture, motion — validated by `validateThemeDefinition` at runtime
 - **Runtime theming** (`ThemeProvider`) — the host supplies the theme list, the default id, and an optional `ThemePersistence` adapter; the library owns no storage and hard-codes no theme
+- **Density** (`compact` by default, `standard` opt-in) — a theme pack fulfills the spacing roles twice and the reader picks, without any component changing what it means
 - **Two consumption modes** — compiled consumers import prebuilt CSS and configure nothing; source consumers import `/source` and run StyleX themselves through `@misoto22/kioku-ui-build`
 - **Routing-agnostic links** (`LinkProvider`) — the host injects its own router; the package depends on no routing library
 - **Accessibility baseline** — every Storybook story is audited with axe across all themes and color modes, with violations fingerprinted against a committed baseline (`pnpm a11y:audit`)

@@ -22,5 +22,25 @@ CSS `light-dark()`, so they follow the host's inherited `color-scheme`. The
 themes share the package's semantic spacing, radius, and control-size scales.
 The stylesheet never targets `:root`, `html`, or `body`.
 
+The three skins carry Kioku Console's own palettes, geometry, and type scale:
+warm paper rather than white, one 3px corner for every element including
+controls, a hairline rule instead of a drop shadow, and the console's compact
+spacing. Where a role that this package holds to WCAG AA missed the threshold on
+one of its backgrounds, it keeps the console's hue and loses only lightness.
+
+Each skin fulfills the spacing roles at both densities, so a reader selecting
+`standard` widens the same rhythm rather than switching visual identity:
+
+```tsx
+<ThemeProvider
+  defaultDensity="standard"
+  defaultThemeId={washiTheme.id}
+  themes={kiokuThemes}
+>
+```
+
+`texture.grain` is the paper speckle's own colour. Washi and Muji tint it; Sumi
+sets it transparent, which is how a skin declines the texture.
+
 The initial theme release supports core `>=0.0.0 <0.2.0`. A later pre-1 core
 minor must be compatibility-reviewed before this peer range is widened.

@@ -1,6 +1,7 @@
 export {
   ThemeProvider,
   useTheme,
+  type Density,
   type ThemeContextValue,
   type ThemePersistence,
   type ThemeProviderProps,

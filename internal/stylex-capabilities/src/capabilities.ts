@@ -29,6 +29,7 @@ const supportedStyleSelectors = new Set([
   ':active:not(:disabled)',
   ':hover:not(:disabled)',
   ':hover:not(:disabled):not(:active)',
+  '::after',
   '::before',
   '::placeholder',
   ':active:not(:disabled):not(:read-only):not(:focus-visible)',

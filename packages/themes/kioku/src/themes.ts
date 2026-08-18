@@ -71,6 +71,7 @@ function themeTokenReferences(id: ThemeId): ThemeDefinition['tokens'] {
     'elevation.low': variable('elevation-low'),
     'elevation.medium': variable('elevation-medium'),
     'elevation.high': variable('elevation-high'),
+    'texture.grain': variable('texture-grain'),
     'motion.durationFast': variable('motion-duration-fast'),
     'motion.durationModerate': variable('motion-duration-moderate'),
     'motion.durationSlow': variable('motion-duration-slow'),

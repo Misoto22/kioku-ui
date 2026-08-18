@@ -22,10 +22,17 @@ const preview: Preview = {
       const theme =
         kiokuThemes.find(({id}) => id === requestedTheme) ?? kiokuThemes[0];
       const mode = context.globals.mode === 'dark' ? 'dark' : 'light';
+      const density =
+        context.globals.density === 'standard' ? 'standard' : 'compact';
 
       return createElement(
         ThemeProvider,
-        {defaultThemeId: theme.id, key: theme.id, themes: kiokuThemes},
+        {
+          defaultDensity: density,
+          defaultThemeId: theme.id,
+          key: `${theme.id}-${density}`,
+          themes: kiokuThemes,
+        },
         createElement(
           'div',
           {

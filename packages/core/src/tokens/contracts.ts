@@ -50,6 +50,7 @@ type TypographyRole =
 type SpacingRole = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 type RadiusRole = 'inner' | 'element' | 'container' | 'page' | 'full';
 type SizeRole = 'controlSm' | 'controlMd' | 'controlLg' | 'hitTarget';
+type TextureRole = 'grain';
 type ElevationRole = 'low' | 'medium' | 'high';
 type MotionRole =
   | 'durationFast'
@@ -68,6 +69,7 @@ export interface TokenContract {
   readonly radius: Roles<'radius', RadiusRole>;
   readonly size: Roles<'size', SizeRole>;
   readonly elevation: Roles<'elevation', ElevationRole>;
+  readonly texture: Roles<'texture', TextureRole>;
   readonly motion: Roles<'motion', MotionRole>;
 }
 
@@ -154,6 +156,9 @@ export const tokenContract = {
     low: 'elevation.low',
     medium: 'elevation.medium',
     high: 'elevation.high',
+  },
+  texture: {
+    grain: 'texture.grain',
   },
   motion: {
     durationFast: 'motion.durationFast',
