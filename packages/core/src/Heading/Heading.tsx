@@ -15,7 +15,10 @@ const styles = stylex.create({
   section: {fontSize: semanticTokens.fontSizeXl},
   subsection: {fontSize: semanticTokens.fontSizeLg},
   interface: {fontFamily: semanticTokens.fontFamilyHeading},
-  display: {fontFamily: semanticTokens.fontFamilyDisplay},
+  display: {
+    fontFamily: semanticTokens.fontFamilyDisplay,
+    fontSynthesis: 'none',
+  },
 });
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;

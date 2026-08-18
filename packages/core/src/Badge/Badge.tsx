@@ -11,10 +11,10 @@ export type BadgeTone = 'neutral' | StatusTone;
 
 const styles = stylex.create({
   base: {
-    borderRadius: semanticTokens.radiusFull,
+    borderRadius: semanticTokens.radiusElement,
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
