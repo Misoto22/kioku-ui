@@ -37,6 +37,7 @@ export const semanticTokens = stylex.defineVars({
   fontFamilyHeading: 'var(--kioku-ui-typography-font-family-heading)',
   fontFamilyDisplay: 'var(--kioku-ui-typography-font-family-display)',
   fontFamilyMono: 'var(--kioku-ui-typography-font-family-mono)',
+  fontFeatureSettings: 'var(--kioku-ui-typography-font-feature-settings)',
   fontSizeXs: 'var(--kioku-ui-typography-font-size-xs)',
   fontSizeSm: 'var(--kioku-ui-typography-font-size-sm)',
   fontSizeMd: 'var(--kioku-ui-typography-font-size-md)',
