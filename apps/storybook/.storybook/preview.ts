@@ -56,7 +56,13 @@ const preview: Preview = {
   globalTypes: storybookGlobalTypes,
   initialGlobals: storybookInitialGlobals,
   parameters: {
-    a11y: {test: 'error'},
+    // The addon injects its own axe into the preview and runs it after every
+    // render. `pnpm a11y:audit` runs axe over the same stories across three
+    // themes and two modes against a recorded baseline, so the addon's pass
+    // adds no coverage — and because both share one axe instance per window,
+    // whichever starts second dies with "Axe is already running". The panel
+    // still scans on demand for anyone working in the browser.
+    a11y: {test: 'off'},
     controls: {expanded: true},
     layout: 'padded',
   },
