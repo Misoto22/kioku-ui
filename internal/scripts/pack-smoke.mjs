@@ -295,10 +295,17 @@ export function releaseWorkflowProblems(workflow) {
       problems.push(`release job needs ${permission}: ${value}`);
     }
   }
-  if (changesetsStep?.with?.publish !== 'pnpm release') {
+  if (changesetsStep?.with?.['publish-script'] !== 'pnpm release') {
     problems.push(
       'release workflow must use changesets/action with pnpm release',
     );
+  }
+  // changesets v2 ignores the GITHUB_TOKEN environment variable, and without a
+  // token it cannot push tags or open the version pull request.
+  if (
+    changesetsStep?.with?.['github-token'] !== '${{ secrets.GITHUB_TOKEN }}'
+  ) {
+    problems.push('release workflow must pass a GitHub token to changesets');
   }
   if (String(changesetsStep?.env?.NPM_CONFIG_PROVENANCE) !== 'true') {
     problems.push('release job must set NPM_CONFIG_PROVENANCE=true');
