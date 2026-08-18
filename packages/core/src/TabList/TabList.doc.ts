@@ -13,7 +13,11 @@ export const tabListDoc = {
       description: 'Receives the id of the newly selected tab.',
     },
     {name: 'selectedId', description: 'Identifies the currently selected tab.'},
-    {name: 'tabs', description: 'Supplies the tab options in reading order.'},
+    {
+      name: 'tabs',
+      description:
+        'Supplies the tab options in reading order; each may name the panel it controls.',
+    },
   ],
   inheritedProps: [
     'HTMLAttributes<HTMLDivElement> except children, className, onSelect, and role',

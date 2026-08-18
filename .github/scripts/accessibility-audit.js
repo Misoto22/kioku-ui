@@ -151,9 +151,17 @@ async function serveDirectory(directory) {
         return;
       }
 
+      // Read before writing the head: a miss here must still be able to
+      // answer 404, and writeHead already having run makes that throw
+      // ERR_HTTP_HEADERS_SENT, which takes the whole audit down with it.
+      const body = await readFile(path);
       response.writeHead(200, {'content-type': contentType(path)});
-      response.end(await readFile(path));
+      response.end(body);
     } catch {
+      if (response.headersSent) {
+        response.end();
+        return;
+      }
       response.writeHead(404).end('Not found');
     }
   });

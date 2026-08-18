@@ -32,12 +32,16 @@ const french: Messages = {
   skipToContent: 'Aller au contenu principal',
 };
 
-function Sample() {
+// The States story shows three locales side by side, so each sample needs its
+// own landmark name — three navs all called "Breadcrumb" is a landmark-unique
+// violation, and a real page has the same problem.
+function Sample({name = 'Sample'}: {readonly name?: string}) {
   return (
     <Card>
       <Stack gap="sm">
         <Breadcrumbs
           items={[{href: '/', label: 'Accueil'}, {label: 'Version 12'}]}
+          label={`Breadcrumb, ${name}`}
         />
         <Text>Twelve releases are ready to review.</Text>
         <Button variant="secondary">Publish</Button>
@@ -65,7 +69,7 @@ export const States: Story = {
             label: 'en, ltr',
             content: (
               <InternationalizationProvider>
-                <Sample />
+                <Sample name="English" />
               </InternationalizationProvider>
             ),
           },
@@ -73,7 +77,7 @@ export const States: Story = {
             label: 'fr, ltr',
             content: (
               <InternationalizationProvider locale="fr" messages={french}>
-                <Sample />
+                <Sample name="French" />
               </InternationalizationProvider>
             ),
           },
@@ -81,7 +85,7 @@ export const States: Story = {
             label: 'ar, rtl',
             content: (
               <InternationalizationProvider direction="rtl" locale="ar">
-                <Sample />
+                <Sample name="Arabic" />
               </InternationalizationProvider>
             ),
           },

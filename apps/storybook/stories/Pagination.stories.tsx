@@ -47,12 +47,31 @@ export const States: Story = {
     <DemoFrame>
       <StateGrid
         items={[
-          {label: 'first page', content: <PaginationDemo initialPage={1} />},
-          {label: 'middle', content: <PaginationDemo initialPage={5} />},
-          {label: 'last page', content: <PaginationDemo initialPage={9} />},
+          {
+            label: 'first page',
+            content: (
+              <PaginationDemo initialPage={1} label="Results, first page" />
+            ),
+          },
+          {
+            label: 'middle',
+            content: <PaginationDemo initialPage={5} label="Results, middle" />,
+          },
+          {
+            label: 'last page',
+            content: (
+              <PaginationDemo initialPage={9} label="Results, last page" />
+            ),
+          },
           {
             label: 'many pages',
-            content: <PaginationDemo initialPage={12} pageCount={40} />,
+            content: (
+              <PaginationDemo
+                initialPage={12}
+                label="Results, many pages"
+                pageCount={40}
+              />
+            ),
           },
         ]}
       />

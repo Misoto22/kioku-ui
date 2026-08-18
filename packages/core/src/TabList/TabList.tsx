@@ -46,6 +46,12 @@ const styles = stylex.create({
 
 /** One selectable tab in a `TabList`. */
 export interface TabOption {
+  /**
+   * The `id` of the panel this tab reveals. Supply it when the panel is in the
+   * DOM: `aria-controls` pointing at an element that does not exist is worse
+   * than omitting it, because assistive technology follows the reference.
+   */
+  readonly controls?: string;
   readonly disabled?: boolean;
   readonly id: string;
   readonly label: ReactNode;
@@ -86,12 +92,12 @@ export function TabList({
       role="tablist"
       {...stylex.props(styles.list)}
     >
-      {tabs.map(({disabled, id, label: tabLabel}) => {
+      {tabs.map(({controls, disabled, id, label: tabLabel}) => {
         const selected = id === selectedId;
 
         return (
           <button
-            aria-controls={`${prefix}-${id}-panel`}
+            {...(controls === undefined ? {} : {'aria-controls': controls})}
             aria-selected={selected}
             disabled={disabled ?? false}
             id={`${prefix}-${id}-tab`}

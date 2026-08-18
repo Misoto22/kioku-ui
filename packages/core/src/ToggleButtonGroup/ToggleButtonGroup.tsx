@@ -78,7 +78,6 @@ export function ToggleButtonGroup(props: ToggleButtonGroupProps) {
   return (
     <div
       aria-label={label}
-      aria-orientation={orientation}
       onKeyDown={onKeyDown}
       ref={groupRef}
       role="group"

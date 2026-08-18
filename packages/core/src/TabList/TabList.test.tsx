@@ -96,3 +96,35 @@ describe('TabList', () => {
     expect(screen.getByRole('tab', {name: 'Closed'})).toBeDisabled();
   });
 });
+
+describe('TabList panel wiring', () => {
+  it('omits aria-controls when no panel id is given', () => {
+    renderUi(<TabFixture />);
+
+    expect(screen.getByRole('tab', {name: 'Open'})).not.toHaveAttribute(
+      'aria-controls',
+    );
+  });
+
+  it('points at the panel the caller actually rendered', () => {
+    renderUi(
+      <>
+        <TabList
+          label="Views"
+          onSelect={() => {}}
+          selectedId="open"
+          tabs={[{controls: 'open-panel', id: 'open', label: 'Open'}]}
+        />
+        <div id="open-panel" role="tabpanel">
+          panel
+        </div>
+      </>,
+    );
+
+    const controls = screen
+      .getByRole('tab', {name: 'Open'})
+      .getAttribute('aria-controls');
+    expect(controls).toBe('open-panel');
+    expect(document.getElementById(controls ?? '')).not.toBeNull();
+  });
+});

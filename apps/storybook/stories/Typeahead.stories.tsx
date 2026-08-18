@@ -72,6 +72,7 @@ export const States: Story = {
             label: 'options rendered by hand',
             content: (
               <ul
+                aria-label="Owner suggestions"
                 role="listbox"
                 style={{listStyle: 'none', margin: 0, padding: 0}}
               >
