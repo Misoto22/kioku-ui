@@ -1,0 +1,5 @@
+{
+  "title": "Settings",
+  "description": "A single settings page whose switches apply immediately and whose destructive action is confirmed.",
+  "files": ["SettingsPage.tsx"]
+}

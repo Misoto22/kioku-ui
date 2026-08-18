@@ -1,0 +1,5 @@
+{
+  "title": "Contact form",
+  "description": "A single-column enquiry form that collects every validation error before reporting them.",
+  "files": ["ContactFormPage.tsx"]
+}

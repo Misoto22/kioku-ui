@@ -1,0 +1,17 @@
+{
+  "name": "@misoto22/kioku-ui-eslint-plugin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Lint rules that hold the design system's own boundaries.",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "scripts": {
+    "test": "vitest run src"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10",
+    "eslint": "^10.8.1"
+  }
+}

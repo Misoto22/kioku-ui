@@ -1,0 +1,5 @@
+{
+  "title": "Dashboard",
+  "description": "A metric overview with a rail, summary tiles, and a recent-activity table.",
+  "files": ["DashboardPage.tsx"]
+}

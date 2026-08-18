@@ -1,0 +1,12 @@
+#!/bin/sh
+# Formatting is the one check that fails CI for reasons unrelated to the change
+# under review, so it runs before the commit rather than after the push.
+# Everything slower — lint, typecheck, tests — is left to `pnpm check` and CI.
+set -e
+
+if ! pnpm format; then
+  echo
+  echo "Formatting check failed. Run 'pnpm exec prettier --write .' and stage the result."
+  echo "Note: prettier also formats pnpm-lock.yaml after an install."
+  exit 1
+fi

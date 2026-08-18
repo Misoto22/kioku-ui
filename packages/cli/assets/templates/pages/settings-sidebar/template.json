@@ -1,0 +1,5 @@
+{
+  "title": "Settings with sidebar",
+  "description": "Settings split across sections reached from a rail, with the panel announced as it changes.",
+  "files": ["SettingsSidebarPage.tsx"]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Login card",
+  "description": "A centred sign-in card with email and password fields.",
+  "files": ["LoginCardPage.tsx"]
+}

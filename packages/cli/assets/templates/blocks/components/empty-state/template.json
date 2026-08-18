@@ -1,0 +1,5 @@
+{
+  "title": "Empty result state",
+  "description": "A first-run and no-results state with a primary action.",
+  "files": ["ResultsEmptyState.tsx"]
+}

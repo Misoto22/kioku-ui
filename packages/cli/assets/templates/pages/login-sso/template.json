@@ -1,0 +1,5 @@
+{
+  "title": "SSO login",
+  "description": "Single sign-on first, with an email fallback behind a divider.",
+  "files": ["LoginSsoPage.tsx"]
+}

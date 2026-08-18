@@ -38,6 +38,37 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(happy-dom@20.11.2)(jsdom@29.1.1)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2))
 
+  apps/docsite:
+    dependencies:
+      '@misoto22/kioku-ui':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@misoto22/kioku-ui-theme-kioku':
+        specifier: workspace:*
+        version: link:../../packages/themes/kioku
+      react:
+        specifier: ^19.2.4
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.4
+        version: 19.2.4(@types/react@19.2.18)
+      '@vitejs/plugin-react':
+        specifier: ^5.2.0
+        version: 5.2.0(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2))
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+      vite:
+        specifier: ^8.2.1
+        version: 8.2.1(@types/node@24.13.3)(esbuild@0.28.2)
+
   apps/sandbox:
     dependencies:
       '@misoto22/kioku-ui':
@@ -118,6 +149,15 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(happy-dom@20.11.2)(jsdom@29.1.1)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2))
 
+  internal/eslint-plugin-kioku:
+    devDependencies:
+      eslint:
+        specifier: ^10.8.1
+        version: 10.8.1
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(happy-dom@20.11.2)(jsdom@29.1.1)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2))
+
   internal/stylex-capabilities:
     devDependencies:
       typescript:
@@ -194,7 +234,20 @@ importers:
 
   packages/charts: {}
 
-  packages/cli: {}
+  packages/cli:
+    devDependencies:
+      '@misoto22/kioku-ui':
+        specifier: workspace:*
+        version: link:../core
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      react:
+        specifier: ^19.0.0
+        version: 19.2.8
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(happy-dom@20.11.2)(jsdom@29.1.1)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2))
 
   packages/core:
     dependencies:

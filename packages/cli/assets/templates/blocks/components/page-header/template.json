@@ -1,0 +1,5 @@
+{
+  "title": "Page header",
+  "description": "A title, breadcrumb trail, and primary actions above page content.",
+  "files": ["PageHeader.tsx"]
+}

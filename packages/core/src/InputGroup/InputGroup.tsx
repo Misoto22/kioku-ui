@@ -1,0 +1,64 @@
+import * as stylex from '@stylexjs/stylex';
+import type {HTMLAttributes, ReactNode} from 'react';
+
+import {semanticTokens} from '../authoring.stylex.js';
+
+const styles = stylex.create({
+  group: {
+    alignItems: 'stretch',
+    display: 'flex',
+    fontFamily: semanticTokens.fontFamilyBody,
+    gap: semanticTokens.spacingXs,
+  },
+  control: {flexGrow: 1, minWidth: 0},
+  addon: {
+    alignItems: 'center',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderDefault,
+    borderRadius: semanticTokens.radiusElement,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    color: semanticTokens.colorTextSecondary,
+    display: 'flex',
+    flexShrink: 0,
+    fontSize: semanticTokens.fontSizeSm,
+    paddingInline: semanticTokens.spacingSm,
+  },
+});
+
+/** Props for a control flanked by fixed affixes. */
+export interface InputGroupProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'children' | 'className' | 'prefix'
+> {
+  readonly children: ReactNode;
+  readonly prefix?: ReactNode;
+  readonly suffix?: ReactNode;
+}
+
+/**
+ * Places fixed text or controls beside an input. Affixes are decorative: put
+ * anything a reader must know in the field label, not here.
+ */
+export function InputGroup({
+  children,
+  prefix,
+  suffix,
+  ...props
+}: InputGroupProps) {
+  return (
+    <div {...props} {...stylex.props(styles.group)}>
+      {prefix === undefined ? null : (
+        <span aria-hidden="true" {...stylex.props(styles.addon)}>
+          {prefix}
+        </span>
+      )}
+      <span {...stylex.props(styles.control)}>{children}</span>
+      {suffix === undefined ? null : (
+        <span aria-hidden="true" {...stylex.props(styles.addon)}>
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+}
