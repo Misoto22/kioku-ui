@@ -462,6 +462,7 @@ test('rejects release workflows that can publish pull requests or use npm tokens
     'release job needs pull-requests: write',
     'release workflow must not configure an npm authentication token',
     'release workflow must not run for pull requests',
+    'release workflow must pass a GitHub token to changesets',
     'release workflow must serialize main releases without cancellation',
     'release workflow must set up Node 24 for the npm registry without caching',
     'release workflow must use changesets/action with pnpm release',
@@ -500,7 +501,10 @@ test('rejects a release workflow that audits without installing browsers', () =>
           {run: 'pnpm release:verify'},
           {
             uses: 'changesets/action@v1',
-            with: {publish: 'pnpm release'},
+            with: {
+              'github-token': '${{ secrets.GITHUB_TOKEN }}',
+              'publish-script': 'pnpm release',
+            },
             env: {NPM_CONFIG_PROVENANCE: true},
           },
         ],
@@ -545,7 +549,10 @@ test('rejects a release workflow with an unbounded browser install', () => {
           {run: 'pnpm release:verify'},
           {
             uses: 'changesets/action@v1',
-            with: {publish: 'pnpm release'},
+            with: {
+              'github-token': '${{ secrets.GITHUB_TOKEN }}',
+              'publish-script': 'pnpm release',
+            },
             env: {NPM_CONFIG_PROVENANCE: true},
           },
         ],
