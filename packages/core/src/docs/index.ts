@@ -1,24 +1,24 @@
-import {alertDoc} from '../components/Alert.doc.js';
-import {asyncStateDoc} from '../components/AsyncState.doc.js';
-import {badgeDoc} from '../components/Badge.doc.js';
-import {buttonDoc} from '../components/Button.doc.js';
-import {cardDoc} from '../components/Card.doc.js';
-import {cardFooterDoc} from '../components/CardFooter.doc.js';
-import {cardHeaderDoc} from '../components/CardHeader.doc.js';
-import {centerDoc} from '../components/Center.doc.js';
-import {dividerDoc} from '../components/Divider.doc.js';
-import {emptyStateDoc} from '../components/EmptyState.doc.js';
-import {fieldDoc} from '../components/Field.doc.js';
-import {gridDoc} from '../components/Grid.doc.js';
-import {headingDoc} from '../components/Heading.doc.js';
-import {iconButtonDoc} from '../components/IconButton.doc.js';
-import {metricGridDoc} from '../components/MetricGrid.doc.js';
-import {sectionDoc} from '../components/Section.doc.js';
-import {segmentedControlDoc} from '../components/SegmentedControl.doc.js';
-import {skeletonDoc} from '../components/Skeleton.doc.js';
-import {spinnerDoc} from '../components/Spinner.doc.js';
-import {stackDoc} from '../components/Stack.doc.js';
-import {statusDotDoc} from '../components/StatusDot.doc.js';
+import {alertDoc} from '../Alert/Alert.doc.js';
+import {asyncStateDoc} from '../AsyncState/AsyncState.doc.js';
+import {badgeDoc} from '../Badge/Badge.doc.js';
+import {buttonDoc} from '../Button/Button.doc.js';
+import {cardDoc} from '../Card/Card.doc.js';
+import {cardFooterDoc} from '../CardFooter/CardFooter.doc.js';
+import {cardHeaderDoc} from '../CardHeader/CardHeader.doc.js';
+import {centerDoc} from '../Center/Center.doc.js';
+import {dividerDoc} from '../Divider/Divider.doc.js';
+import {emptyStateDoc} from '../EmptyState/EmptyState.doc.js';
+import {fieldDoc} from '../Field/Field.doc.js';
+import {gridDoc} from '../Grid/Grid.doc.js';
+import {headingDoc} from '../Heading/Heading.doc.js';
+import {iconButtonDoc} from '../IconButton/IconButton.doc.js';
+import {metricGridDoc} from '../MetricGrid/MetricGrid.doc.js';
+import {sectionDoc} from '../Section/Section.doc.js';
+import {segmentedControlDoc} from '../SegmentedControl/SegmentedControl.doc.js';
+import {skeletonDoc} from '../Skeleton/Skeleton.doc.js';
+import {spinnerDoc} from '../Spinner/Spinner.doc.js';
+import {stackDoc} from '../Stack/Stack.doc.js';
+import {statusDotDoc} from '../StatusDot/StatusDot.doc.js';
 import {
   tableBodyDoc,
   tableCaptionDoc,
@@ -27,12 +27,12 @@ import {
   tableHeadDoc,
   tableHeaderCellDoc,
   tableRowDoc,
-} from '../components/Table.doc.js';
-import {textAreaDoc} from '../components/TextArea.doc.js';
-import {textDoc} from '../components/Text.doc.js';
-import {textInputDoc} from '../components/TextInput.doc.js';
-import {toggleDoc} from '../components/Toggle.doc.js';
-import {visuallyHiddenDoc} from '../components/VisuallyHidden.doc.js';
+} from '../Table/Table.doc.js';
+import {textAreaDoc} from '../TextArea/TextArea.doc.js';
+import {textDoc} from '../Text/Text.doc.js';
+import {textInputDoc} from '../TextInput/TextInput.doc.js';
+import {toggleDoc} from '../Toggle/Toggle.doc.js';
+import {visuallyHiddenDoc} from '../VisuallyHidden/VisuallyHidden.doc.js';
 import {linkDoc, linkProviderDoc} from '../navigation/LinkProvider.doc.js';
 import {themeProviderDoc} from '../theme/Theme.doc.js';
 import type {ComponentDoc} from './types.js';

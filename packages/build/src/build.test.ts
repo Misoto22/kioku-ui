@@ -189,10 +189,7 @@ export const styles = stylex.create({root: {color: 'navy'}});`,
   });
 
   it('resolves emitted JavaScript theme specifiers to TypeScript source', async () => {
-    const filename = join(
-      workspaceRoot,
-      'packages/core/src/components/Card.tsx',
-    );
+    const filename = join(workspaceRoot, 'packages/core/src/Card/Card.tsx');
     const result = await transformAsync(await readFile(filename, 'utf8'), {
       babelrc: false,
       configFile: false,
