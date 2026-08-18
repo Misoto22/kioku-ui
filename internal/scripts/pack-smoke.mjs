@@ -303,8 +303,22 @@ export function releaseWorkflowProblems(workflow) {
   if (String(changesetsStep?.env?.NPM_CONFIG_PROVENANCE) !== 'true') {
     problems.push('release job must set NPM_CONFIG_PROVENANCE=true');
   }
-  if (!release?.steps?.some((step) => step.run === 'pnpm release:verify')) {
+  const steps = release?.steps ?? [];
+  const verifyIndex = steps.findIndex(
+    (step) => step.run === 'pnpm release:verify',
+  );
+  const browserIndex = steps.findIndex(
+    (step) =>
+      typeof step.run === 'string' && step.run.includes('playwright install'),
+  );
+
+  if (verifyIndex === -1) {
     problems.push('release job must run pnpm release:verify');
+  } else if (browserIndex === -1 || browserIndex > verifyIndex) {
+    // release:verify runs the accessibility audit, which drives a real browser.
+    problems.push(
+      'release job must install Playwright browsers before pnpm release:verify',
+    );
   }
   if (
     String(setupNodeStep?.with?.['node-version']) !== '24' ||
