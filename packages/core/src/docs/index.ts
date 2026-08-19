@@ -4,6 +4,7 @@ import {appShellDoc} from '../AppShell/AppShell.doc.js';
 import {asyncStateDoc} from '../AsyncState/AsyncState.doc.js';
 import {badgeDoc} from '../Badge/Badge.doc.js';
 import {bottomSheetDoc} from '../BottomSheet/BottomSheet.doc.js';
+import {bottomSheetSwitcherDoc} from '../BottomSheetSwitcher/BottomSheetSwitcher.doc.js';
 import {breadcrumbsDoc} from '../Breadcrumbs/Breadcrumbs.doc.js';
 import {buttonDoc} from '../Button/Button.doc.js';
 import {cardDoc} from '../Card/Card.doc.js';
@@ -19,6 +20,7 @@ import {
   dropdownMenuItemDoc,
 } from '../DropdownMenu/DropdownMenu.doc.js';
 import {emptyStateDoc} from '../EmptyState/EmptyState.doc.js';
+import {eyebrowDoc} from '../Eyebrow/Eyebrow.doc.js';
 import {fieldDoc} from '../Field/Field.doc.js';
 import {gridDoc} from '../Grid/Grid.doc.js';
 import {headingDoc} from '../Heading/Heading.doc.js';
@@ -81,6 +83,7 @@ import {formLayoutDoc} from '../FormLayout/FormLayout.doc.js';
 import {inputGroupDoc} from '../InputGroup/InputGroup.doc.js';
 import {multiSelectorDoc} from '../MultiSelector/MultiSelector.doc.js';
 import {numberInputDoc} from '../NumberInput/NumberInput.doc.js';
+import {numeralDoc} from '../Numeral/Numeral.doc.js';
 import {radioListDoc} from '../RadioList/RadioList.doc.js';
 import {selectorDoc} from '../Selector/Selector.doc.js';
 import {sliderDoc} from '../Slider/Slider.doc.js';
@@ -112,6 +115,7 @@ import {hStackDoc} from '../HStack/HStack.doc.js';
 import {overflowListDoc} from '../OverflowList/OverflowList.doc.js';
 import {powerSearchDoc} from '../PowerSearch/PowerSearch.doc.js';
 import {resizableDoc} from '../Resizable/Resizable.doc.js';
+import {resizeHandleDoc} from '../ResizeHandle/ResizeHandle.doc.js';
 import {selectableCardDoc} from '../SelectableCard/SelectableCard.doc.js';
 import {toggleButtonDoc} from '../ToggleButton/ToggleButton.doc.js';
 import {treeListDoc} from '../TreeList/TreeList.doc.js';
@@ -160,9 +164,11 @@ export {
   asyncStateDoc,
   badgeDoc,
   bottomSheetDoc,
+  bottomSheetSwitcherDoc,
   breadcrumbsDoc,
   buttonDoc,
   emptyStateDoc,
+  eyebrowDoc,
   fieldDoc,
   iconDoc,
   iconButtonDoc,
@@ -219,6 +225,7 @@ export {
   inputGroupDoc,
   multiSelectorDoc,
   numberInputDoc,
+  numeralDoc,
   radioListDoc,
   selectorDoc,
   sliderDoc,
@@ -250,6 +257,7 @@ export {
   overflowListDoc,
   powerSearchDoc,
   resizableDoc,
+  resizeHandleDoc,
   selectableCardDoc,
   toggleButtonDoc,
   treeListDoc,
@@ -282,6 +290,8 @@ export const componentDocs: readonly ComponentDoc[] = Object.freeze([
   headingDoc,
   codeDoc,
   kbdDoc,
+  eyebrowDoc,
+  numeralDoc,
   iconDoc,
   stackDoc,
   gridDoc,
@@ -354,6 +364,7 @@ export const componentDocs: readonly ComponentDoc[] = Object.freeze([
   dialogDoc,
   alertDialogDoc,
   bottomSheetDoc,
+  bottomSheetSwitcherDoc,
   hoverCardDoc,
   dropdownMenuDoc,
   dropdownMenuItemDoc,
@@ -378,6 +389,7 @@ export const componentDocs: readonly ComponentDoc[] = Object.freeze([
   selectableCardDoc,
   collapsibleDoc,
   resizableDoc,
+  resizeHandleDoc,
   overflowListDoc,
   treeListDoc,
   commandPaletteDoc,

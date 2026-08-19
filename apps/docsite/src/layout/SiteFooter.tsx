@@ -1,50 +1,25 @@
-import {Divider, HStack, Stack, Text} from '@misoto22/kioku-ui';
+import {HStack, Link} from '@misoto22/kioku-ui';
 
-import {routeHref, type Route} from '../router.js';
+import {pageMeasure} from './PageContainer.js';
+import type {Route} from '../router.js';
 
-const columns: readonly {
-  links: readonly {href: string; label: string}[];
-  title: string;
-}[] = [
+/**
+ * What the library actually runs on. Every figure here is read off the
+ * workspace's own manifests rather than written from memory, so the line is a
+ * statement about this build and not a slogan.
+ */
+const platform =
+  'React 19 · StyleX 0.19.0 · TypeScript 6 · Node 24+ · pnpm 11.10.0 · MIT';
+
+const links: readonly {href: string; label: string}[] = [
+  {href: 'https://github.com/Misoto22/kioku-ui', label: 'GitHub'},
   {
-    title: 'Learn',
-    links: [
-      {href: routeHref('docs'), label: 'Docs'},
-      {href: routeHref('components'), label: 'Components'},
-      {href: routeHref('templates'), label: 'Templates'},
-      {href: routeHref('themes'), label: 'Themes'},
-    ],
+    href: 'https://github.com/Misoto22/kioku-ui/issues',
+    label: 'Report an issue',
   },
   {
-    title: 'Project',
-    links: [
-      {href: 'https://github.com/Misoto22/kioku-ui', label: 'GitHub'},
-      {
-        href: 'https://github.com/Misoto22/kioku-ui/issues',
-        label: 'Report an issue',
-      },
-      {
-        href: 'https://github.com/Misoto22/kioku-ui/blob/main/CONTRIBUTING.md',
-        label: 'Contributing',
-      },
-    ],
-  },
-  {
-    title: 'Policy',
-    links: [
-      {
-        href: 'https://github.com/Misoto22/kioku-ui/blob/main/CODE_OF_CONDUCT.md',
-        label: 'Code of conduct',
-      },
-      {
-        href: 'https://github.com/Misoto22/kioku-ui/blob/main/SECURITY.md',
-        label: 'Security',
-      },
-      {
-        href: 'https://github.com/Misoto22/kioku-ui/blob/main/LICENSE',
-        label: 'MIT licence',
-      },
-    ],
+    href: 'https://github.com/Misoto22/kioku-ui/blob/main/docs/operations/release.md',
+    label: 'Release runbook',
   },
 ];
 
@@ -52,76 +27,79 @@ interface SiteFooterProps {
   readonly onNavigate: (route: Route) => void;
 }
 
-/** The site footer: every destination again, plus the project's own links. */
+/**
+ * The site footer, drawn as the banner's answering rule: one line of facts and
+ * the project's own links, on the same paper as the banner. The destinations
+ * are not repeated here — the banner is sticky, so they never leave the
+ * screen.
+ *
+ * `AppShell` supplies the `<footer>` element and its padding, so the bar
+ * negates that padding exactly rather than adding a second gutter inside it.
+ */
 export function SiteFooter({onNavigate}: SiteFooterProps) {
   return (
-    <Stack
-      gap="lg"
+    <div
       style={{
-        borderBlockStart:
-          'var(--kioku-ui-border-width) var(--kioku-ui-border-style) var(--kioku-ui-border-default)',
-        marginBlockStart: 'var(--kioku-ui-spacing-2xl)',
-        marginInline: 'auto',
-        maxWidth: '76rem',
-        paddingBlock: 'var(--kioku-ui-spacing-xl)',
-        paddingInline: 'var(--kioku-ui-spacing-lg)',
-        width: '100%',
+        backgroundColor: 'var(--kioku-ui-color-surface)',
+        marginBlock: 'calc(-1 * var(--kioku-ui-spacing-md))',
+        marginInline: 'calc(-1 * var(--kioku-ui-spacing-lg))',
       }}
     >
-      <div
+      <HStack
+        align="center"
+        justify="between"
         style={{
-          display: 'grid',
-          gap: 'var(--kioku-ui-spacing-xl)',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))',
+          gap: 'var(--kioku-ui-spacing-lg)',
+          marginInline: 'auto',
+          maxWidth: pageMeasure,
+          paddingBlock: 'var(--kioku-ui-spacing-md)',
+          paddingInline: 'var(--kioku-ui-spacing-2xl)',
+          width: '100%',
         }}
+        wrap
       >
-        {columns.map((column) => (
-          <Stack gap="sm" key={column.title}>
-            <Text size="sm" tone="muted">
-              {column.title}
-            </Text>
-            <Stack gap="xs">
-              {column.links.map((link) => (
-                <a
-                  href={link.href}
-                  key={link.label}
-                  onClick={() => {
-                    if (link.href.startsWith('#/')) {
-                      onNavigate(link.href.slice(2) as Route);
-                    }
-                  }}
-                  {...(link.href.startsWith('http')
-                    ? {rel: 'noreferrer', target: '_blank'}
-                    : {})}
-                  style={{
-                    // WCAG 2.2 asks for a 24px target; the line box alone is
-                    // shorter than that at this font size.
-                    alignItems: 'center',
-                    color: 'var(--kioku-ui-color-text-secondary)',
-                    display: 'inline-flex',
-                    fontSize: 'var(--kioku-ui-typography-font-size-sm)',
-                    minHeight: '24px',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </Stack>
-          </Stack>
-        ))}
-      </div>
+        <span
+          style={{
+            color: 'var(--kioku-ui-color-text-muted)',
+            fontFamily: 'var(--kioku-ui-typography-font-family-mono)',
+            fontSize: 'var(--kioku-ui-typography-font-size-xs)',
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: 'var(--kioku-ui-typography-letter-spacing-mono)',
+          }}
+        >
+          {platform}
+        </span>
 
-      <Divider />
-
-      <HStack gap="sm" justify="between" wrap>
-        <Text size="sm" tone="muted">
-          Kioku UI — a product-neutral React design system.
-        </Text>
-        <Text size="sm" tone="muted">
-          MIT licensed
-        </Text>
+        <HStack gap="lg" wrap>
+          {links.map((link) => (
+            <Link
+              href={link.href}
+              key={link.label}
+              onClick={() => {
+                if (link.href.startsWith('#/')) {
+                  onNavigate(link.href.slice(2) as Route);
+                }
+              }}
+              {...(link.href.startsWith('http')
+                ? {rel: 'noreferrer', target: '_blank'}
+                : {})}
+              style={{
+                // WCAG 2.2 asks for a 24px target; the line box alone is
+                // shorter than that at this font size.
+                alignItems: 'center',
+                display: 'inline-flex',
+                fontFamily: 'var(--kioku-ui-typography-font-family-body)',
+                fontSize: 'var(--kioku-ui-typography-font-size-sm)',
+                letterSpacing:
+                  'var(--kioku-ui-typography-letter-spacing-label)',
+                minBlockSize: 'var(--kioku-ui-size-control-md)',
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </HStack>
       </HStack>
-    </Stack>
+    </div>
   );
 }

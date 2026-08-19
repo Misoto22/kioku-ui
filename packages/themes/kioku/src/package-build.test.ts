@@ -96,6 +96,21 @@ void [theme, themes, names];
     ]);
   });
 
+  it('declares the color-scheme its light-dark() values resolve against', async () => {
+    const css = await readFile(join(packageRoot, 'dist/theme.css'), 'utf8');
+
+    // Not decoration. `light-dark()` resolves against the element's used
+    // color-scheme, and a bundler that lowers it for older targets only emits
+    // the toggle custom properties when it can see this declaration in the
+    // stylesheet — an inline style on the host's own root is invisible to it.
+    // Without this line lightningcss rewrote every colour to
+    // `var(--lightningcss-light, …)` and emitted no definition, so a built
+    // site resolved 104 colour declarations to nothing while dev, which does
+    // not minify, rendered correctly.
+    expect(css).toContain('color-scheme: light dark');
+    expect(css.split('light-dark(').length - 1).toBeGreaterThan(0);
+  });
+
   it('exports ready-to-use theme CSS from the public package', async () => {
     await access(join(packageRoot, 'dist/theme.css'));
 

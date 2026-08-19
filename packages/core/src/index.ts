@@ -21,6 +21,11 @@ export {
 } from './Box/index.js';
 export {BottomSheet, type BottomSheetProps} from './BottomSheet/index.js';
 export {
+  BottomSheetSwitcher,
+  type BottomSheetSwitcherProps,
+  type BottomSheetSwitcherView,
+} from './BottomSheetSwitcher/index.js';
+export {
   AsyncState,
   type AsyncStateProps,
   type AsyncStateValue,
@@ -118,6 +123,7 @@ export {
   type EmptyStateProps,
   type EmptyStateSize,
 } from './EmptyState/index.js';
+export {Eyebrow, type EyebrowProps, type EyebrowTone} from './Eyebrow/index.js';
 export {Field, type FieldNecessity, type FieldProps} from './Field/index.js';
 export {FieldStatus, type FieldStatusProps} from './FieldStatus/index.js';
 export {FileInput, type FileInputProps} from './FileInput/index.js';
@@ -190,6 +196,7 @@ export {
   type NavMenuProps,
 } from './NavMenu/index.js';
 export {NumberInput, type NumberInputProps} from './NumberInput/index.js';
+export {Numeral, type NumeralProps} from './Numeral/index.js';
 export {
   OverflowList,
   type OverflowEntry,
@@ -221,6 +228,11 @@ export {
   type SegmentedControlProps,
 } from './SegmentedControl/index.js';
 export {Resizable, type ResizableProps} from './Resizable/index.js';
+export {
+  ResizeHandle,
+  type ResizeHandleOrientation,
+  type ResizeHandleProps,
+} from './ResizeHandle/index.js';
 export {
   SelectableCard,
   type SelectableCardProps,
@@ -315,6 +327,7 @@ export {
 export {
   ThemeProvider,
   useTheme,
+  type ColorMode,
   type ThemeContextValue,
   type ThemePersistence,
   type ThemeProviderProps,

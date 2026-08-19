@@ -8,10 +8,9 @@ import {Link} from '../navigation/index.js';
 // regions, so it reads as a deliberate stroke rather than another divider.
 const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
 
-// A hovered row is hinted at, the current row is claimed. Fractions of the row
-// rather than absolute lengths, so a denser theme keeps the proportion.
+// A hovered row is hinted at. A fraction of the row rather than an absolute
+// length, so a denser theme keeps the proportion.
 const hoverMarkHeight = '40%';
-const currentMarkHeight = '72%';
 
 const styles = stylex.create({
   item: {
@@ -63,14 +62,13 @@ const styles = stylex.create({
     },
     ':hover': {color: semanticTokens.colorText},
   },
-  current: {
-    color: semanticTokens.colorText,
-    fontWeight: semanticTokens.fontWeightMedium,
-    '::before': {
-      backgroundColor: semanticTokens.colorAccent,
-      height: currentMarkHeight,
-    },
-  },
+  // The current row is claimed by ink alone — no bar, no added weight. A rail
+  // is a short column of short words: a stroke beside one of them reads as a
+  // second divider, and bolding it makes the one row the reader is already on
+  // the heaviest thing on the page. Ink against second-rank ink is enough to
+  // find, and it leaves the rail quiet. `aria-current` still carries the fact
+  // for anyone who cannot see the difference.
+  current: {color: semanticTokens.colorText},
 });
 
 /** Props for one destination inside a navigation menu. */
@@ -85,8 +83,8 @@ export interface NavItemProps extends Omit<
 
 /**
  * Links to one destination. `current` marks the reader's location with
- * `aria-current="page"` rather than colour alone: the accent bar at the
- * inline-start edge is the visual echo of that attribute, not its substitute.
+ * `aria-current="page"` as well as ink, so the location is not carried by
+ * colour alone.
  */
 export function NavItem({
   children,

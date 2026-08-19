@@ -2,6 +2,18 @@
 [data-theme='washi'],
 [data-theme='muji'],
 [data-theme='sumi'] {
+  /*
+   * Declared here, in CSS, rather than left to the host to set inline. Two
+   * reasons, and the second is the one that bites. `light-dark()` resolves
+   * against the element's used color-scheme, so without this a theme root
+   * follows whatever an ancestor happened to declare. And a bundler that
+   * lowers `light-dark()` for older targets — lightningcss does — only emits
+   * the toggle custom properties when it can see a `color-scheme` declaration
+   * in the stylesheet. An inline style is invisible to it, so it rewrote every
+   * colour to `var(--lightningcss-light, …)` and emitted no definition: 104
+   * dead declarations in a built site that rendered correctly in dev.
+   */
+  color-scheme: light dark;
   --kioku-ui-color-canvas: var(--kioku-theme-color-canvas);
   --kioku-ui-color-surface: var(--kioku-theme-color-surface);
   --kioku-ui-color-surface-raised: var(--kioku-theme-color-surface-raised);

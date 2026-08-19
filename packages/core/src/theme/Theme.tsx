@@ -61,6 +61,12 @@ const semanticTokenScopeClass = (
 
 export type Density = 'compact' | 'standard';
 
+/**
+ * Which appearance the theme resolves its `light-dark()` pairs against.
+ * `system` follows the reader's own setting.
+ */
+export type ColorMode = 'dark' | 'light' | 'system';
+
 const densities: readonly Density[] = ['compact', 'standard'];
 
 // A theme pack fulfills the token contract twice, once per density. Density is
@@ -71,11 +77,14 @@ export interface ThemePersistence {
   write(themeId: string): void;
   readDensity?(): string | undefined;
   writeDensity?(density: Density): void;
+  readMode?(): string | undefined;
+  writeMode?(mode: ColorMode): void;
 }
 
 export interface ThemeProviderProps {
   readonly children: ReactNode;
   readonly defaultDensity?: Density;
+  readonly defaultMode?: ColorMode;
   readonly defaultThemeId: string;
   readonly persistence?: ThemePersistence;
   readonly themes: readonly ThemeDefinition[];
@@ -83,6 +92,8 @@ export interface ThemeProviderProps {
 
 export interface ThemeContextValue {
   readonly density: Density;
+  readonly mode: ColorMode;
+  readonly setMode: (mode: ColorMode) => void;
   /**
    * The element the theme's custom properties are written to. A floating
    * surface has to portal into this rather than into `document.body`: the
@@ -121,6 +132,14 @@ function requiredDensity(density: string | undefined, fallback: Density) {
     : fallback;
 }
 
+const colorModes: readonly ColorMode[] = ['dark', 'light', 'system'];
+
+function requiredMode(mode: string | undefined, fallback: ColorMode) {
+  return colorModes.includes(mode as ColorMode)
+    ? (mode as ColorMode)
+    : fallback;
+}
+
 function requiredTheme(themes: readonly ThemeDefinition[], themeId: string) {
   const theme = themes.find(({id}) => id === themeId);
   if (!theme) {
@@ -141,6 +160,7 @@ function themeStyle(theme: ThemeDefinition): CSSProperties {
 export function ThemeProvider({
   children,
   defaultDensity = 'compact',
+  defaultMode = 'system',
   defaultThemeId,
   persistence,
   themes,
@@ -170,10 +190,21 @@ export function ThemeProvider({
     },
     [defaultDensity, persistence],
   );
+  const [mode, setCurrentMode] = useState(() =>
+    requiredMode(persistence?.readMode?.(), defaultMode),
+  );
+  const setMode = useCallback(
+    (nextMode: ColorMode) => {
+      const resolved = requiredMode(nextMode, defaultMode);
+      persistence?.writeMode?.(resolved);
+      setCurrentMode(resolved);
+    },
+    [defaultMode, persistence],
+  );
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const value = useMemo(
-    () => ({density, root, setDensity, setThemeId, theme}),
-    [density, root, setDensity, setThemeId, theme],
+    () => ({density, mode, root, setDensity, setMode, setThemeId, theme}),
+    [density, mode, root, setDensity, setMode, setThemeId, theme],
   );
 
   const {className, style} = stylex.props(styles.root);
@@ -185,9 +216,23 @@ export function ThemeProvider({
           .filter(Boolean)
           .join(' ')}
         data-density={density}
+        data-mode={mode}
         data-theme={theme.id}
         ref={setRoot}
-        style={{...style, ...themeStyle(theme)}}
+        /*
+         * `color-scheme` is stamped on this element and no other. It is the
+         * element that carries the tokens, and `light-dark()` resolves against
+         * the used color-scheme of the element the value lands on — so a host
+         * that sets the scheme on a div *inside* the provider changes nothing,
+         * which is exactly the bug this replaced. `system` omits the property
+         * so the stylesheet's own `light dark` stands and the reader's setting
+         * decides.
+         */
+        style={{
+          ...style,
+          ...themeStyle(theme),
+          ...(mode === 'system' ? {} : {colorScheme: mode}),
+        }}
       >
         {children}
       </div>

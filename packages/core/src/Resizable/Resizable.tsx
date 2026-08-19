@@ -5,12 +5,11 @@ import {
   useRef,
   useState,
   type HTMLAttributes,
-  type KeyboardEvent,
   type ReactNode,
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
-import {useInternationalization} from '../i18n/index.js';
+import {ResizeHandle} from '../ResizeHandle/index.js';
 
 const styles = stylex.create({
   frame: {
@@ -20,39 +19,6 @@ const styles = stylex.create({
   },
   panel: {flexShrink: 0, minWidth: 0, overflow: 'auto'},
   rest: {flexGrow: 1, minWidth: 0, overflow: 'auto'},
-  handle: {
-    // The divider is a hairline like every other seam in this system; the
-    // grab area is widened by a pseudo-element instead of the visible box.
-    backgroundColor: semanticTokens.borderDefault,
-    borderStyle: 'none',
-    borderWidth: 0,
-    cursor: 'col-resize',
-    flexShrink: 0,
-    inlineSize: semanticTokens.borderWidth,
-    padding: 0,
-    position: 'relative',
-    transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color',
-    transitionTimingFunction: semanticTokens.easingStandard,
-    '::before': {
-      blockSize: '100%',
-      content: '',
-      inlineSize: semanticTokens.spacingSm,
-      insetBlockStart: 0,
-      insetInlineStart: '50%',
-      position: 'absolute',
-      transform: 'translateX(-50%)',
-    },
-    ':focus-visible': {
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
-    },
-    ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.borderInteractive,
-    },
-  },
 });
 
 /** Props for a two-panel split whose divider can be moved. */
@@ -86,7 +52,6 @@ export function Resizable({
   step = 16,
   ...props
 }: ResizableProps) {
-  const {messages} = useInternationalization();
   const frameRef = useRef<HTMLDivElement>(null);
   const [internalSize, setInternalSize] = useState(size ?? 240);
   const current = size ?? internalSize;
@@ -126,46 +91,21 @@ export function Resizable({
     };
   }, [apply, dragging]);
 
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      apply(current - step);
-      return;
-    }
-    if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      apply(current + step);
-      return;
-    }
-    if (event.key === 'Home') {
-      event.preventDefault();
-      apply(min);
-      return;
-    }
-    if (event.key === 'End') {
-      event.preventDefault();
-      apply(max);
-    }
-  }
-
   return (
     <div {...props} ref={frameRef} {...stylex.props(styles.frame)}>
       <div {...stylex.props(styles.panel)} style={{width: `${current}px`}}>
         {panel}
       </div>
-      <div
-        aria-label={handleLabel ?? messages.resizeHandle}
-        aria-orientation="vertical"
-        aria-valuemax={max}
-        aria-valuemin={min}
-        aria-valuenow={current}
-        onKeyDown={handleKeyDown}
+      <ResizeHandle
+        label={handleLabel}
+        max={max}
+        min={min}
         onMouseDown={() => {
           setDragging(true);
         }}
-        role="separator"
-        tabIndex={0}
-        {...stylex.props(styles.handle)}
+        onValueChange={apply}
+        step={step}
+        value={current}
       />
       <div {...stylex.props(styles.rest)}>{children}</div>
     </div>

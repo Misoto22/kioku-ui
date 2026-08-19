@@ -1,9 +1,12 @@
-import {useState} from 'react';
+import {useState, type CSSProperties} from 'react';
 
 import {
+  Box,
   Button,
   Card,
+  CardHeader,
   Dialog,
+  Eyebrow,
   Field,
   Heading,
   Item,
@@ -16,7 +19,20 @@ import {
   TextInput,
 } from '@misoto22/kioku-ui';
 
+// `Eyebrow` carries the type, so a card title that has to stay in the document
+// outline keeps only its own box: no margin, and no inline strut of its own to
+// make the row taller than the label inside it.
+const eyebrowHeading: CSSProperties = {display: 'flex', margin: 0};
+
+// One hairline apart, drawn with the gap rather than a border per row.
+const tiles: CSSProperties = {
+  backgroundColor: 'var(--kioku-ui-border-default)',
+  display: 'grid',
+  gap: 'var(--kioku-ui-border-width)',
+};
+
 interface Preferences {
+  readonly digest: boolean;
   readonly liveUpdates: boolean;
   readonly name: string;
   readonly timezone: string;
@@ -33,16 +49,25 @@ const timezones = [
 ];
 
 const initial: Preferences = {
+  digest: false,
   liveUpdates: true,
   name: 'Ada Lovelace',
   timezone: 'perth',
 };
+
+function timezoneLabel(value: string) {
+  return timezones.find((entry) => entry.value === value)?.label ?? value;
+}
 
 /**
  * Settings in a modal. Unlike a settings page, changes here are staged in a
  * draft and only committed on save — a modal can be dismissed by Escape or a
  * stray click, so applying immediately would let a reader lose a change
  * without ever seeing it happen.
+ *
+ * That is also why this is the one settings template with an emphatic button.
+ * There is exactly one per scope: Save closes the dialog, Edit settings opens
+ * it, and everything else is paper with a hairline edge.
  */
 export function SettingsDialogPage() {
   const [saved, setSaved] = useState(initial);
@@ -62,22 +87,27 @@ export function SettingsDialogPage() {
   }
 
   return (
-    <Stack gap="lg">
-      <Heading level={1} size="section">
-        Workspace
-      </Heading>
+    <Stack gap="xl">
+      <Stack gap="sm">
+        <Eyebrow>WORKSPACE</Eyebrow>
+        <Heading level={1} size="section">
+          General
+        </Heading>
+      </Stack>
 
       <Card>
-        <Stack gap="md">
+        <CardHeader>
+          <h2 style={eyebrowHeading}>
+            <Eyebrow>IN EFFECT</Eyebrow>
+          </h2>
+        </CardHeader>
+        <Stack gap="lg">
           <MetadataList
             entries={[
               {detail: saved.name, term: 'Display name'},
-              {
-                detail:
-                  saved.timezone === 'perth' ? 'Australia/Perth' : 'Asia/Tokyo',
-                term: 'Time zone',
-              },
+              {detail: timezoneLabel(saved.timezone), term: 'Time zone'},
               {detail: saved.liveUpdates ? 'On' : 'Off', term: 'Live updates'},
+              {detail: saved.digest ? 'On' : 'Off', term: 'Daily digest'},
             ]}
             layout="inline"
           />
@@ -102,7 +132,7 @@ export function SettingsDialogPage() {
         open={open}
         title="Settings"
       >
-        <Stack gap="md">
+        <Stack gap="lg">
           <TabList
             label="Settings sections"
             onSelect={setSection}
@@ -111,7 +141,7 @@ export function SettingsDialogPage() {
           />
 
           {section === 'profile' ? (
-            <>
+            <Stack gap="md">
               <Field label="Display name">
                 <TextInput
                   onValueChange={(name) =>
@@ -129,22 +159,42 @@ export function SettingsDialogPage() {
                   value={draft.timezone}
                 />
               </Field>
-            </>
+            </Stack>
           ) : (
-            <Item
-              description="Takes effect when you save"
-              trailing={
-                <Switch
-                  aria-label="Live updates"
-                  onPressedChange={(liveUpdates) =>
-                    setDraft((current) => ({...current, liveUpdates}))
+            <div style={tiles}>
+              <Box padding="md" surface="surface">
+                <Item
+                  description="Takes effect when you save"
+                  trailing={
+                    <Switch
+                      aria-label="Live updates"
+                      onPressedChange={(liveUpdates) =>
+                        setDraft((current) => ({...current, liveUpdates}))
+                      }
+                      pressed={draft.liveUpdates}
+                    />
                   }
-                  pressed={draft.liveUpdates}
-                />
-              }
-            >
-              Live updates
-            </Item>
+                >
+                  Live updates
+                </Item>
+              </Box>
+              <Box padding="md" surface="surface">
+                <Item
+                  description="One message each morning instead of many"
+                  trailing={
+                    <Switch
+                      aria-label="Daily digest"
+                      onPressedChange={(digest) =>
+                        setDraft((current) => ({...current, digest}))
+                      }
+                      pressed={draft.digest}
+                    />
+                  }
+                >
+                  Daily digest
+                </Item>
+              </Box>
+            </div>
           )}
 
           <Text size="sm" tone="muted">

@@ -204,6 +204,11 @@ export const componentCatalog: readonly CatalogGroup[] = [
         status: 'ready',
       },
       {
+        description: 'Names a thing without competing with it.',
+        name: 'Eyebrow',
+        status: 'ready',
+      },
+      {
         description: 'A titled break in the reading order.',
         name: 'Heading',
         status: 'ready',
@@ -221,6 +226,11 @@ export const componentCatalog: readonly CatalogGroup[] = [
       {
         description: 'Renders a restricted Markdown subset.',
         name: 'Markdown',
+        status: 'ready',
+      },
+      {
+        description: 'Sets a figure in the mono face with tabular numerals.',
+        name: 'Numeral',
         status: 'ready',
       },
       {
@@ -481,6 +491,11 @@ export const componentCatalog: readonly CatalogGroup[] = [
         status: 'ready',
       },
       {
+        description: 'Divides two panes with a control arrow keys can move.',
+        name: 'ResizeHandle',
+        status: 'ready',
+      },
+      {
         description: 'A titled block within a page.',
         name: 'Section',
         status: 'ready',
@@ -583,6 +598,11 @@ export const componentCatalog: readonly CatalogGroup[] = [
       {
         description: 'A modal panel anchored to the bottom edge.',
         name: 'BottomSheet',
+        status: 'ready',
+      },
+      {
+        description: 'Swaps one sheet between several named views.',
+        name: 'BottomSheetSwitcher',
         status: 'ready',
       },
       {

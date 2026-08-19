@@ -1,5 +1,6 @@
 /** Every string the system speaks on a host application's behalf. */
 export interface Messages {
+  readonly back: string;
   readonly calendarNextMonth: string;
   readonly calendarPreviousMonth: string;
   readonly carouselNext: string;
@@ -23,6 +24,7 @@ export interface Messages {
  * instead of an English word appearing mid-sentence.
  */
 export const defaultMessages: Messages = Object.freeze({
+  back: 'Back',
   calendarNextMonth: 'Next month',
   calendarPreviousMonth: 'Previous month',
   carouselNext: 'Next',

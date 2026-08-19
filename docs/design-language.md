@@ -67,9 +67,18 @@ filter or list row is indicated by:
 - `colorText` instead of `colorTextSecondary`, plus `fontWeightMedium`.
 
 Not by a filled rectangle, not by a coloured pill, not by a grey background.
-`SegmentedControl` is the one documented exception: its selected option gets
-`colorSurfaceRaised` + `elevationLow`, because the control's whole metaphor is a
-physical switch.
+
+Pick the lightest of the three that still reads, and in a **navigation rail
+pick the last one without the weight** — ink alone. A rail is a short column of
+short words: a stroke beside one of them reads as a second divider, and bolding
+the row the reader is already on makes it the heaviest thing on the page. That
+is why `NavItem` draws no bar and adds no weight; `aria-current` carries the
+fact for anyone who cannot see the ink. Keep the bar for a mark that has to
+survive beside longer content — a menu row, a selected table row.
+
+`SegmentedControl` is the one documented exception to the no-fill rule: its
+selected option gets `colorSurfaceRaised` + `elevationLow`, because the
+control's whole metaphor is a physical switch.
 
 ### 6. Tracking runs inverse to size
 
