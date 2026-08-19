@@ -36,10 +36,12 @@ const commands: readonly Command[] = [
 
 function PaletteDemo({
   label = 'Open command palette',
+  startOpen = false,
 }: {
   readonly label?: string;
+  readonly startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [last, setLast] = useState('');
 
   return (
@@ -71,11 +73,13 @@ export const Default: Story = {
   ),
 };
 
+// The palette starts out, so the group eyebrows and the mono shortcut column
+// are visible without anyone having to press the trigger.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
       <Stack gap="md">
-        <PaletteDemo label="Open" />
+        <PaletteDemo label="Open" startOpen />
         <Text size="sm" tone="muted">
           Focus stays in the search field while aria-activedescendant names the
           highlighted command, so typing and choosing never fight for focus.

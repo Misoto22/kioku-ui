@@ -80,6 +80,7 @@
       "core-citation--default",
       "core-clickable-card--composition",
       "core-clickable-card--default",
+      "core-clickable-card--states",
       "core-code--composition",
       "core-code--default",
       "core-code-block--composition",

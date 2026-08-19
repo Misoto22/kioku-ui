@@ -12,7 +12,9 @@ const styles = stylex.create({
   },
   control: {flexGrow: 1, minWidth: 0},
   // An affix sits at the same depth as the control it flanks, so the two read
-  // as one field rather than as a chip beside a box.
+  // as one field rather than as a chip beside a box. Its text is an eyebrow —
+  // "AUD" or "/month" names the unit without competing with the value, and at
+  // label size it was reading as loudly as the figure it qualifies.
   addon: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
@@ -24,10 +26,10 @@ const styles = stylex.create({
     color: semanticTokens.colorTextSecondary,
     display: 'flex',
     flexShrink: 0,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
-    lineHeight: semanticTokens.lineHeightBody,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     minHeight: semanticTokens.sizeControlMd,
     paddingInline: semanticTokens.spacingSm,
   },

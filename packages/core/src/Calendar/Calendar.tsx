@@ -17,6 +17,12 @@ import {IconButton} from '../IconButton/index.js';
 // the one filled day in the grid is the day that was actually chosen.
 const todayMark = `inset 0 calc(-2 * ${semanticTokens.borderWidth}) 0 0 ${semanticTokens.colorAccent}`;
 
+// The grid is tiled, not bordered: one hairline of separation drawn by the
+// table's own background showing through the spacing, with every cell opaque
+// over it. Bordering each cell would double every interior rule and leave the
+// perimeter twice as heavy as the inside.
+const gridRule = semanticTokens.borderWidth;
+
 const styles = stylex.create({
   calendar: {
     backgroundColor: semanticTokens.colorSurface,
@@ -36,36 +42,59 @@ const styles = stylex.create({
   },
   month: {
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeMd,
+    // The year is a figure sitting beside a word. Without tabular figures the
+    // heading re-flows by a hair as the reader steps months, which reads as a
+    // wobble in a control that is otherwise perfectly still.
+    fontVariantNumeric: 'tabular-nums',
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
-  grid: {borderCollapse: 'collapse'},
+  // Not clipped. A tiled set is normally given `overflow: hidden` so the
+  // corner cells cannot square off the container, but every tile here is
+  // focusable and the focus ring stands two pixels outside its box — clipping
+  // would take the ring off the whole perimeter of the grid to tidy three
+  // pixels of corner.
+  grid: {
+    backgroundColor: semanticTokens.borderDefault,
+    borderCollapse: 'separate',
+    borderRadius: semanticTokens.radiusInner,
+    borderSpacing: gridRule,
+  },
   weekday: {
-    color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     paddingBlock: semanticTokens.spacingXs,
     textTransform: 'uppercase',
     width: semanticTokens.sizeControlMd,
   },
-  cell: {padding: 0},
+  cell: {backgroundColor: semanticTokens.colorSurface, padding: 0},
+  // No radius and no border. A day is a tile in a tiled set, so it fills its
+  // cell edge to edge; a rounded chip inside a tile would show the rule
+  // through its corners, and a hairline round a 28px box reads as a field
+  // that failed to grow.
   day: {
     backgroundColor: 'transparent',
     borderStyle: 'none',
     borderWidth: 0,
-    borderRadius: semanticTokens.radiusElement,
     boxSizing: 'border-box',
     cursor: 'pointer',
-    fontFamily: semanticTokens.fontFamilyBody,
+    display: 'block',
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
+    // A month whose digits do not line up column to column is the loudest
+    // failure this grid can make.
+    fontVariantNumeric: 'tabular-nums',
     height: semanticTokens.sizeControlMd,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    letterSpacing: semanticTokens.letterSpacingMono,
     padding: 0,
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, box-shadow, color',
@@ -82,19 +111,23 @@ const styles = stylex.create({
       outlineWidth: semanticTokens.focusWidth,
     },
   },
+  // Three ranks of ink carry the month: the day in hand is current, the rest
+  // of the month is available, the neighbouring months are context.
   open: {
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     ':hover:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
   },
   outside: {
     color: semanticTokens.colorTextMuted,
     ':hover:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorTextSecondary,
     },
   },
-  today: {boxShadow: todayMark},
+  today: {boxShadow: todayMark, color: semanticTokens.colorText},
   // A single square point is small enough to fill without shouting.
   chosen: {
     backgroundColor: semanticTokens.colorAccent,

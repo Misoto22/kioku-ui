@@ -36,12 +36,15 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
     minWidth: boundMinimumWidth,
   },
+  // "Start" and "End" are eyebrows, not labels. The legend already asks the
+  // question; these two only say which end of it a control holds, and set at
+  // the same size and weight as the legend they competed with it.
   label: {
     color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
-    lineHeight: semanticTokens.lineHeightBody,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
 });
 

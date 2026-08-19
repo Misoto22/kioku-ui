@@ -34,9 +34,11 @@ const styles = stylex.create({
     objectFit: 'cover',
     width: '100%',
   },
+  // The label of last resort, so it is set as one: the eyebrow recipe exactly
+  // — smallest size, opened right up, heading face, a rank below the frame.
   fallback: {
-    color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightBody,

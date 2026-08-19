@@ -16,18 +16,27 @@ import {Popover} from '../Popover/index.js';
 
 // A menu stays wide enough for a two-word action plus its shortcut; the scale
 // stops at 38px, so the floor is a named multiple of it rather than a literal.
-const menuMinWidth = `calc(${semanticTokens.spacing2xl} * 5)`;
+// The bleed is added back because the list negates the popover's padding.
+const menuBleed = `calc(-1 * ${semanticTokens.spacingMd})`;
+const menuMinWidth = `calc(${semanticTokens.spacing2xl} * 5 + ${semanticTokens.spacingMd} * 2)`;
 
 const styles = stylex.create({
+  // The list negates the popover's padding exactly and puts it back on each
+  // row, so a hover wash runs the full width of the plate instead of floating
+  // as a rectangle inside it. Rows sit flush: a gap between actions reads as
+  // separate controls rather than as one menu.
   menu: {
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
+    marginBlock: menuBleed,
+    marginInline: menuBleed,
     minWidth: menuMinWidth,
+    paddingBlock: semanticTokens.spacingXs,
   },
+  // A row inside a plate is a solid block, not a small outlined box: no
+  // hairline, no radius of its own, the state carried entirely by the fill.
   item: {
     backgroundColor: 'transparent',
-    borderRadius: semanticTokens.radiusElement,
     borderStyle: 'none',
     borderWidth: 0,
     color: semanticTokens.colorText,
@@ -37,7 +46,7 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingMd,
     textAlign: 'start',
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, color',

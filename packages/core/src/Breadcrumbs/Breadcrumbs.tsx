@@ -23,12 +23,15 @@ const styles = stylex.create({
     display: 'flex',
   },
   // A trail is text and separators. There is no chip, no fill and no radius
-  // here: the path is read, not clicked as a set of objects.
+  // here: the path is read, not clicked as a set of objects. The separator is
+  // set as an eyebrow — smallest size, third rank of ink — because a mark cut
+  // at the same size as the steps it parts reads as another step.
   separator: {
     color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
   current: {
     color: semanticTokens.colorText,

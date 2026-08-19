@@ -15,6 +15,9 @@ const styles = stylex.create({
     columnGap: semanticTokens.spacingLg,
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
+    // One hit target tall, so the banner keeps its height whether it holds a
+    // wordmark alone or a wordmark, a menu, and a row of account tools.
+    minHeight: semanticTokens.sizeHitTarget,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingLg,
   },

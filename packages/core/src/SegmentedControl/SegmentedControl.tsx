@@ -22,14 +22,17 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusInner,
     borderStyle: 'none',
     boxSizing: 'border-box',
-    color: semanticTokens.colorText,
+    cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     letterSpacing: semanticTokens.letterSpacingLabel,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
-    ':disabled': {color: semanticTokens.colorDisabledText},
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, box-shadow, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
@@ -37,12 +40,18 @@ const styles = stylex.create({
       outlineWidth: semanticTokens.focusWidth,
     },
   },
+  // Three ranks of ink carry the choice. An option you could still take is
+  // available, not current, and saying so in secondary ink is what lets the
+  // raised block underneath the current one stay as quiet as it is.
   unselected: {
+    color: semanticTokens.colorTextSecondary,
     ':active:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayActive,
+      color: semanticTokens.colorText,
     },
-    ':hover:not(:disabled)': {
+    ':hover:not(:disabled):not(:active)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
   },
   selected: {

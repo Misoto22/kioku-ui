@@ -5,17 +5,18 @@ import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
   base: {
+    // A key cap is a well in the page, not a bevelled object above it — and at
+    // this size not an outlined one either: a 16px box with a hairline round
+    // it reads as a field that failed to grow. The fill draws the edge.
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusInner,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    // A key cap is a well in the page, not a bevelled object above it.
+    borderStyle: 'none',
     boxShadow: 'none',
     color: semanticTokens.colorText,
     display: 'inline-block',
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,

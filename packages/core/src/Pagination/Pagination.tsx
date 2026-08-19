@@ -33,6 +33,10 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingLabel,
     minWidth: semanticTokens.sizeControlSm,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty:
+      'background-color, background-image, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
@@ -45,17 +49,24 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    // The step stands on `colorSurface`, so its wash is laid over that fill
+    // rather than replacing it: swapping the background colour for a 4%
+    // overlay drops the surface and lets the canvas through on hover.
     ':active:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayActive,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
       borderColor: semanticTokens.borderInteractive,
     },
     ':hover:not(:disabled):not(:active)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
       borderColor: semanticTokens.borderInteractive,
     },
   },
   // A page number is a link in a row of links, not a control with an edge:
   // the strip stays quiet until one number is marked as the current page.
+  //
+  // It is also a figure, so it is set in the mono face with tabular figures.
+  // Proportional digits make 8 wider than 1, and a strip whose numbers change
+  // width as the reader walks through the pages wobbles under the cursor.
   page: {
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -71,14 +82,18 @@ const styles = stylex.create({
     color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     display: 'inline-flex',
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
     fontWeight: semanticTokens.fontWeightRegular,
     height: semanticTokens.sizeControlSm,
     justifyContent: 'center',
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    letterSpacing: semanticTokens.letterSpacingMono,
     minWidth: semanticTokens.sizeControlSm,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
@@ -102,11 +117,13 @@ const styles = stylex.create({
     cursor: 'default',
     fontWeight: semanticTokens.fontWeightMedium,
   },
+  // The gap sits in the run of figures, so it takes the figures' face and the
+  // third rank of ink: it is context, not a page you can go to.
   ellipsis: {
     color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    letterSpacing: semanticTokens.letterSpacingMono,
     paddingInline: semanticTokens.spacingXs,
   },
 });

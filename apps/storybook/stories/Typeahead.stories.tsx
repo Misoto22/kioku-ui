@@ -10,6 +10,20 @@ import {
 
 import {DemoFrame, StateGrid} from './support/StoryFrame';
 
+// A list of options is a set, and a set sits on a surface with an edge — the
+// same plate the component's own popup is painted with. Loose on the canvas
+// the rows read as unplaced rather than as a picker.
+const handRolledList = {
+  backgroundColor: 'var(--kioku-ui-color-surface-raised)',
+  borderRadius: 'var(--kioku-ui-radius-container)',
+  boxShadow: 'var(--kioku-ui-elevation-medium)',
+  listStyle: 'none',
+  margin: 0,
+  paddingBlock: 'var(--kioku-ui-spacing-xs)',
+  paddingInline: 0,
+  width: '100%',
+} as const;
+
 const meta = {
   title: 'Core/Typeahead',
   component: Typeahead,
@@ -74,7 +88,7 @@ export const States: Story = {
               <ul
                 aria-label="Owner suggestions"
                 role="listbox"
-                style={{listStyle: 'none', margin: 0, padding: 0}}
+                style={handRolledList}
               >
                 <TypeaheadItem active description="Engineering">
                   Ada Lovelace
@@ -90,6 +104,8 @@ export const States: Story = {
   ),
 };
 
+// The suggestion plate only exists once something has been typed, so the
+// story types.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -98,4 +114,13 @@ export const Composition: Story = {
       </Field>
     </DemoFrame>
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const input = canvasElement.querySelector<HTMLInputElement>(
+      'input[role="combobox"]',
+    );
+    if (!input) {
+      throw new Error('Typeahead field is missing');
+    }
+    await userEvent.type(input, 'a');
+  },
 };

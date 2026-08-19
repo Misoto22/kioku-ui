@@ -11,6 +11,7 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    cursor: 'pointer',
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontWeight: semanticTokens.fontWeightMedium,
@@ -18,10 +19,14 @@ const styles = stylex.create({
     justifyContent: 'center',
     lineHeight: semanticTokens.lineHeightBody,
     position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
       color: semanticTokens.colorDisabledText,
+      cursor: 'default',
     },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
@@ -74,15 +79,20 @@ const styles = stylex.create({
       borderColor: semanticTokens.borderInteractive,
     },
   },
+  // A ghost is the subordinate action in whatever row it appears in, so it
+  // takes the available rank of ink and comes up to full ink under the pointer.
+  // Reaching for `colorText` at rest made it argue with the button beside it.
   ghost: {
     backgroundColor: 'transparent',
     borderColor: 'transparent',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     ':hover:not(:disabled):not(:active)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
     ':active:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayActive,
+      color: semanticTokens.colorText,
     },
   },
   destructive: {
@@ -96,7 +106,9 @@ const styles = stylex.create({
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
     },
   },
-  loading: {cursor: 'progress'},
+  // A loading button is disabled, so the waiting cursor has to be declared
+  // against the same state the disabled cursor is, or it never wins.
+  loading: {cursor: 'progress', ':disabled': {cursor: 'progress'}},
   iconOnly: {paddingInline: 0},
   iconSm: {width: semanticTokens.sizeControlSm},
   iconMd: {width: semanticTokens.sizeControlMd},

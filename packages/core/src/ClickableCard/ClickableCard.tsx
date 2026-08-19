@@ -26,7 +26,8 @@ const styles = stylex.create({
     padding: semanticTokens.spacingLg,
     textAlign: 'start',
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, border-color, color',
+    transitionProperty:
+      'background-color, background-image, border-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
@@ -40,10 +41,14 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    // Hover is a wash over the surface. The card never lifts, scales, or
-    // grows a shadow: nothing in this system blurs.
+    // Hover is a wash laid *over* the surface, not a swap of it. The overlay
+    // token is a few per cent of ink; assigning it to `backgroundColor`
+    // throws the card's own fill away and lets the canvas show through, so
+    // the plate loses its ground at exactly the moment it is being pointed
+    // at. The card never lifts, scales, or grows a shadow either: nothing in
+    // this system blurs.
     ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
       borderColor: semanticTokens.borderInteractive,
     },
   },

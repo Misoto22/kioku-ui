@@ -23,21 +23,26 @@ const styles = stylex.create({
     paddingInline: semanticTokens.spacingMd,
     width: railWidth,
   },
+  // An eyebrow: the smallest size, opened right up, in the heading face and
+  // the second rank of ink. It names the group without competing with the
+  // destinations under it, which is the whole job of a section label.
   heading: {
-    color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
     paddingBlockEnd: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
-    textTransform: 'uppercase',
   },
+  // The rows tile: one hairline apart, so the run reads as a single column of
+  // destinations rather than a stack of separated buttons.
   section: {
     display: 'flex',
     flexDirection: 'column',
-    rowGap: semanticTokens.spacingXs,
+    rowGap: semanticTokens.borderWidth,
   },
   // `auto` pins the block to the end of the rail; it is a position, not the
   // gutter between siblings, which the rail's own gap already owns.

@@ -17,6 +17,7 @@ export const semanticTokens = stylex.defineVars({
   colorDisabledSurface: 'var(--kioku-ui-color-disabled-surface)',
   colorDisabledText: 'var(--kioku-ui-color-disabled-text)',
   colorFocus: 'var(--kioku-ui-color-focus)',
+  colorScrim: 'var(--kioku-ui-color-scrim)',
   borderDefault: 'var(--kioku-ui-border-default)',
   borderStrong: 'var(--kioku-ui-border-strong)',
   borderInteractive: 'var(--kioku-ui-border-interactive)',

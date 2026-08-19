@@ -25,7 +25,11 @@ afterEach(() => {
 describe('HoverCard', () => {
   it('stays hidden until the trigger is hovered', () => {
     renderUi(
-      <HoverCard content={<p>Ada Lovelace</p>} openDelay={0}>
+      <HoverCard
+        label="Author detail"
+        content={<p>Ada Lovelace</p>}
+        openDelay={0}
+      >
         <button type="button">Ada</button>
       </HoverCard>,
     );
@@ -36,7 +40,11 @@ describe('HoverCard', () => {
   it('previews its content on hover', async () => {
     const user = userEvent.setup();
     renderUi(
-      <HoverCard content={<p>Ada Lovelace</p>} openDelay={0}>
+      <HoverCard
+        label="Author detail"
+        content={<p>Ada Lovelace</p>}
+        openDelay={0}
+      >
         <button type="button">Ada</button>
       </HoverCard>,
     );
@@ -51,7 +59,11 @@ describe('HoverCard', () => {
   it('previews its content on keyboard focus', async () => {
     const user = userEvent.setup();
     renderUi(
-      <HoverCard content={<p>Ada Lovelace</p>} openDelay={0}>
+      <HoverCard
+        label="Author detail"
+        content={<p>Ada Lovelace</p>}
+        openDelay={0}
+      >
         <button type="button">Ada</button>
       </HoverCard>,
     );
@@ -67,6 +79,7 @@ describe('HoverCard', () => {
     const user = userEvent.setup();
     renderUi(
       <HoverCard
+        label="Author detail"
         closeDelay={50}
         content={<button type="button">Follow</button>}
         openDelay={0}

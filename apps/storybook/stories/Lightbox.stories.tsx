@@ -21,8 +21,14 @@ const cover =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23b8c4c0"/><circle cx="32" cy="26" r="12" fill="%23f4efe6"/></svg>',
   );
 
-function LightboxDemo({label = 'View cover'}: {readonly label?: string}) {
-  const [open, setOpen] = useState(false);
+function LightboxDemo({
+  label = 'View cover',
+  startOpen = false,
+}: {
+  readonly label?: string;
+  readonly startOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -48,11 +54,13 @@ export const Default: Story = {
   ),
 };
 
+// The viewer starts out, so the caption, the well behind the media and the
+// dismiss control are all on the page rather than behind a button.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
       <Stack gap="md">
-        <LightboxDemo label="Open" />
+        <LightboxDemo label="Open" startOpen />
         <Text size="sm" tone="muted">
           The viewer is modal, so the page behind stops scrolling and focus
           stays on the media until it is dismissed.

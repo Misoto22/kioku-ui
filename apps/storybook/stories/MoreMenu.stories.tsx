@@ -33,6 +33,8 @@ export const Default: Story = {
   ),
 };
 
+// MoreMenu owns its open state, so the only way to show the menu is to press
+// the trigger the way a reader would.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -57,4 +59,13 @@ export const Composition: Story = {
       </Card>
     </DemoFrame>
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const trigger = canvasElement.querySelector<HTMLElement>(
+      '[aria-haspopup="menu"]',
+    );
+    if (!trigger) {
+      throw new Error('MoreMenu trigger is missing');
+    }
+    await userEvent.click(trigger);
+  },
 };

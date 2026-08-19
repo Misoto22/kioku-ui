@@ -6,11 +6,15 @@ import {useInternationalization} from '../i18n/index.js';
 import {Icon} from '../Icon/index.js';
 
 const styles = stylex.create({
+  // The value the reader entered is current, so it takes the first rank of
+  // ink; the control that clears it is merely available and stays a rank
+  // below. That is what separates a token from a neutral badge, rather than a
+  // second fill.
   token: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
     borderRadius: semanticTokens.radiusElement,
-    color: semanticTokens.colorTextSecondary,
+    color: semanticTokens.colorText,
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,

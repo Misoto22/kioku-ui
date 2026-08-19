@@ -5,6 +5,11 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useListFocus} from '../hooks/useListFocus.js';
 import type {ListOrientation} from '../hooks/useListFocus.js';
 
+// Tools sit against each other, parted by the width of a rule rather than by
+// a gutter. Spread on the spacing scale they read as three separate buttons
+// that happen to be near each other; closed up they read as one instrument.
+const toolGap = `calc(2 * ${semanticTokens.borderWidth})`;
+
 const styles = stylex.create({
   // The strip carries no ground of its own: the controls inside it are the
   // only marks, so the toolbar reads as a row of tools rather than a bar.
@@ -18,15 +23,15 @@ const styles = stylex.create({
     minWidth: 0,
   },
   horizontal: {
-    columnGap: semanticTokens.spacingXs,
+    columnGap: toolGap,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    rowGap: semanticTokens.spacingXs,
+    rowGap: toolGap,
   },
   vertical: {
     alignItems: 'stretch',
     flexDirection: 'column',
-    rowGap: semanticTokens.spacingXs,
+    rowGap: toolGap,
   },
 });
 

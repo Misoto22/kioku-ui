@@ -39,6 +39,7 @@ describe('validateThemeDefinition', () => {
       'color.disabledSurface',
       'color.disabledText',
       'color.focus',
+      'color.scrim',
     ]);
   });
 
@@ -98,6 +99,7 @@ describe('tokenContract', () => {
       disabledSurface: 'color.disabledSurface',
       disabledText: 'color.disabledText',
       focus: 'color.focus',
+      scrim: 'color.scrim',
     });
   });
 

@@ -52,6 +52,11 @@ const supportedStyleSelectors = new Set([
   '::-moz-range-track',
   '::-moz-range-progress',
   '::-moz-range-thumb',
+  // A file input's button is the last piece of native chrome the page cannot
+  // replace: hiding it costs the control its keyboard behaviour and its
+  // platform file dialog. Styling it is the only way it stops being the one
+  // control on the page wearing a different system's paint.
+  '::file-selector-button',
 ]);
 const supportedStyleAtRules = new Set([
   '@media (prefers-reduced-motion: reduce)',

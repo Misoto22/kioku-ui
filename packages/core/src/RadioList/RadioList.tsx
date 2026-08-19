@@ -3,6 +3,14 @@ import {useId, useState, type HTMLAttributes, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// The same block and the same centring `CheckboxInput` uses: one micro-control
+// tall, sitting on the first line of its label rather than on the label's whole
+// box, so a radio and a checkbox in the same form line up and a wrapped label
+// does not drag the dot downwards. Written as a relationship so a density
+// change carries both.
+const dotSize = semanticTokens.spacingLg;
+const dotFirstLineOffset = `calc((${semanticTokens.fontSizeMd} * ${semanticTokens.lineHeightBody} - ${dotSize}) / 2)`;
+
 const styles = stylex.create({
   group: {
     borderStyle: 'none',
@@ -30,10 +38,12 @@ const styles = stylex.create({
   },
   dot: {
     accentColor: semanticTokens.colorAccent,
-    blockSize: semanticTokens.spacingMd,
+    blockSize: dotSize,
+    cursor: 'pointer',
     flexShrink: 0,
-    inlineSize: semanticTokens.spacingMd,
-    marginBlockStart: semanticTokens.spacingXs,
+    inlineSize: dotSize,
+    marginBlockStart: dotFirstLineOffset,
+    ':disabled': {cursor: 'default'},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,

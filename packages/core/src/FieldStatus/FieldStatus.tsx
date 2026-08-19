@@ -24,7 +24,9 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     gap: semanticTokens.spacingXs,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    // A sentence, not a label: set solid, the way `Field` sets the identical
+    // message it renders for the identical job.
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },

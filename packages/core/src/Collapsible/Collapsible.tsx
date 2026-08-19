@@ -58,7 +58,15 @@ const styles = stylex.create({
   },
   markerOpen: {transform: 'rotate(90deg)'},
   label: {flexGrow: 1, minWidth: 0},
-  panel: {paddingInlineStart: semanticTokens.spacingLg},
+  // The rule the indent hangs off. An indent alone leaves the revealed body
+  // floating beside its own heading; the hairline says the run belongs to the
+  // section above it, which is how the console draws a second level.
+  panel: {
+    borderInlineStartColor: semanticTokens.borderDefault,
+    borderInlineStartStyle: semanticTokens.borderStyle,
+    borderInlineStartWidth: semanticTokens.borderWidth,
+    paddingInlineStart: semanticTokens.spacingLg,
+  },
   reveal: {
     animationDuration: semanticTokens.durationModerate,
     animationName: {

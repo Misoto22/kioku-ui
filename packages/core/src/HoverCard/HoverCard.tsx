@@ -27,6 +27,12 @@ export interface HoverCardProps {
   readonly children: ReactElement<TriggerProps>;
   readonly closeDelay?: number;
   readonly content: ReactNode;
+  /**
+   * Names the surface. The content is interactive, so it is announced as a
+   * dialog, and a dialog with no name is one an assistive technology can enter
+   * but not describe. Required for that reason rather than for styling.
+   */
+  readonly label: string;
   readonly openDelay?: number;
   readonly placement?: Placement;
 }
@@ -41,6 +47,7 @@ export function HoverCard({
   children,
   closeDelay = 150,
   content,
+  label,
   openDelay = 300,
   placement = 'bottom',
 }: HoverCardProps) {
@@ -96,6 +103,7 @@ export function HoverCard({
       <Popover
         {...(alignment ? {alignment} : {})}
         anchorRef={anchorRef}
+        aria-label={label}
         onDismiss={() => {
           setOpen(false);
         }}

@@ -2,7 +2,7 @@ import type {Meta, StoryObj} from '@storybook/react-vite';
 
 import {ClickableCard, Stack, Text} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-clickable-card',
@@ -19,6 +19,22 @@ export const Default: Story = {
   render: (args) => (
     <DemoFrame>
       <ClickableCard {...args}>Release 12</ClickableCard>
+    </DemoFrame>
+  ),
+};
+
+export const States: Story = {
+  render: () => (
+    <DemoFrame>
+      <StateGrid
+        items={[
+          {label: 'rest', content: <ClickableCard>Release 12</ClickableCard>},
+          {
+            label: 'disabled',
+            content: <ClickableCard disabled>Release 12</ClickableCard>,
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

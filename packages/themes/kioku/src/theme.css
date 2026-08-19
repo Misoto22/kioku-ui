@@ -18,6 +18,7 @@
   --kioku-ui-color-disabled-surface: var(--kioku-theme-color-disabled-surface);
   --kioku-ui-color-disabled-text: var(--kioku-theme-color-disabled-text);
   --kioku-ui-color-focus: var(--kioku-theme-color-focus);
+  --kioku-ui-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-ui-border-default: var(--kioku-theme-border-default);
   --kioku-ui-border-strong: var(--kioku-theme-border-strong);
   --kioku-ui-border-interactive: var(--kioku-theme-border-interactive);
@@ -205,6 +206,7 @@
   --kioku-theme-color-disabled-surface: light-dark(#e2dccb, #151310);
   --kioku-theme-color-disabled-text: light-dark(#8a8375, #7d766a);
   --kioku-theme-color-focus: light-dark(#2f5d8a, #7ba6cf);
+  --kioku-theme-color-scrim: light-dark(rgb(38 34 28 / 34%), rgb(0 0 0 / 62%));
   --kioku-theme-border-default: light-dark(#ddd7c5, #302b24);
   --kioku-theme-border-strong: light-dark(#c8c0aa, #423b31);
   --kioku-theme-border-interactive: light-dark(#2f5d8a, #7ba6cf);
@@ -256,6 +258,7 @@
   --kioku-theme-color-disabled-surface: light-dark(#e0d9ca, #141613);
   --kioku-theme-color-disabled-text: light-dark(#93968b, #75786f);
   --kioku-theme-color-focus: light-dark(#566b52, #9cb597);
+  --kioku-theme-color-scrim: light-dark(rgb(47 50 44 / 34%), rgb(0 0 0 / 62%));
   --kioku-theme-border-default: light-dark(#dcdcd4, #31342d);
   --kioku-theme-border-strong: light-dark(#c2c3b8, #43463d);
   --kioku-theme-border-interactive: light-dark(#566b52, #9cb597);
@@ -308,6 +311,7 @@
   --kioku-theme-color-disabled-surface: light-dark(#e4e4e0, #090908);
   --kioku-theme-color-disabled-text: light-dark(#7c7c76, #7b7b75);
   --kioku-theme-color-focus: light-dark(#1d4d7c, #79aade);
+  --kioku-theme-color-scrim: light-dark(rgb(19 19 17 / 36%), rgb(0 0 0 / 66%));
   --kioku-theme-border-default: light-dark(#dcdcd8, #2a2a27);
   --kioku-theme-border-strong: light-dark(#b4b4ae, #3d3d39);
   --kioku-theme-border-interactive: light-dark(#1d4d7c, #79aade);
@@ -368,6 +372,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-washi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-washi-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-washi-border-default: var(--kioku-theme-border-default);
   --kioku-theme-washi-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-washi-border-interactive: var(--kioku-theme-border-interactive);
@@ -511,6 +516,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-muji-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-muji-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-muji-border-default: var(--kioku-theme-border-default);
   --kioku-theme-muji-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-muji-border-interactive: var(--kioku-theme-border-interactive);
@@ -654,6 +660,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-sumi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-sumi-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-sumi-border-default: var(--kioku-theme-border-default);
   --kioku-theme-sumi-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-sumi-border-interactive: var(--kioku-theme-border-interactive);

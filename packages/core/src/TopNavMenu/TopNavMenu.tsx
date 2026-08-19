@@ -81,7 +81,8 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     minWidth: panelMinWidth,
-    rowGap: semanticTokens.spacingXs,
+    // A run of destinations tiles one hairline apart, as it does in the rail.
+    rowGap: semanticTokens.borderWidth,
   },
 });
 

@@ -6,8 +6,10 @@ import {useFieldControl} from '../Field/index.js';
 
 const styles = stylex.create({
   // An input sinks below the card it sits on: a muted fill with a real
-  // hairline edge, never a shadow. The figures are monospaced, which is the
-  // one type role that tightens rather than opens.
+  // hairline edge, never a shadow. The figures are monospaced and tabular —
+  // this field is usually one of a stacked column of them, and proportional
+  // digits put every value on its own margin. Mono is also the one type role
+  // that tightens rather than opens.
   control: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
     borderColor: semanticTokens.borderStrong,
@@ -18,6 +20,7 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeMd,
+    fontVariantNumeric: 'tabular-nums',
     height: semanticTokens.sizeControlMd,
     letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,

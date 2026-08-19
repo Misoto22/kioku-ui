@@ -7,6 +7,9 @@ import type {StatusTone} from '../Badge/index.js';
 const styles = stylex.create({
   banner: {
     alignItems: 'center',
+    // Every corner in the system is three pixels. A square-cornered box is
+    // the one shape here that belongs to no theme.
+    borderRadius: semanticTokens.radiusContainer,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'flex',

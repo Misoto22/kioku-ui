@@ -23,13 +23,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 function MenuDemo({
+  startOpen = false,
   triggerLabel = 'Release actions',
   ...menuProps
-}: {readonly triggerLabel?: string} & Partial<
+}: {readonly startOpen?: boolean; readonly triggerLabel?: string} & Partial<
   Parameters<typeof DropdownMenu>[0]
 >) {
   const anchorRef = useRef<HTMLSpanElement>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -81,6 +82,8 @@ export const Variants: Story = {
   ),
 };
 
+// The menu starts out: its rows run the full width of the plate, which is not
+// something a closed trigger can show.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -89,7 +92,7 @@ export const Composition: Story = {
           The menu is one tab stop. Arrow keys, Home, and End move between
           items; Escape closes it.
         </Text>
-        <MenuDemo />
+        <MenuDemo startOpen />
       </Stack>
     </DemoFrame>
   ),

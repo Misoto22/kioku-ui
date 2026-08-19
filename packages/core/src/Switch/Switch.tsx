@@ -4,9 +4,15 @@ import {useState} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import type {ToggleProps} from '../Toggle/index.js';
 
-// The knob crosses the track's inner width: the track less its two hairline
-// edges and the knob's own diameter. No single step of the scale names it.
-const knobTravel = `calc(${semanticTokens.sizeControlLg} - ${semanticTokens.spacingMd} - ${semanticTokens.borderWidth} * 2)`;
+// The console's switch, in tokens. Its proportions are the point: a track as
+// tall as one spacing step, a knob inset by a hairline on each side, and a
+// travel of exactly the difference. Nothing here is a literal, so the control
+// keeps its proportions when density moves it.
+const trackHeight = semanticTokens.spacingLg;
+const trackWidth = semanticTokens.sizeControlMd;
+const knobInset = `calc(${semanticTokens.borderWidth} * 2)`;
+const knobSize = `calc(${trackHeight} - ${knobInset} * 2)`;
+const knobTravel = `calc(${trackWidth} - ${trackHeight})`;
 
 const styles = stylex.create({
   control: {
@@ -46,52 +52,41 @@ const styles = stylex.create({
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
   },
-  // The track is a well, not a capsule: it takes the element radius every
-  // other control takes. Only the knob is genuinely round.
+  // No border. The track is a solid block that changes colour, not a small
+  // input box with something inside it — an outlined track reads as a field,
+  // and at 14px a field reads as a mistake.
   track: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderStrong,
+    backgroundColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,
-    height: semanticTokens.spacingLg,
+    height: trackHeight,
     justifyContent: 'flex-start',
+    padding: knobInset,
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, border-color',
+    transitionProperty: 'background-color',
     transitionTimingFunction: semanticTokens.easingStandard,
-    width: semanticTokens.sizeControlLg,
+    width: trackWidth,
   },
-  trackOn: {
-    backgroundColor: semanticTokens.colorAccent,
-    borderColor: semanticTokens.colorAccent,
-  },
-  trackDisabled: {
-    backgroundColor: semanticTokens.colorDisabledSurface,
-    borderColor: semanticTokens.borderDisabled,
-  },
-  // Travel is written on the inline axis so the knob crosses the way the
-  // reading direction runs.
+  trackOn: {backgroundColor: semanticTokens.colorAccent},
+  trackDisabled: {backgroundColor: semanticTokens.colorDisabledSurface},
+  // A round knob travelling inside a squared track reads as a physical switch;
+  // two capsules read as a widget.
   knob: {
-    backgroundColor: semanticTokens.colorSurfaceRaised,
+    backgroundColor: semanticTokens.colorSurface,
     borderRadius: semanticTokens.radiusFull,
-    boxShadow: semanticTokens.elevationLow,
-    height: semanticTokens.spacingMd,
+    height: knobSize,
     insetInlineStart: 0,
     position: 'relative',
     transitionDuration: semanticTokens.durationModerate,
     transitionProperty: 'inset-inline-start',
     transitionTimingFunction: semanticTokens.easingStandard,
-    width: semanticTokens.spacingMd,
+    width: knobSize,
   },
   knobOn: {insetInlineStart: knobTravel},
-  knobDisabled: {
-    backgroundColor: semanticTokens.colorDisabledText,
-    boxShadow: 'none',
-  },
+  knobDisabled: {backgroundColor: semanticTokens.colorDisabledText},
 });
 
 /** Props for a control that applies its change immediately. */

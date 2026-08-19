@@ -46,6 +46,8 @@ export interface AppShellProps {
   readonly contentPadding?: boolean;
   readonly footer?: ReactNode;
   readonly header?: ReactNode;
+  readonly pageHead?: ReactNode;
+  readonly pageIndex?: ReactNode;
   readonly sidebar?: ReactNode;
   readonly skipLinkLabel?: string;
 }
@@ -61,6 +63,8 @@ export function AppShell({
   contentPadding = true,
   footer,
   header,
+  pageHead,
+  pageIndex,
   sidebar,
   skipLinkLabel,
 }: AppShellProps) {
@@ -78,6 +82,8 @@ export function AppShell({
         {...(footer === undefined ? {} : {footer})}
         {...(header === undefined ? {} : {header})}
         mainId={mainId}
+        {...(pageHead === undefined ? {} : {pageHead})}
+        {...(pageIndex === undefined ? {} : {pageIndex})}
         {...(sidebar === undefined ? {} : {sidebar})}
       >
         {children}

@@ -35,13 +35,46 @@ const progressProperty = '--kioku-ui-slider-progress';
 const fill = (from: string, to: string) =>
   `linear-gradient(to right, ${from} 0 var(${progressProperty}, 0%), ${to} var(${progressProperty}, 0%) 100%)`;
 
+// The knob's size is a relationship to the rule it rides, not a token that
+// happens to look right: the track plus one spacing step of relief on each
+// side, so it always covers the rule and always overhangs it by the same
+// amount. WebKit then lays it out in flow on top of the track rather than
+// centring it, so it is pulled back by half the difference between the two.
 const trackThickness = semanticTokens.spacingSm;
-const thumbSize = semanticTokens.spacingLg;
-// WebKit lays the thumb out in flow on top of the track rather than centring
-// it, so it is pulled back by half the difference between the two.
+const thumbRelief = semanticTokens.spacingXs;
+const thumbSize = `calc(${trackThickness} + ${thumbRelief} * 2)`;
 const thumbCentring = `calc((${trackThickness} - ${thumbSize}) / 2)`;
 
 const styles = stylex.create({
+  // The control and the figure it reports are one field, so the gap between
+  // them belongs to this container rather than to a margin on either.
+  field: {
+    alignItems: 'center',
+    display: 'flex',
+    gap: semanticTokens.spacingSm,
+  },
+  /*
+   * The value, in the mono face with tabular figures. A slider that does not
+   * say where it is stopped is a control you have to guess at, and a
+   * proportional readout re-flows the row by a hair on every step, which reads
+   * as a wobble. It is secondary ink: it reports the control, it is not the
+   * control. `aria-hidden` because the input already announces the same value
+   * through `aria-valuetext`.
+   */
+  readout: {
+    color: semanticTokens.colorTextSecondary,
+    flexShrink: 0,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
+    textAlign: 'end',
+  },
+  // Muted, not disabled-text: the track and thumb already carry the disabled
+  // paint, and a figure nobody can read is not a softer figure, it is a lost
+  // one. Disabled-text on this theme's canvas is 3.85:1.
+  readoutDisabled: {color: semanticTokens.colorTextMuted},
   /*
    * There is deliberately no hover state. Every visible part is drawn by the
    * engine, so a hover would have to hand-roll a ring shadow, which rule 2
@@ -54,9 +87,11 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     blockSize: semanticTokens.sizeHitTarget,
     cursor: 'pointer',
+    flexShrink: 1,
     inlineSize: '100%',
     marginBlock: 0,
     marginInline: 0,
+    minInlineSize: 0,
     '::-webkit-slider-runnable-track': {
       backgroundColor: semanticTokens.colorSurfaceMuted,
       backgroundImage: fill(
@@ -159,8 +194,10 @@ type UncontrolledSliderProps = SharedSliderProps & {
 export type SliderProps = ControlledSliderProps | UncontrolledSliderProps;
 
 /**
- * Chooses a number along a visible range. `formatValue` supplies the spoken
- * text, so "40 percent" can be announced where the raw number would not help.
+ * Chooses a number along a visible range, and states where it is stopped in
+ * tabular figures beside the track. `formatValue` supplies both that figure and
+ * the spoken text, so "40 percent" can be read and announced where the raw
+ * number would not help.
  */
 export function Slider({
   'aria-describedby': ariaDescribedBy,
@@ -198,22 +235,36 @@ export function Slider({
   }
 
   return (
-    <input
-      {...props}
-      aria-describedby={describedBy}
-      {...(formatValue ? {'aria-valuetext': formatValue(current)} : {})}
-      disabled={disabled}
-      id={field?.controlId ?? id}
-      max={max}
-      min={min}
-      onChange={handleChange}
-      step={step}
-      {...stylex.props(styles.control, disabled ? styles.disabled : undefined)}
-      // The stop position is data, so it stays inline — after stylex.props,
-      // which would otherwise overwrite the style attribute it is carried in.
-      style={{...style, [progressProperty]: `${filled}%`} as CSSProperties}
-      type="range"
-      value={current}
-    />
+    <span {...stylex.props(styles.field)}>
+      <input
+        {...props}
+        aria-describedby={describedBy}
+        {...(formatValue ? {'aria-valuetext': formatValue(current)} : {})}
+        disabled={disabled}
+        id={field?.controlId ?? id}
+        max={max}
+        min={min}
+        onChange={handleChange}
+        step={step}
+        {...stylex.props(
+          styles.control,
+          disabled ? styles.disabled : undefined,
+        )}
+        // The stop position is data, so it stays inline — after stylex.props,
+        // which would otherwise overwrite the style attribute it is carried in.
+        style={{...style, [progressProperty]: `${filled}%`} as CSSProperties}
+        type="range"
+        value={current}
+      />
+      <span
+        aria-hidden="true"
+        {...stylex.props(
+          styles.readout,
+          disabled ? styles.readoutDisabled : undefined,
+        )}
+      >
+        {formatValue ? formatValue(current) : String(current)}
+      </span>
+    </span>
   );
 }

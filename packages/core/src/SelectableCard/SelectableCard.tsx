@@ -27,13 +27,17 @@ const styles = stylex.create({
     gap: semanticTokens.spacingSm,
     padding: semanticTokens.spacingLg,
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, border-color, box-shadow, color',
+    transitionProperty:
+      'background-color, background-image, border-color, box-shadow, color',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
+  // The wash is laid over the card's fill rather than replacing it: the
+  // overlay token is a few per cent of ink, so assigning it to
+  // `backgroundColor` drops the surface and shows the canvas through.
   unselected: {
     boxShadow: 'none',
     ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
       borderColor: semanticTokens.borderInteractive,
     },
   },
@@ -65,20 +69,23 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: semanticTokens.spacingXs,
   },
+  // Three ranks inside one card: the title is what the card is, so it takes
+  // the first rank at rest and gains weight when chosen; the description is
+  // what supports it, so it stays at the second. Holding the title at the
+  // description's rank until selection flattens the card into one grey block.
   title: {
-    color: semanticTokens.colorTextSecondary,
+    color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightRegular,
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
   },
-  titleSelected: {
-    color: semanticTokens.colorText,
-    fontWeight: semanticTokens.fontWeightMedium,
-  },
+  titleSelected: {fontWeight: semanticTokens.fontWeightMedium},
   titleDisabled: {color: semanticTokens.colorDisabledText},
   description: {
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,

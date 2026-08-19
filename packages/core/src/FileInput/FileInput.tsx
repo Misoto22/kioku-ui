@@ -51,6 +51,54 @@ const styles = stylex.create({
     ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
       borderColor: semanticTokens.borderInteractive,
     },
+    /*
+     * The native button, painted as the secondary `Button` it stands in for.
+     * It is the last piece of another system's chrome on the page, and hiding
+     * it behind a label is not the fix — that costs the control its keyboard
+     * behaviour and its platform file dialog. So it keeps the element and
+     * takes the paint: surface ground, a real hairline edge, the sheet's
+     * corner, and label type at the small control's height.
+     */
+    '::file-selector-button': {
+      backgroundColor: semanticTokens.colorSurface,
+      blockSize: semanticTokens.sizeControlSm,
+      borderColor: semanticTokens.borderStrong,
+      borderRadius: semanticTokens.radiusElement,
+      borderStyle: semanticTokens.borderStyle,
+      borderWidth: semanticTokens.borderWidth,
+      color: semanticTokens.colorText,
+      cursor: 'pointer',
+      fontFamily: semanticTokens.fontFamilyBody,
+      fontSize: semanticTokens.fontSizeSm,
+      fontWeight: semanticTokens.fontWeightMedium,
+      letterSpacing: semanticTokens.letterSpacingLabel,
+      lineHeight: semanticTokens.lineHeightBody,
+      marginInlineEnd: semanticTokens.spacingSm,
+      paddingInline: semanticTokens.spacingSm,
+      transitionDuration: semanticTokens.durationFast,
+      transitionProperty: 'background-color, border-color, color',
+      transitionTimingFunction: semanticTokens.easingStandard,
+      ':hover:not(:disabled)': {
+        backgroundColor: semanticTokens.colorOverlayHover,
+        borderColor: semanticTokens.borderInteractive,
+      },
+    },
+  },
+  /*
+   * The input's own `:disabled` block cannot reach the button — a pseudo-element
+   * only lives at the top of a style object — so the disabled paint is driven
+   * from React, the way `Slider` restates its engine-drawn parts. No hover to
+   * re-declare: the guard above compiles ahead of the pseudo-element, as
+   * `:hover:not(:disabled)::file-selector-button`, so it already tests the
+   * field rather than the button.
+   */
+  controlDisabled: {
+    '::file-selector-button': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      borderColor: semanticTokens.borderDisabled,
+      color: semanticTokens.colorDisabledText,
+      cursor: 'default',
+    },
   },
   invalid: {
     borderColor: semanticTokens.statusDangerText,
@@ -125,6 +173,7 @@ export function FileInput({
         required={required ?? field?.required}
         {...stylex.props(
           styles.control,
+          disabled ? styles.controlDisabled : undefined,
           invalid && !disabled ? styles.invalid : undefined,
         )}
         type="file"

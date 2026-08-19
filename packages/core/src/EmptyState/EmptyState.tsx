@@ -20,15 +20,22 @@ const styles = stylex.create({
     gap: semanticTokens.spacingSm,
     padding: semanticTokens.spacingLg,
   },
+  // Two ranks, not one. The sentence naming the absence is what is current;
+  // the sentence explaining what to do about it is context, and setting both
+  // in full ink made the block read as a warning rather than as a blank page.
   title: {
+    color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeLg,
     letterSpacing: semanticTokens.letterSpacingHeading,
+    lineHeight: semanticTokens.lineHeightHeading,
     fontWeight: semanticTokens.fontWeightStrong,
     margin: 0,
     maxInlineSize: copyWidth,
   },
   detail: {
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,

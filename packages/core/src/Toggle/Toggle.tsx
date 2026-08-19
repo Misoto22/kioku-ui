@@ -3,6 +3,18 @@ import {useState, type ButtonHTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// The console's switch, in tokens, and the same block `Switch` is cut from —
+// the two are one control wearing two names, so they may not drift apart. Its
+// proportions are relationships rather than measurements: a track one spacing
+// step tall, a knob inset by a hairline on each side, and a travel of exactly
+// the difference between the track's two dimensions. Nothing here is a
+// literal, so the control keeps its proportions when density moves it.
+const trackHeight = semanticTokens.spacingLg;
+const trackWidth = semanticTokens.sizeControlMd;
+const knobInset = `calc(${semanticTokens.borderWidth} * 2)`;
+const knobSize = `calc(${trackHeight} - ${knobInset} * 2)`;
+const knobTravel = `calc(${trackWidth} - ${trackHeight})`;
+
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -11,6 +23,7 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    cursor: 'pointer',
     display: 'inline-flex',
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
@@ -22,52 +35,58 @@ const styles = stylex.create({
     minWidth: semanticTokens.sizeHitTarget,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingXs,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':active:not(:disabled)': {
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
     },
-    ':disabled': {color: semanticTokens.colorDisabledText},
+    ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover:not(:disabled)': {
+    ':hover:not(:disabled):not(:active)': {
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
   },
-  // The track is squared and the knob is round. A capsule track was the one
-  // control still borrowing its shape from somewhere else: everything around it
-  // turns a 3px corner, and a pill next to a 3px input reads as imported.
+  // No border. The track is a solid block that changes colour, not a small
+  // input box with something inside it — an outlined 14px track reads as a
+  // field that failed to grow, which is what this was. The corner is the
+  // sheet's 3px; a pill beside a 3px input reads as imported.
   track: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderStrong,
+    backgroundColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,
-    height: semanticTokens.spacingLg,
+    height: trackHeight,
     justifyContent: 'flex-start',
-    width: semanticTokens.sizeControlLg,
+    padding: knobInset,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    width: trackWidth,
   },
-  trackOn: {
-    backgroundColor: semanticTokens.colorAccent,
-    borderColor: semanticTokens.colorAccent,
-    justifyContent: 'flex-end',
-  },
-  trackDisabled: {
-    backgroundColor: semanticTokens.colorDisabledSurface,
-    borderColor: semanticTokens.borderDisabled,
-  },
+  trackOn: {backgroundColor: semanticTokens.colorAccent},
+  trackDisabled: {backgroundColor: semanticTokens.colorDisabledSurface},
+  // A round knob travelling inside a squared track reads as a physical switch;
+  // two capsules read as a widget.
   thumb: {
-    backgroundColor: semanticTokens.colorSurfaceRaised,
+    backgroundColor: semanticTokens.colorSurface,
     borderRadius: semanticTokens.radiusFull,
-    boxShadow: semanticTokens.elevationLow,
-    height: semanticTokens.spacingMd,
-    width: semanticTokens.spacingMd,
+    height: knobSize,
+    insetInlineStart: 0,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationModerate,
+    transitionProperty: 'inset-inline-start',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    width: knobSize,
   },
+  thumbOn: {insetInlineStart: knobTravel},
   thumbDisabled: {backgroundColor: semanticTokens.colorDisabledText},
 });
 
@@ -133,6 +152,7 @@ export function Toggle({
           aria-hidden="true"
           {...stylex.props(
             styles.thumb,
+            isPressed ? styles.thumbOn : undefined,
             disabled ? styles.thumbDisabled : undefined,
           )}
         />

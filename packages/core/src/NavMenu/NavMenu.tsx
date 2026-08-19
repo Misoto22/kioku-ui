@@ -20,11 +20,11 @@ const styles = stylex.create({
     rowGap: semanticTokens.spacingXs,
   },
   // Rows stretch so every selection mark starts at the same inline edge, and
-  // they sit tight together: the mark, not a gutter, separates them.
+  // they tile one hairline apart: the mark, not a gutter, separates them.
   vertical: {
     alignItems: 'stretch',
     flexDirection: 'column',
-    rowGap: semanticTokens.spacingXs,
+    rowGap: semanticTokens.borderWidth,
   },
 });
 

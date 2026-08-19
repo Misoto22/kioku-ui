@@ -20,7 +20,7 @@ const styles = stylex.create({
       '@media (prefers-reduced-motion: reduce)': 'none',
     },
     animationTimingFunction: semanticTokens.easingEmphasized,
-    backgroundColor: semanticTokens.colorOverlayActive,
+    backgroundColor: semanticTokens.colorScrim,
     display: 'flex',
     inset: 0,
     justifyContent: 'center',

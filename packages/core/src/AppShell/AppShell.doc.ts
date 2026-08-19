@@ -13,6 +13,14 @@ export const appShellDoc = {
     },
     {name: 'footer', description: 'Places content below the body.'},
     {name: 'header', description: 'Places the banner above the body.'},
+    {
+      name: 'pageHead',
+      description: 'Opens the main region with a chapter head.',
+    },
+    {
+      name: 'pageIndex',
+      description: 'Hangs a numeral in the margin beside the page head.',
+    },
     {name: 'sidebar', description: 'Places a primary rail before the content.'},
     {name: 'skipLinkLabel', description: 'Names the skip link.'},
   ],

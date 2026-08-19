@@ -41,10 +41,17 @@ const sidebar = (
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <AppShell {...args} header={<TopNav brand="Kioku" />} sidebar={sidebar}>
-        <Heading level={1} size="section">
-          Releases
-        </Heading>
+      <AppShell
+        {...args}
+        header={<TopNav brand="Kioku" />}
+        pageHead={
+          <Heading level={1} size="section">
+            Releases
+          </Heading>
+        }
+        pageIndex="01"
+        sidebar={sidebar}
+      >
         <Card>
           <Text>Press Tab to reveal the skip link above the banner.</Text>
         </Card>
@@ -63,12 +70,15 @@ export const Composition: Story = {
           </Text>
         }
         header={<TopNav brand="Kioku" />}
+        pageHead={
+          <Heading level={1} size="section">
+            Release 12
+          </Heading>
+        }
+        pageIndex="12"
         sidebar={sidebar}
         skipLinkLabel="Jump to content"
       >
-        <Heading level={1} size="section">
-          Release 12
-        </Heading>
         <Card>
           <Text>
             AppShell adds the one thing most applications forget: a skip link

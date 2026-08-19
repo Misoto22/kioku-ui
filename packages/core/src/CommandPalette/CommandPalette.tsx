@@ -58,20 +58,26 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingXs,
     paddingInlineStart: 0,
   },
+  // The eyebrow: heading face, smallest size, opened right up, secondary ink.
+  // It names the group without competing with the commands inside it.
   groupLabel: {
-    color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     marginBlock: 0,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingLg,
     textTransform: 'uppercase',
   },
+  // A command that is merely available is set in the second rank; the one the
+  // keys are pointing at rises to the first. The wash alone would say it, but
+  // a wash this quiet needs the ink to agree with it.
   option: {
     alignItems: 'center',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     display: 'flex',
     gap: semanticTokens.spacingSm,
@@ -82,18 +88,30 @@ const styles = stylex.create({
     transitionProperty: 'background-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
-  idle: {':hover': {backgroundColor: semanticTokens.colorOverlayHover}},
-  // Focus never leaves the field, so the wash is the only sign of the pointer.
-  active: {backgroundColor: semanticTokens.colorOverlayHover},
+  idle: {
+    ':hover': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
+    },
+  },
+  // Focus never leaves the field, so the wash and the ink together are the
+  // only sign of where the keys are pointing.
+  active: {
+    backgroundColor: semanticTokens.colorOverlayHover,
+    color: semanticTokens.colorText,
+  },
   label: {
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     letterSpacing: semanticTokens.letterSpacingLabel,
   },
+  // A keyboard hint is a figure: mono, tabular, so a column of them lines up
+  // down the list instead of ragging by a fraction of a character.
   shortcut: {
     color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
     letterSpacing: semanticTokens.letterSpacingMono,
     whiteSpace: 'nowrap',
   },

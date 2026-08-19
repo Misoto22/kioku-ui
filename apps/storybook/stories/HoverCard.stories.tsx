@@ -8,7 +8,7 @@ const meta = {
   id: 'core-hover-card',
   title: 'Core/HoverCard',
   component: HoverCard,
-  args: {children: <span />, content: null},
+  args: {children: <span />, content: null, label: 'Author detail'},
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof HoverCard>;
 
@@ -26,6 +26,7 @@ const preview = (
 );
 
 export const Default: Story = {
+  args: {label: 'Author detail'},
   render: (args) => (
     <DemoFrame>
       <HoverCard {...args} content={preview}>
@@ -42,7 +43,11 @@ export const Variants: Story = {
         items={(['bottom', 'top'] as const).map((placement) => ({
           label: placement,
           content: (
-            <HoverCard content={preview} placement={placement}>
+            <HoverCard
+              label="Author detail"
+              content={preview}
+              placement={placement}
+            >
               <Button variant="ghost">{placement}</Button>
             </HoverCard>
           ),
@@ -52,6 +57,11 @@ export const Variants: Story = {
   ),
 };
 
+// The only surface in this group whose story cannot open it. HoverCard puts
+// its content in a Popover, which names itself `dialog`, and HoverCard takes
+// no label to give it — so a story that hovered the trigger would stand an
+// unnamed dialog in front of the accessibility baseline. It needs a `label`
+// prop before it can be shown open.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -61,7 +71,7 @@ export const Composition: Story = {
           pointer is inside it.
         </Text>
         <Card>
-          <HoverCard closeDelay={200} content={preview}>
+          <HoverCard label="Author detail" closeDelay={200} content={preview}>
             <Button variant="ghost">Ada Lovelace</Button>
           </HoverCard>
         </Card>

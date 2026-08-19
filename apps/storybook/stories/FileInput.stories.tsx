@@ -2,7 +2,7 @@ import type {Meta, StoryObj} from '@storybook/react-vite';
 
 import {Field, FileInput} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-file-input',
@@ -17,7 +17,22 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <FileInput {...args} aria-label="Attachments" />
+      <StateGrid
+        items={[
+          {
+            label: 'One file',
+            content: <FileInput {...args} aria-label="Attachments" />,
+          },
+          {
+            label: 'Several files',
+            content: <FileInput aria-label="Screenshots" multiple />,
+          },
+          {
+            label: 'Disabled',
+            content: <FileInput aria-label="Archived uploads" disabled />,
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };
@@ -25,9 +40,21 @@ export const Default: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Field label="Attachments" description="Release notes and screenshots.">
-        <FileInput multiple />
-      </Field>
+      <StateGrid
+        items={[
+          {
+            label: 'In a field',
+            content: (
+              <Field
+                label="Attachments"
+                description="Release notes and screenshots."
+              >
+                <FileInput multiple />
+              </Field>
+            ),
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

@@ -6,34 +6,47 @@ import {semanticTokens} from '../authoring.stylex.js';
 const minimumColumnWidth = `calc(${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl})`;
 
 const styles = stylex.create({
+  // One plate, ruled by its own gaps. The grid paints itself in the hairline
+  // colour and the tiles cover it, so every interior rule is drawn once — a
+  // border on each tile would draw the shared ones twice and leave the outer
+  // edge heavier than the inside.
   root: {
-    display: 'grid',
-    gap: semanticTokens.spacingLg,
-    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${minimumColumnWidth}), 1fr))`,
-    margin: 0,
-  },
-  item: {
-    backgroundColor: semanticTokens.colorSurface,
+    backgroundColor: semanticTokens.borderDefault,
     borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     display: 'grid',
+    gap: semanticTokens.borderWidth,
+    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${minimumColumnWidth}), 1fr))`,
+    margin: 0,
+    overflow: 'hidden',
+  },
+  item: {
+    backgroundColor: semanticTokens.colorSurface,
+    display: 'grid',
     gap: semanticTokens.spacingXs,
     padding: semanticTokens.spacingLg,
   },
+  // Three ranks in one tile: the label names, the figure states, the detail
+  // qualifies. The label is an eyebrow, so it never competes with the figure.
   label: {
     color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
+  // A metric is a figure: mono and tabular, so a row of tiles lines its
+  // numbers up on the same stems instead of drifting by digit.
   value: {
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXl,
-    letterSpacing: semanticTokens.letterSpacingTitle,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     fontWeight: semanticTokens.fontWeightStrong,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
   detail: {

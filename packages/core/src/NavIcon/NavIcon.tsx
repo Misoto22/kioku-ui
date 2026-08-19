@@ -10,15 +10,16 @@ const styles = stylex.create({
     display: 'inline-flex',
     flexShrink: 0,
     fontFamily: semanticTokens.fontFamilyBody,
-    // The em basis an `Icon` sizes itself against, so a glyph fills the
-    // square exactly rather than inheriting the label's size.
-    fontSize: semanticTokens.fontSizeLg,
-    height: semanticTokens.fontSizeLg,
+    // The em basis an `Icon` sizes itself against, held at the label's own
+    // size rather than above it. A mark drawn larger than the word it marks
+    // competes with it, and there is one down the left edge of every row.
+    fontSize: semanticTokens.fontSizeMd,
+    height: semanticTokens.fontSizeMd,
     justifyContent: 'center',
     // One glyph, so it is set solid: tracking has nothing to open here.
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightHeading,
-    width: semanticTokens.fontSizeLg,
+    width: semanticTokens.fontSizeMd,
   },
 });
 

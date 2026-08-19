@@ -28,6 +28,11 @@ const defaultTableStyle: TableStyleContextValue = {
 
 const TableStyleContext = createContext(defaultTableStyle);
 
+// Two hairlines wide, so the mark reads at the same weight as the underline a
+// selected tab carries. Written as a calc over the border token rather than as
+// 2px, so a theme that draws heavier lines gets a heavier mark with them.
+const selectionRule = `inset calc(2 * ${semanticTokens.borderWidth}) 0 0 ${semanticTokens.colorAccent}`;
+
 const styles = stylex.create({
   table: {
     borderCollapse: 'collapse',
@@ -57,12 +62,15 @@ const styles = stylex.create({
       backgroundColor: semanticTokens.colorOverlayActive,
     },
   },
+  // A ledger header is an eyebrow, not a filled strip: smallest size, opened
+  // right up, one rank of ink below the rows it names. The rule under it does
+  // the separating, which is why it is drawn in the strong border while the
+  // row rules stay in the default one.
   headerCell: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
     color: semanticTokens.colorTextSecondary,
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
-    fontWeight: semanticTokens.fontWeightStrong,
+    fontWeight: semanticTokens.fontWeightRegular,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     paddingInline: semanticTokens.spacingMd,
     textAlign: 'start',
@@ -70,6 +78,20 @@ const styles = stylex.create({
   cell: {
     paddingInline: semanticTokens.spacingMd,
   },
+  // A selected row is marked, not filled: the fill is what hover uses, and a
+  // row that is both selected and pointed at must still show both.
+  selectedRow: {boxShadow: selectionRule},
+  // A column of figures only reads as a column when the digits are the same
+  // width and the last one is flush. Mono, tabular and end-aligned; the header
+  // above it takes the alignment alone so it stays an eyebrow.
+  numericCell: {
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    textAlign: 'end',
+  },
+  numericHeaderCell: {textAlign: 'end'},
   compact: {paddingBlock: semanticTokens.spacingSm},
   default: {paddingBlock: semanticTokens.spacingMd},
   spacious: {paddingBlock: semanticTokens.spacingLg},
@@ -81,7 +103,7 @@ const styles = stylex.create({
     },
   },
   headerRowDivider: {
-    borderBlockEndColor: semanticTokens.borderDefault,
+    borderBlockEndColor: semanticTokens.borderStrong,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
   },
@@ -110,18 +132,28 @@ export type TableHeadProps = Omit<
   'className'
 >;
 export type TableBodyProps = TableHeadProps;
-export type TableRowProps = Omit<
+export interface TableRowProps extends Omit<
   HTMLAttributes<HTMLTableRowElement>,
-  'className'
->;
-export type TableHeaderCellProps = Omit<
+  'aria-selected' | 'className'
+> {
+  /**
+   * Marks the row as the chosen one. A rule down its leading edge, and
+   * `aria-selected` so the choice is not carried by the mark alone.
+   */
+  readonly selected?: boolean;
+}
+export interface TableHeaderCellProps extends Omit<
   ThHTMLAttributes<HTMLTableCellElement>,
   'className'
->;
-export type TableCellProps = Omit<
+> {
+  readonly numeric?: boolean;
+}
+export interface TableCellProps extends Omit<
   TdHTMLAttributes<HTMLTableCellElement>,
   'className'
->;
+> {
+  readonly numeric?: boolean;
+}
 
 function usesRowDividers(dividers: TableDividers) {
   return dividers === 'rows' || dividers === 'grid';
@@ -172,14 +204,16 @@ export function TableBody({children, ...props}: TableBodyProps) {
   );
 }
 
-export function TableRow({children, ...props}: TableRowProps) {
+export function TableRow({children, selected, ...props}: TableRowProps) {
   const {dividers, section} = useContext(TableStyleContext);
   return (
     <tr
       {...props}
+      {...(selected === undefined ? {} : {'aria-selected': selected})}
       {...stylex.props(
         section === 'body' && styles.bodyRow,
         section === 'body' && usesRowDividers(dividers) && styles.rowDivider,
+        section === 'body' && selected === true && styles.selectedRow,
       )}
     >
       {children}
@@ -189,6 +223,7 @@ export function TableRow({children, ...props}: TableRowProps) {
 
 export function TableHeaderCell({
   children,
+  numeric = false,
   scope = 'col',
   ...props
 }: TableHeaderCellProps) {
@@ -200,6 +235,7 @@ export function TableHeaderCell({
       {...stylex.props(
         styles.headerCell,
         styles[density],
+        numeric && styles.numericHeaderCell,
         usesRowDividers(dividers) && styles.headerRowDivider,
         usesColumnDividers(dividers) && styles.columnDivider,
       )}
@@ -209,7 +245,11 @@ export function TableHeaderCell({
   );
 }
 
-export function TableCell({children, ...props}: TableCellProps) {
+export function TableCell({
+  children,
+  numeric = false,
+  ...props
+}: TableCellProps) {
   const {density, dividers} = useContext(TableStyleContext);
   return (
     <td
@@ -217,6 +257,7 @@ export function TableCell({children, ...props}: TableCellProps) {
       {...stylex.props(
         styles.cell,
         styles[density],
+        numeric && styles.numericCell,
         usesColumnDividers(dividers) && styles.columnDivider,
       )}
     >

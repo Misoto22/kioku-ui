@@ -92,18 +92,20 @@ const styles = stylex.create({
   column: {
     display: 'flex',
     flexDirection: 'column',
-    rowGap: semanticTokens.spacingXs,
+    rowGap: semanticTokens.borderWidth,
   },
+  // The same eyebrow the rail's section headings take: smallest size, opened
+  // right up, heading face, second rank of ink.
   columnTitle: {
-    color: semanticTokens.colorTextMuted,
-    fontFamily: semanticTokens.fontFamilyBody,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
     paddingBlockEnd: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
-    textTransform: 'uppercase',
   },
   // A well sunk into the panel it sits in, so it takes the inner radius and
   // wears its hover as a wash laid over the fill rather than replacing it.

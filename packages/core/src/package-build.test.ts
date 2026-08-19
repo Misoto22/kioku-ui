@@ -799,6 +799,7 @@ process.stdout.write(JSON.stringify({
     const toggleTrackOff = elementMarkup(markup.toggleOff, 'span');
     const toggleThumbOff = elementMarkup(markup.toggleOff, 'span', 1);
     const toggleTrackOn = elementMarkup(markup.toggleOn, 'span');
+    const toggleThumbOn = elementMarkup(markup.toggleOn, 'span', 1);
     expectRenderedRule(
       packageCss,
       markup.toggleOff,
@@ -809,27 +810,42 @@ process.stdout.write(JSON.stringify({
       markup.toggleOff,
       `min-width:var(${variable('--kioku-ui-size-hit-target')})`,
     );
+    /*
+     * The track is a solid block, not a tiny outlined box: below about 20px a
+     * border reads as a field that failed to grow, so the off state is carried
+     * by a mid-grey fill and the track declares no border at all. Its knob and
+     * travel are relationships over the same two tokens rather than measured
+     * values, so `calc(` is the assertion — the arithmetic is the contract.
+     */
     expectRenderedRule(
       packageCss,
       toggleTrackOff,
-      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+      `background-color:var(${variable('--kioku-ui-border-strong')})`,
+    );
+    expectNoRenderedDeclaration(packageCss, toggleTrackOff, 'border-color:');
+    expectRenderedRule(
+      packageCss,
+      toggleTrackOff,
+      `width:var(${variable('--kioku-ui-size-control-md')})`,
     );
     expectRenderedRule(
       packageCss,
       toggleTrackOff,
-      `width:var(${variable('--kioku-ui-size-control-lg')})`,
+      `height:var(${variable('--kioku-ui-spacing-lg')})`,
     );
+    expectRenderedRule(packageCss, toggleThumbOff, 'height:calc(');
+    expectRenderedRule(packageCss, toggleThumbOff, 'inset-inline-start:0');
     expectRenderedRule(
       packageCss,
       toggleThumbOff,
-      `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
+      `background-color:var(${variable('--kioku-ui-color-surface')})`,
     );
     expectRenderedRule(
       packageCss,
       toggleTrackOn,
       `background-color:var(${variable('--kioku-ui-color-accent')})`,
     );
-    expectRenderedRule(packageCss, toggleTrackOn, 'justify-content:flex-end');
+    expectRenderedRule(packageCss, toggleThumbOn, 'inset-inline-start:calc(');
     expectRenderedRule(
       packageCss,
       markup.toggleOff,
@@ -1299,15 +1315,18 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(packageCss, emptyDefaultTitle, 'max-width:calc(');
 
     const spinnerVisual = elementMarkup(markup.spinner, 'span', 1);
+    // The resting ring is a hairline, not a filled track: the arc that moves
+    // is the only part carrying ink, so the ring has to sit at the border rank
+    // or the spinner reads as a donut with a bite out of it.
     expectRenderedRule(
       packageCss,
       spinnerVisual,
-      `border-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+      `border-color:var(${variable('--kioku-ui-border-default')})`,
     );
     expectRenderedRule(
       packageCss,
       spinnerVisual,
-      `border-top-color:var(${variable('--kioku-ui-color-accent')})`,
+      `border-top-color:var(${variable('--kioku-ui-color-text')})`,
     );
     expectRenderedMediaRule(
       packageCss,
@@ -1392,7 +1411,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       compactHeaderCell,
-      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+      `border-bottom-color:var(${variable('--kioku-ui-border-strong')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1408,11 +1427,9 @@ process.stdout.write(JSON.stringify({
     );
 
     const headerCell = elementMarkup(markup.tableDefault, 'th');
-    expectRenderedRule(
-      packageCss,
-      headerCell,
-      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
-    );
+    // A ledger header separates itself by ink rank and by the rule beneath it,
+    // never by a fill behind it.
+    expectNoRenderedDeclaration(packageCss, headerCell, 'background-color:');
     expectRenderedRule(
       packageCss,
       headerCell,
@@ -1461,13 +1478,30 @@ process.stdout.write(JSON.stringify({
     );
     expectRenderedRule(
       packageCss,
+      metricRoot,
+      `background-color:var(${variable('--kioku-ui-border-default')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricRoot,
+      `gap:var(${variable('--kioku-ui-border-width')})`,
+    );
+    expectNoRenderedDeclaration(packageCss, metricItem, 'border-color:');
+    expectNoRenderedDeclaration(packageCss, metricItem, 'border-width:');
+    expectRenderedRule(
+      packageCss,
       metricLabel,
       `color:var(${variable('--kioku-ui-color-text-secondary')})`,
     );
     expectRenderedRule(
       packageCss,
       metricValue,
-      `font-family:var(${variable('--kioku-ui-typography-font-family-heading')})`,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-mono')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricValue,
+      'font-variant-numeric:tabular-nums',
     );
     expectRenderedRule(
       packageCss,

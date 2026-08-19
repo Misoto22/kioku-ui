@@ -72,12 +72,14 @@ const styles = stylex.create({
     paddingInline: 0,
     textAlign: 'center',
   },
+  // An eyebrow: heading face, smallest size, opened right up, second rank.
+  // It names who is speaking without competing with what they said.
   author: {
     color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
-    lineHeight: semanticTokens.lineHeightBody,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
   composer: {
     alignItems: 'flex-end',
@@ -86,7 +88,7 @@ const styles = stylex.create({
   },
   input: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
@@ -121,42 +123,63 @@ const styles = stylex.create({
       borderColor: semanticTokens.borderInteractive,
     },
   },
+  // A register of calls, ruled row by row rather than fenced in a box. A box
+  // inside a bubble draws a second edge around something that already has
+  // one; a rule between rows says the same thing with one line fewer.
   toolCalls: {
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusInner,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXs,
-    gap: semanticTokens.spacingXs,
+    // Every figure in this register — row counts, durations, sizes — has to
+    // line up against the one above it.
+    fontVariantNumeric: 'tabular-nums',
     letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
     listStyleType: 'none',
     marginBlock: 0,
-    padding: semanticTokens.spacingSm,
-    paddingInlineStart: semanticTokens.spacingSm,
+    paddingInlineStart: 0,
   },
   toolCall: {
-    alignItems: 'center',
+    alignItems: 'baseline',
     color: semanticTokens.colorTextSecondary,
     display: 'flex',
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
+    paddingBlock: semanticTokens.spacingXs,
+    ':not(:last-child)': {
+      borderBlockEndColor: semanticTokens.borderDefault,
+      borderBlockEndStyle: semanticTokens.borderStyle,
+      borderBlockEndWidth: semanticTokens.borderWidth,
+    },
   },
+  // The name is what was called; the outcome beside it is context.
+  toolCallOutcome: {color: semanticTokens.colorTextMuted},
+  // The row carries no type of its own: every fact inside it is set by the
+  // pair below, so a size here would have to be overridden twice.
   metadata: {
-    color: semanticTokens.colorTextSecondary,
     display: 'flex',
     flexWrap: 'wrap',
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeXs,
     gap: semanticTokens.spacingSm,
-    letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightBody,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
+  },
+  // The label names the fact and the figure states it, so the two are set
+  // apart: an eyebrow in the heading face against a mono, tabular figure.
+  metadataLabel: {
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+  },
+  metadataValue: {
+    color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
   },
   systemMessage: {
     color: semanticTokens.colorTextSecondary,
@@ -298,7 +321,9 @@ export function ChatToolCalls({
       {calls.map((call) => (
         <li key={call.id} {...stylex.props(styles.toolCall)}>
           <span>{call.name}</span>
-          <span>{call.detail ?? call.status ?? ''}</span>
+          <span {...stylex.props(styles.toolCallOutcome)}>
+            {call.detail ?? call.status ?? ''}
+          </span>
         </li>
       ))}
     </ul>
@@ -400,8 +425,10 @@ export function ChatMessageMetadata({
     <ul {...props} {...stylex.props(styles.metadata)}>
       {entries.map((entry) => (
         <li key={entry.label}>
-          <span>{`${entry.label}: `}</span>
-          {entry.value}
+          <span {...stylex.props(styles.metadataLabel)}>
+            {`${entry.label}: `}
+          </span>
+          <span {...stylex.props(styles.metadataValue)}>{entry.value}</span>
         </li>
       ))}
     </ul>

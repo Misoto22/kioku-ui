@@ -16,9 +16,18 @@ const styles = stylex.create({
   },
   item: {flexShrink: 0},
   anchor: {display: 'inline-flex'},
-  count: {
+  label: {
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     letterSpacing: semanticTokens.letterSpacingLabel,
+  },
+  // How many are folded away is a figure, so it is set as one: mono and
+  // tabular, so the button does not change width between 9 and 10.
+  count: {
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
   },
 });
 
@@ -73,8 +82,9 @@ export function OverflowList({
               size="sm"
               variant="ghost"
             >
-              <span {...stylex.props(styles.count)}>
-                {overflowLabel} ({hidden.length})
+              <span {...stylex.props(styles.label)}>
+                {overflowLabel} (
+                <span {...stylex.props(styles.count)}>{hidden.length}</span>)
               </span>
             </Button>
           </span>

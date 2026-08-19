@@ -6,14 +6,19 @@ import {useFieldControl} from '../Field/index.js';
 import type {SelectorOption} from '../Selector/index.js';
 
 const styles = stylex.create({
+  // An input sinks below the card it sits on, and a select is an input: the
+  // muted fill and the strong hairline are what put it on the same rung as the
+  // text fields it shares a form with. Painted on `colorSurface` it read as a
+  // card among wells.
   control: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     boxSizing: 'border-box',
     color: semanticTokens.colorText,
+    cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     height: semanticTokens.sizeControlMd,
@@ -29,6 +34,7 @@ const styles = stylex.create({
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
       color: semanticTokens.colorDisabledText,
+      cursor: 'default',
     },
     ':focus-visible': {
       borderColor: semanticTokens.borderInteractive,

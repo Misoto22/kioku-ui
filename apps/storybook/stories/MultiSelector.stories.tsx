@@ -3,7 +3,7 @@ import {useState} from 'react';
 
 import {Field, MultiSelector} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-multi-selector',
@@ -41,7 +41,9 @@ function MultiSelectorDemo(
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <MultiSelectorDemo {...args} />
+      <StateGrid
+        items={[{label: 'Owners', content: <MultiSelectorDemo {...args} />}]}
+      />
     </DemoFrame>
   ),
 };
@@ -49,9 +51,21 @@ export const Default: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Field label="Owners" description="Everyone who signs off this release.">
-        <MultiSelectorDemo />
-      </Field>
+      <StateGrid
+        items={[
+          {
+            label: 'In a field',
+            content: (
+              <Field
+                label="Owners"
+                description="Everyone who signs off this release."
+              >
+                <MultiSelectorDemo />
+              </Field>
+            ),
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

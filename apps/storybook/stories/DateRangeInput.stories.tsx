@@ -3,7 +3,7 @@ import {useState} from 'react';
 
 import {DateRangeInput, Stack, Text, type DateRange} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-date-range-input',
@@ -40,7 +40,14 @@ function DateRangeInputDemo(
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <DateRangeInputDemo {...args} />
+      <StateGrid
+        items={[
+          {
+            label: 'Reporting period',
+            content: <DateRangeInputDemo {...args} />,
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };
@@ -48,13 +55,22 @@ export const Default: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Stack gap="md">
-        <DateRangeInputDemo />
-        <Text size="sm" tone="muted">
-          The end control refuses dates before the start, so an impossible range
-          cannot be entered in the first place.
-        </Text>
-      </Stack>
+      <StateGrid
+        items={[
+          {
+            label: 'Bounded pair',
+            content: (
+              <Stack gap="md">
+                <DateRangeInputDemo />
+                <Text size="sm" tone="muted">
+                  The end control refuses dates before the start, so an
+                  impossible range cannot be entered in the first place.
+                </Text>
+              </Stack>
+            ),
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

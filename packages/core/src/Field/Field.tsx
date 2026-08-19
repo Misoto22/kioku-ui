@@ -32,14 +32,24 @@ const styles = stylex.create({
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
   },
+  // An eyebrow: the smallest size, opened right up, in the heading face and the
+  // context rank of ink. "(required)" qualifies the label — it must not read as
+  // a second label, and at label size and tracking it did.
   annotation: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightRegular,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
+  // A description and a status are sentences, so they are set solid and lead
+  // like body copy rather than tracked out like a label.
   message: {
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
   description: {color: semanticTokens.colorTextSecondary},

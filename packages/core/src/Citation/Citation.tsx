@@ -13,10 +13,13 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
   },
+  // The marker is a figure, not a word: mono and tabular, so a page of
+  // citations keeps its superscripts on one width.
   marker: {
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXs,
-    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     verticalAlign: 'super',
   },
 });

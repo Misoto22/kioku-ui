@@ -11,6 +11,15 @@ import {
 import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
 
+// The box is one micro-control tall — the same block a switch track occupies,
+// so a row of checkboxes and a row of switches sit on the same rhythm. Its
+// offset is the relationship that matters: it centres on the *first line* of
+// the label rather than on the label's whole box, so a label that wraps to two
+// lines does not drag the box down with it. Both survive a density change
+// because neither is a measurement.
+const boxSize = semanticTokens.spacingLg;
+const boxFirstLineOffset = `calc((${semanticTokens.fontSizeMd} * ${semanticTokens.lineHeightBody} - ${boxSize}) / 2)`;
+
 const styles = stylex.create({
   row: {
     alignItems: 'flex-start',
@@ -20,10 +29,12 @@ const styles = stylex.create({
   },
   box: {
     accentColor: semanticTokens.colorAccent,
-    blockSize: semanticTokens.spacingMd,
+    blockSize: boxSize,
+    cursor: 'pointer',
     flexShrink: 0,
-    inlineSize: semanticTokens.spacingMd,
-    marginBlockStart: semanticTokens.spacingXs,
+    inlineSize: boxSize,
+    marginBlockStart: boxFirstLineOffset,
+    ':disabled': {cursor: 'default'},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,

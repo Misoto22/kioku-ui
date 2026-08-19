@@ -30,7 +30,10 @@ const styles = stylex.create({
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    fontWeight: semanticTokens.fontWeightMedium,
+    // One weight throughout. Setting the whole strip medium made it shout
+    // over the page and left nothing for the selected tab to gain; the ink
+    // rank and the underline say which tab is current, and neither reflows.
+    fontWeight: semanticTokens.fontWeightRegular,
     letterSpacing: semanticTokens.letterSpacingLabel,
     // The mark overlaps the strip's own rule instead of sitting under it.
     marginBlockEnd: `calc(-1 * ${semanticTokens.borderWidth})`,

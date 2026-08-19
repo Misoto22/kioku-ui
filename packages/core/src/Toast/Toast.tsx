@@ -73,12 +73,15 @@ const styles = stylex.create({
     backgroundColor: semanticTokens.statusDangerSurface,
     color: semanticTokens.statusDangerText,
   },
+  // The title is the kicker the description hangs from: heading face, label
+  // tracking, set tight. Body face at body tracking made the two lines read as
+  // one paragraph that happened to start in bold.
   title: {
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightMedium,
-    letterSpacing: semanticTokens.letterSpacingBody,
-    lineHeight: semanticTokens.lineHeightBody,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
   description: {

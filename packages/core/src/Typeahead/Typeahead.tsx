@@ -18,9 +18,12 @@ const listboxHeight = `calc(8 * ${semanticTokens.spacing2xl})`;
 
 const styles = stylex.create({
   root: {display: 'grid', position: 'relative'},
+  // A field sinks: the muted fill and the strong edge are what every other
+  // text control in the system is painted with. Surface plus a hairline is
+  // the read-only treatment, and wearing it at rest flattened the ladder.
   input: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
@@ -55,7 +58,8 @@ const styles = stylex.create({
     },
   },
   readOnly: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
+    backgroundColor: semanticTokens.colorSurface,
+    borderColor: semanticTokens.borderDefault,
     color: semanticTokens.colorText,
   },
   invalid: {
@@ -78,8 +82,10 @@ const styles = stylex.create({
     zIndex: 1,
   },
   listbox: {listStyleType: 'none', marginBlock: 0, paddingInlineStart: 0},
+  // A suggestion that is merely on offer is set in the second rank; the one
+  // the keys are pointing at rises to the first.
   option: {
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
@@ -91,11 +97,20 @@ const styles = stylex.create({
     transitionProperty: 'background-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
-  idle: {':hover': {backgroundColor: semanticTokens.colorOverlayHover}},
-  // The combobox keeps focus, so the wash is the only sign of where it points.
-  active: {backgroundColor: semanticTokens.colorOverlayHover},
+  idle: {
+    ':hover': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
+    },
+  },
+  // The combobox keeps focus, so the wash and the ink together are the only
+  // sign of where it points.
+  active: {
+    backgroundColor: semanticTokens.colorOverlayHover,
+    color: semanticTokens.colorText,
+  },
   empty: {
-    color: semanticTokens.colorTextMuted,
+    color: semanticTokens.colorTextSecondary,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     letterSpacing: semanticTokens.letterSpacingBody,

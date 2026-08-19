@@ -3,8 +3,11 @@ import type {HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// The rest is the well an input is painted with; the breath deepens it to the
+// hairline rather than bleaching it back to the card, so a placeholder laid on
+// a card never disappears into it at the top of the cycle.
 const pulse = stylex.keyframes({
-  '50%': {backgroundColor: semanticTokens.colorSurface},
+  '50%': {backgroundColor: semanticTokens.borderDefault},
 });
 
 const styles = stylex.create({
