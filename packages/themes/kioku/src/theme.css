@@ -401,6 +401,15 @@
      Deliberately not a filter or a transform — those would capture fixed
      descendants; isolation does not. */
   isolation: isolate;
+  /* And a containing block, so the frost's `inset: 0` resolves against this
+     root rather than against whatever positioned ancestor happens to be above
+     it. Isolation governs paint order, not geometry: without this the frost
+     escaped the skin and blurred everything up to the nearest positioned
+     ancestor, and a page showing several skins at once stacked one 180%
+     saturation per swatch until the whole document went yellow. `relative`
+     is safe where `transform` and `filter` are not — it does not become the
+     containing block for a fixed descendant. */
+  position: relative;
 
   --kioku-theme-kasumi-frost-keep: 64%;
   --kioku-theme-kasumi-frost-raised: max(
@@ -1133,4 +1142,19 @@
     'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   --kioku-theme-font-family-display:
     'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+
+/*
+ * Chinese also needs more air between lines than Latin does. A Latin line is
+ * opened by its own ascenders and descenders; hanzi are square, dense and full
+ * height, so consecutive lines close up at the leading that suits English.
+ * Leading is a property of the writing system rather than of the skin, so it
+ * sits with the families rather than in each theme — and it reaches every page
+ * through `lineHeightBody`, which is what `Text` already sets.
+ */
+[data-theme='washi']:lang(zh),
+[data-theme='muji']:lang(zh),
+[data-theme='sumi']:lang(zh),
+[data-theme='kasumi']:lang(zh) {
+  --kioku-theme-line-height-body: 1.8;
 }

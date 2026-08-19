@@ -1,5 +1,4 @@
 import {useState} from 'react';
-import type {CSSProperties, ReactNode} from 'react';
 
 import {
   Badge,
@@ -10,10 +9,12 @@ import {
   CodeBlock,
   Divider,
   EmptyState,
+  Eyebrow,
   HStack,
   Heading,
   NavItem,
   NavMenu,
+  Numeral,
   Stack,
   TabList,
   Table,
@@ -30,6 +31,9 @@ import {
 import {componentDocs} from '@misoto22/kioku-ui/docs';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 
+import {componentDetail} from '../i18n/componentDetail.js';
+import {components as componentsCopy} from '../i18n/components.js';
+import {useCopy} from '../i18n/index.js';
 import {PageContainer} from '../layout/PageContainer.js';
 import {componentHref, componentSlug, routeHref} from '../router.js';
 
@@ -49,39 +53,12 @@ const sourceUrl =
 // custom property, so those stay literal.
 const measure = 'var(--kioku-ui-spacing-2xl)';
 
-const eyebrowStyle: CSSProperties = {
-  color: 'var(--kioku-ui-color-text-secondary)',
-  fontFamily: 'var(--kioku-ui-typography-font-family-display)',
-  fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-  fontWeight: 'var(--kioku-ui-typography-font-weight-medium)',
-  letterSpacing: 'var(--kioku-ui-typography-letter-spacing-eyebrow)',
-  lineHeight: 'var(--kioku-ui-typography-line-height-heading)',
-  textTransform: 'uppercase',
-};
-
-const figureStyle: CSSProperties = {
-  color: 'var(--kioku-ui-color-text-muted)',
-  fontFamily: 'var(--kioku-ui-typography-font-family-mono)',
-  fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-  fontVariantNumeric: 'tabular-nums',
-  letterSpacing: 'var(--kioku-ui-typography-letter-spacing-mono)',
-};
-
-/** The label of last resort: it names a thing without competing with it. */
-function Eyebrow({children}: {readonly children: ReactNode}) {
-  return <span style={eyebrowStyle}>{children}</span>;
-}
-
-/** A count or a ratio, set in the mono face so columns line up. */
-function Figure({children}: {readonly children: ReactNode}) {
-  return <span style={figureStyle}>{children}</span>;
-}
-
 /**
  * The plate every component gets. The theme tabs re-skin only what is inside
- * it, so a reader can check one component against all three without losing
- * the theme they chose for the site; colour mode and density come from the
- * site, because those are the reader's settings rather than the plate's.
+ * it, so a reader can check one component against every skin the pack ships
+ * without losing the theme they chose for the site; colour mode and density
+ * come from the site, because those are the reader's settings rather than the
+ * plate's.
  */
 function SpecimenPlate({
   name,
@@ -94,6 +71,7 @@ function SpecimenPlate({
 }) {
   const {density, mode} = useTheme();
   const [themeId, setThemeId] = useState('washi');
+  const copy = useCopy(componentDetail);
   const Specimen = specimens[slug];
 
   return (
@@ -118,9 +96,14 @@ function SpecimenPlate({
           paddingInline: 'var(--kioku-ui-spacing-lg)',
         }}
       >
-        <Eyebrow>Specimen</Eyebrow>
+        <Eyebrow>{copy.specimen.label}</Eyebrow>
+        {/*
+          Every skin the pack exports, read off the pack itself. The tabs and
+          the sentence under the story below therefore cannot disagree about
+          how many there are.
+        */}
         <TabList
-          label="Specimen theme"
+          label={copy.specimen.themeLabel}
           onSelect={setThemeId}
           selectedId={themeId}
           tabs={kiokuThemes.map((theme) => ({
@@ -162,13 +145,13 @@ function SpecimenPlate({
                     }}
                     variant="secondary"
                   >
-                    Open story
+                    {copy.openStory}
                   </Button>
                 )
               }
-              detail={`No specimen is registered for ${name} yet. Its story draws every state it has, audited with axe across all three themes in both colour modes.`}
+              detail={copy.noSpecimen.detail(name, kiokuThemes.length)}
               size="compact"
-              title="No specimen registered"
+              title={copy.noSpecimen.title}
             />
           ) : (
             <Specimen />
@@ -190,6 +173,13 @@ interface ComponentDetailPageProps {
  */
 export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
   const wide = useMediaQuery('(min-width: 60rem)');
+  const copy = useCopy(componentDetail);
+  const libraryCopy = useCopy(componentsCopy);
+
+  /** A group's own name in the language the page is being read in. */
+  function groupName(title: string): string {
+    return libraryCopy.groups[title] ?? title;
+  }
 
   const group = componentCatalog.find((candidate) =>
     candidate.entries.some((entry) => componentSlug(entry.name) === slug),
@@ -210,11 +200,11 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                 }}
                 variant="secondary"
               >
-                Back to the library
+                {copy.notFound.action}
               </Button>
             }
-            detail="Nothing in the catalog answers to that name. It may have been renamed, or the link may have been typed by hand."
-            title="No such component"
+            detail={copy.notFound.detail}
+            title={copy.notFound.title}
           />
         </Card>
       </PageContainer>
@@ -251,10 +241,12 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
           >
             <Stack gap="xs">
               <HStack align="baseline" justify="between">
-                <Eyebrow>{group.title}</Eyebrow>
-                <Figure>{group.entries.length}</Figure>
+                <Eyebrow>{groupName(group.title)}</Eyebrow>
+                <Eyebrow tone="muted">
+                  <Numeral>{group.entries.length}</Numeral>
+                </Eyebrow>
               </HStack>
-              <NavMenu label={`${group.title} components`}>
+              <NavMenu label={libraryCopy.groupMenu(groupName(group.title))}>
                 {group.entries.map((sibling) => (
                   <NavItem
                     current={sibling.name === entry.name}
@@ -270,13 +262,13 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
             <Divider />
 
             <Stack gap="xs">
-              <Eyebrow>Other groups</Eyebrow>
+              <Eyebrow>{copy.otherGroups.label}</Eyebrow>
               {/*
                 A group has no page of its own, so each row leads to the first
                 component in it — and that component's rail is the group. The
                 destination is the group either way.
               */}
-              <NavMenu label="Other component groups">
+              <NavMenu label={copy.otherGroups.menu}>
                 {others.map((candidate) => {
                   const first = candidate.entries[0];
                   return first === undefined ? null : (
@@ -284,8 +276,12 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                       href={componentHref(first.name)}
                       key={candidate.title}
                     >
-                      <span style={{flex: '1 1 auto'}}>{candidate.title}</span>
-                      <Figure>{candidate.entries.length}</Figure>
+                      <span style={{flex: '1 1 auto'}}>
+                        {groupName(candidate.title)}
+                      </span>
+                      <Eyebrow tone="muted">
+                        <Numeral>{candidate.entries.length}</Numeral>
+                      </Eyebrow>
                     </NavItem>
                   );
                 })}
@@ -297,10 +293,10 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
         <Stack gap="lg">
           <Breadcrumbs
             items={[
-              {href: routeHref('components'), label: 'Components'},
+              {href: routeHref('components'), label: copy.breadcrumbRoot},
               {
                 href: routeHref('components', {group: group.title}),
-                label: group.title,
+                label: groupName(group.title),
               },
               {label: entry.name},
             ]}
@@ -313,7 +309,9 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                   {entry.name}
                 </Heading>
                 <Badge tone={entry.status === 'ready' ? 'success' : 'warning'}>
-                  {entry.status === 'ready' ? 'Ready' : 'Planned'}
+                  {entry.status === 'ready'
+                    ? copy.status.ready
+                    : copy.status.planned}
                 </Badge>
                 <Code>@misoto22/kioku-ui</Code>
               </HStack>
@@ -329,7 +327,7 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                   }}
                   variant="secondary"
                 >
-                  View source
+                  {copy.viewSource}
                 </Button>
                 {doc === undefined ? null : (
                   <Button
@@ -342,7 +340,7 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                     }}
                     variant="secondary"
                   >
-                    Open story
+                    {copy.openStory}
                   </Button>
                 )}
               </HStack>
@@ -368,30 +366,42 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
           <Card elevation="low">
             <Stack gap="md">
               <HStack align="baseline" gap="lg" justify="between">
-                <Eyebrow>Props</Eyebrow>
+                <Eyebrow>{copy.props.label}</Eyebrow>
                 {doc === undefined ? null : (
-                  <Figure>
-                    {doc.props.length} own · {doc.inheritedProps.length}{' '}
-                    inherited {doc.inheritedProps.length === 1 ? 'set' : 'sets'}
-                  </Figure>
+                  <Eyebrow tone="muted">
+                    {copy.props.figure.lead}
+                    <Numeral>{doc.props.length}</Numeral>
+                    {copy.props.figure.between}
+                    <Numeral>{doc.inheritedProps.length}</Numeral>
+                    {copy.props.figure.tail(doc.inheritedProps.length)}
+                  </Eyebrow>
                 )}
               </HStack>
 
               {doc === undefined ? (
                 <Text size="sm" tone="muted">
-                  {entry.name} ships no documentation sidecar to this site, so
-                  its props are not listed here. The type is the contract:
-                  import it and read {entry.name}Props.
+                  {copy.noSidecar.lead(entry.name)}
+                  <Code>{entry.name}Props</Code>
+                  {copy.noSidecar.tail}
                 </Text>
               ) : (
                 <Stack gap="md">
                   <Table density="compact" dividers="rows">
                     <TableHead>
+                      {/*
+                        Three columns and no more, because a prop's sidecar
+                        records exactly three things. The note under the table
+                        says where the type and the default went.
+                      */}
                       <TableRow>
-                        <TableHeaderCell scope="col">Prop</TableHeaderCell>
-                        <TableHeaderCell scope="col">Required</TableHeaderCell>
                         <TableHeaderCell scope="col">
-                          Description
+                          {copy.props.name}
+                        </TableHeaderCell>
+                        <TableHeaderCell scope="col">
+                          {copy.props.requiredColumn}
+                        </TableHeaderCell>
+                        <TableHeaderCell scope="col">
+                          {copy.props.description}
                         </TableHeaderCell>
                       </TableRow>
                     </TableHead>
@@ -403,10 +413,10 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                           </TableCell>
                           <TableCell>
                             {prop.required === true ? (
-                              <Badge tone="info">Required</Badge>
+                              <Badge tone="info">{copy.props.required}</Badge>
                             ) : (
                               <Text size="sm" tone="muted">
-                                Optional
+                                {copy.props.optional}
                               </Text>
                             )}
                           </TableCell>
@@ -416,8 +426,29 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                     </TableBody>
                   </Table>
 
+                  {/*
+                    Three columns, because the sidecar records three things.
+                    A reader who has met a props table elsewhere will look for
+                    the type and the default and find neither, so the page says
+                    where they went rather than leaving the gap unexplained.
+                  */}
                   <HStack align="start" gap="lg" wrap>
-                    <Eyebrow>Inherited</Eyebrow>
+                    <Eyebrow>{copy.noTypeColumn.label}</Eyebrow>
+                    <Text
+                      size="sm"
+                      style={{flex: `1 1 calc(11 * ${measure})`}}
+                      tone="muted"
+                    >
+                      {copy.noTypeColumn.lead}
+                      <Code>{entry.name}Props</Code>
+                      {copy.noTypeColumn.tail}
+                    </Text>
+                  </HStack>
+
+                  <Divider />
+
+                  <HStack align="start" gap="lg" wrap>
+                    <Eyebrow>{copy.inherited.label}</Eyebrow>
                     <Text
                       size="sm"
                       tone="secondary"
@@ -429,8 +460,7 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                           <Code>{contract}</Code>
                         </span>
                       ))}
-                      . The package owns its own styling, so a caller cannot
-                      reach in and override it.
+                      . {copy.inherited.tail}
                     </Text>
                   </HStack>
                 </Stack>
@@ -449,10 +479,10 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
           >
             <Card elevation="low">
               <Stack gap="sm">
-                <Eyebrow>Example</Eyebrow>
+                <Eyebrow>{copy.example.label}</Eyebrow>
                 {doc === undefined ? (
                   <Text size="sm" tone="muted">
-                    No documented example.
+                    {copy.example.none}
                   </Text>
                 ) : (
                   <>
@@ -471,8 +501,7 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                       {doc.example}
                     </Code>
                     <Text size="sm" tone="muted">
-                      The shortest thing that works. Every prop is optional
-                      unless the table above says otherwise.
+                      {copy.example.note}
                     </Text>
                   </>
                 )}
@@ -482,12 +511,14 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
             <Card elevation="low">
               <Stack gap="sm">
                 <HStack align="baseline" gap="lg" justify="between">
-                  <Eyebrow>Stories</Eyebrow>
-                  <Figure>:6006</Figure>
+                  <Eyebrow>{copy.stories.label}</Eyebrow>
+                  <Eyebrow tone="muted">
+                    <Numeral>:6006</Numeral>
+                  </Eyebrow>
                 </HStack>
                 {doc === undefined ? (
                   <Text size="sm" tone="muted">
-                    No story is registered for {entry.name}.
+                    {copy.stories.none(entry.name)}
                   </Text>
                 ) : (
                   <>
@@ -503,12 +534,16 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
                         }}
                         variant="secondary"
                       >
-                        Open
+                        {copy.stories.open}
                       </Button>
                     </HStack>
+                    {/*
+                      The skin count is read off the theme pack rather than
+                      written into the sentence, which is how it came to say
+                      three while the pack shipped four.
+                    */}
                     <Text size="sm" tone="muted">
-                      Audited with axe across all three themes, in both colour
-                      modes.
+                      {copy.stories.note(kiokuThemes.length)}
                     </Text>
                   </>
                 )}

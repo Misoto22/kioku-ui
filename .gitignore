@@ -1,5 +1,7 @@
 node_modules/
 .artifacts/
+.superpowers/
+docs/superpowers/
 dist/
 apps/example-*/.next/
 apps/storybook/storybook-static/

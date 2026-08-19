@@ -261,7 +261,7 @@ These are enforced by `pnpm check` and will fail the build:
 - **Every component has four files**: `X.tsx`, `X.doc.ts`, `X.test.tsx`,
   `index.ts`. The doc is `satisfies ComponentDoc` with all six fields.
 - **Accessibility is baselined.** `pnpm a11y:audit` scans every story across
-  three themes and two modes against `.github/a11y-baseline.json`, which
+  every theme the pack ships and both modes against `.github/a11y-baseline.json`, which
   currently records **zero** violations. A change that introduces one fails CI;
   fix the component rather than re-recording.
 
