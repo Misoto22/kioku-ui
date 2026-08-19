@@ -82,9 +82,11 @@ const styles = stylex.create({
       borderInlineStartColor: semanticTokens.borderInteractive,
     },
   },
-  // Pressed is a mark and a change of ink, never a filled accent block.
+  // Pressed is a mark and a change of ink, never a filled block. The mark is
+  // the same ink underline a selected tab draws, one weight heavier than the
+  // edge it replaces, so a pressed toggle and a current tab read as one idea.
   pressed: {
-    borderBlockEndColor: semanticTokens.colorAccent,
+    borderBlockEndColor: semanticTokens.colorText,
     borderBlockStartColor: semanticTokens.borderStrong,
     borderInlineEndColor: semanticTokens.borderStrong,
     borderInlineStartColor: semanticTokens.borderStrong,

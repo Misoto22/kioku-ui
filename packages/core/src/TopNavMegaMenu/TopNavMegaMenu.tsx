@@ -95,17 +95,19 @@ const styles = stylex.create({
     rowGap: semanticTokens.borderWidth,
   },
   // The same eyebrow the rail's section headings take: smallest size, opened
-  // right up, heading face, second rank of ink.
+  // right up, display face, second rank of ink.
   columnTitle: {
     color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeXs,
+    fontSynthesis: 'none',
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
     paddingBlockEnd: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInlineEnd: 0,
+    paddingInlineStart: semanticTokens.spacingMd,
   },
   // A well sunk into the panel it sits in, so it takes the inner radius and
   // wears its hover as a wash laid over the fill rather than replacing it.

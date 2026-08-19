@@ -280,6 +280,14 @@ hidden` on the container. Bordering every cell doubles every interior line.
 48. **Three ranks of ink do the work colour would.** `colorText` for what is
     current, `colorTextSecondary` for what is available, `colorTextMuted` for
     what is context. Reaching for a fill usually means the ranks were not used.
+
+    The third rank is for static copy only. A row that responds to the pointer
+    is read against the hover wash rather than the bare surface, and on that
+    composite `colorTextMuted` measures 3.81:1 in every dark theme. The value
+    that would clear 4.5:1 there sits at 97-105% of `colorTextSecondary` — not
+    a third rank at all. So an interactive row has two ink ranks, and its
+    secondary line separates from the first by size.
+
 49. **A specimen has a plate.** Anything that presents a set — states in a
     story, tokens in a table, options in a picker — sits on a surface with an
     edge. Content floating on the canvas reads as unplaced, not as spacious.

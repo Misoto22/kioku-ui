@@ -4,23 +4,53 @@ import type {LiHTMLAttributes, ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {Item} from '../Item/index.js';
 
+// The same bookmark the sidebar draws beside the reader's page: two hairlines
+// wide, short of the row so it reads as a stroke laid on the row rather than
+// as a rule dividing it.
+const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+const markHeight = '64%';
+
 const styles = stylex.create({
+  // A suggestion on offer is merely available, so it sits in the second rank;
+  // the one the keys point at rises to the first.
   option: {
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingMd,
+    position: 'relative',
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
-  idle: {':hover': {backgroundColor: semanticTokens.colorOverlayHover}},
-  // Focus stays in the combobox, so the wash is the only sign of the pointer.
-  active: {backgroundColor: semanticTokens.colorOverlayHover},
+  idle: {
+    ':hover': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
+    },
+  },
+  // Focus stays in the combobox, so the row it points at carries the whole
+  // signal itself: the wash, the first rank of ink, and the bookmark at the
+  // inline-start edge — never a filled bar.
+  active: {
+    backgroundColor: semanticTokens.colorOverlayHover,
+    color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
+    '::before': {
+      backgroundColor: semanticTokens.colorAccent,
+      content: '',
+      height: markHeight,
+      insetBlockStart: '50%',
+      insetInlineStart: 0,
+      position: 'absolute',
+      transform: 'translateY(-50%)',
+      width: markWidth,
+    },
+  },
   disabled: {color: semanticTokens.colorDisabledText, cursor: 'default'},
 });
 

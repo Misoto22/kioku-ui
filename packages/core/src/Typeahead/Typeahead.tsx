@@ -16,6 +16,12 @@ const listboxOffset = `calc(100% + ${semanticTokens.spacingXs})`;
 // Roughly eight rows before the list starts scrolling.
 const listboxHeight = `calc(8 * ${semanticTokens.spacing2xl})`;
 
+// The same bookmark the sidebar draws beside the reader's page: two hairlines
+// wide, short of the row so it reads as a stroke laid on the row rather than
+// as a rule dividing it.
+const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+const markHeight = '64%';
+
 const styles = stylex.create({
   root: {display: 'grid', position: 'relative'},
   // A field sinks: the muted fill and the strong edge are what every other
@@ -92,7 +98,8 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingMd,
+    position: 'relative',
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
@@ -103,11 +110,23 @@ const styles = stylex.create({
       color: semanticTokens.colorText,
     },
   },
-  // The combobox keeps focus, so the wash and the ink together are the only
-  // sign of where it points.
+  // The combobox keeps focus, so the row it points at has to say so on its
+  // own: the wash, the first rank of ink, and the bookmark at the inline-start
+  // edge — the same mark the sidebar uses, never a filled bar.
   active: {
     backgroundColor: semanticTokens.colorOverlayHover,
     color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
+    '::before': {
+      backgroundColor: semanticTokens.colorAccent,
+      content: '',
+      height: markHeight,
+      insetBlockStart: '50%',
+      insetInlineStart: 0,
+      position: 'absolute',
+      transform: 'translateY(-50%)',
+      width: markWidth,
+    },
   },
   empty: {
     color: semanticTokens.colorTextSecondary,
@@ -117,7 +136,7 @@ const styles = stylex.create({
     lineHeight: semanticTokens.lineHeightBody,
     marginBlock: 0,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingMd,
   },
 });
 

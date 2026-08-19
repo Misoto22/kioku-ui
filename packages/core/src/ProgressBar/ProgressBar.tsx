@@ -19,8 +19,12 @@ const styles = stylex.create({
     overflow: 'hidden',
     width: '100%',
   },
+  // The track at rest is the well; the part that has been earned is full ink.
+  // The accent's jobs are the focus ring, the selected mark and a link on
+  // hover, and a bar filling half a track is none of the three — the same
+  // reasoning the spinner's moving arc is drawn by.
   fill: {
-    backgroundColor: semanticTokens.colorAccent,
+    backgroundColor: semanticTokens.colorText,
     borderRadius: semanticTokens.radiusFull,
     display: 'block',
     height: '100%',

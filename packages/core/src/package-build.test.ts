@@ -375,7 +375,21 @@ process.stdout.write(JSON.stringify({
       );
     }
 
+    // The seal: ink ground, paper letters, and pointer states that run down
+    // the ranks of ink rather than into the accent. The accent is reserved for
+    // thin marks — focus ring, selection bar, link hover — so a filled accent
+    // button is the one thing this contract must keep out.
     expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `background-color:var(${variable('--kioku-ui-color-text')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `color:var(${variable('--kioku-ui-color-text-on-accent')})`,
+    );
+    expectNoRenderedDeclaration(
       packageCss,
       markup.buttonPrimary,
       `background-color:var(${variable('--kioku-ui-color-accent')})`,
@@ -383,12 +397,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       markup.buttonPrimary,
-      `color:var(${variable('--kioku-ui-color-text-on-accent')})`,
-    );
-    expectRenderedRule(
-      packageCss,
-      markup.buttonPrimary,
-      `background-color:var(${variable('--kioku-ui-color-accent-hover')})`,
+      `background-color:var(${variable('--kioku-ui-color-text-secondary')})`,
       ':hover',
       true,
       [':not(:active)'],
@@ -396,7 +405,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       markup.buttonPrimary,
-      `background-color:var(${variable('--kioku-ui-color-accent-active')})`,
+      `background-color:var(${variable('--kioku-ui-color-text-muted')})`,
       ':active',
       true,
     );
@@ -648,7 +657,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       fieldLabel,
-      `color:var(${variable('--kioku-ui-color-text')})`,
+      `color:var(${variable('--kioku-ui-color-text-secondary')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -736,7 +745,14 @@ process.stdout.write(JSON.stringify({
       `height:var(${variable('--kioku-ui-size-control-md')})`,
     );
     expectRenderedRule(packageCss, markup.input, 'box-sizing:border-box');
-    expectRenderedRule(packageCss, markup.textArea, 'min-height:96px');
+    // Four lines of body copy plus the control's own block padding, so the
+    // field still opens on four lines when density or type size moves under
+    // it. It was a literal 96px, which is the one thing the scale forbids.
+    expectRenderedRule(
+      packageCss,
+      markup.textArea,
+      `min-height:calc(4 * var(${variable('--kioku-ui-typography-font-size-md')}) * var(${variable('--kioku-ui-typography-line-height-body')}) + 2 * var(${variable('--kioku-ui-spacing-xs')}))`,
+    );
 
     for (const name of ['inputDisabled', 'textAreaDisabled'] as const) {
       expectRenderedRule(
@@ -843,7 +859,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       toggleTrackOn,
-      `background-color:var(${variable('--kioku-ui-color-accent')})`,
+      `background-color:var(${variable('--kioku-ui-color-text')})`,
     );
     expectRenderedRule(packageCss, toggleThumbOn, 'inset-inline-start:calc(');
     expectRenderedRule(
@@ -1291,20 +1307,47 @@ process.stdout.write(JSON.stringify({
     const emptyCompact = elementMarkup(markup.emptyCompact, 'div', 1);
     const emptyDefaultDetail = elementMarkup(markup.emptyDefault, 'p', 1);
     const emptyDefaultTitle = elementMarkup(markup.emptyDefault, 'p');
+    // The empty state is a plate, not floating copy, and its foot is tighter
+    // than its head so the actions close the block instead of hanging in it.
     expectRenderedRule(
       packageCss,
       emptyDefault,
-      `padding:var(${variable('--kioku-ui-spacing-2xl')})`,
+      `background-color:var(${variable('--kioku-ui-color-surface')})`,
     );
     expectRenderedRule(
       packageCss,
       emptyDefault,
-      `gap:var(${variable('--kioku-ui-spacing-md')})`,
+      `box-shadow:var(${variable('--kioku-ui-elevation-medium')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `padding-top:var(${variable('--kioku-ui-spacing-2xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `padding-bottom:var(${variable('--kioku-ui-spacing-xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `gap:var(${variable('--kioku-ui-spacing-sm')})`,
     );
     expectRenderedRule(
       packageCss,
       emptyCompact,
-      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+      `padding-top:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyCompact,
+      `padding-bottom:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyCompact,
+      `padding-inline:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1345,22 +1388,20 @@ process.stdout.write(JSON.stringify({
       markup.skeleton,
       `border-radius:var(${variable('--kioku-ui-radius-element')})`,
     );
+    // The placeholder is still in every mode, so there is no cycle to guard:
+    // a page of bars that breathes makes the wait the loudest thing on it.
+    expectNoRenderedDeclaration(packageCss, markup.skeleton, 'animation-name:');
     expectRenderedRule(
       packageCss,
       markup.skeleton,
-      `animation-duration:var(${variable('--kioku-ui-motion-duration-slow')})`,
-    );
-    expectRenderedMediaRule(
-      packageCss,
-      markup.skeleton,
-      '(prefers-reduced-motion: reduce)',
-      'animation-name:none',
+      `min-height:var(${variable('--kioku-ui-spacing-md')})`,
     );
 
     const defaultCell = elementMarkup(markup.tableDefault, 'td');
     const compactCell = elementMarkup(markup.tableCompactGrid, 'td');
     const spaciousCell = elementMarkup(markup.tableSpaciousNone, 'td');
     const compactHeaderCell = elementMarkup(markup.tableCompactGrid, 'th');
+    const defaultHeaderCell = elementMarkup(markup.tableDefault, 'th');
     for (const [cell, spacing] of [
       [defaultCell, '--kioku-ui-spacing-md'],
       [compactCell, '--kioku-ui-spacing-sm'],
@@ -1372,11 +1413,19 @@ process.stdout.write(JSON.stringify({
         `padding-block:var(${variable(spacing)})`,
       );
     }
-    expectRenderedRule(
-      packageCss,
-      compactHeaderCell,
-      `padding-block:var(${variable('--kioku-ui-spacing-sm')})`,
-    );
+    // The header carries a line of 11px eyebrow rather than a line of data, so
+    // it sits one spacing step tighter than the rows it names at every density
+    // — matching the body would give the strip more air than the entries.
+    for (const [cell, spacing] of [
+      [defaultHeaderCell, '--kioku-ui-spacing-sm'],
+      [compactHeaderCell, '--kioku-ui-spacing-xs'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        cell,
+        `padding-block:var(${variable(spacing)})`,
+      );
+    }
 
     const defaultRow = elementMarkup(markup.tableDefault, 'tr', 1);
     const columnsRow = elementMarkup(markup.tableColumns, 'tr', 1);
@@ -1853,7 +1902,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       emptyState,
-      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+      `padding-inline:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     const tableRow = elementMarkup(markup.table, 'tr', 1);
     const tableCell = elementMarkup(markup.table, 'td');

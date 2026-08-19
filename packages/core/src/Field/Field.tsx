@@ -21,16 +21,22 @@ const FieldContext = createContext<FieldContextValue | null>(null);
 
 const styles = stylex.create({
   root: {display: 'grid', gap: semanticTokens.spacingXs},
+  // An eyebrow, not a title. The label names the control; the value inside the
+  // control is the thing being read, and a label set at body size in full ink
+  // competes with it down a whole column of fields. Smallest size, opened
+  // right up, heading face, second rank of ink — the way every small label in
+  // the console is set.
   label: {
     alignItems: 'baseline',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     display: 'flex',
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
   // An eyebrow: the smallest size, opened right up, in the heading face and the
   // context rank of ink. "(required)" qualifies the label — it must not read as

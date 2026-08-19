@@ -4,12 +4,14 @@ import type {HTMLAttributes, ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
-  // The masthead is a surface over the canvas, parted from the page by a rule
-  // rather than a shadow.
+  // The masthead is the top of the same sheet the page is printed on, not a
+  // bar laid over it: the rule under it is the only thing that parts the two.
+  // Painting it `colorSurface` made the banner read as a card the width of the
+  // window, which put the shell on the same rung as the cards inside it.
   bar: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurface,
-    borderBlockEndColor: semanticTokens.borderStrong,
+    backgroundColor: semanticTokens.colorCanvas,
+    borderBlockEndColor: semanticTokens.borderDefault,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
     columnGap: semanticTokens.spacingLg,
@@ -21,16 +23,21 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingLg,
   },
+  // A wordmark, so it is cut in the display face and tracked as a display
+  // name rather than as a heading. It carries the medium weight the rest of
+  // the masthead does: a bolder wordmark shouts across a bar that is otherwise
+  // all second-rank ink.
   brand: {
     alignItems: 'center',
     color: semanticTokens.colorText,
     columnGap: semanticTokens.spacingSm,
     display: 'flex',
     flexShrink: 0,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeLg,
-    fontWeight: semanticTokens.fontWeightStrong,
-    letterSpacing: semanticTokens.letterSpacingHeading,
+    fontSynthesis: 'none',
+    fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightHeading,
   },
   navigation: {flexGrow: 1, minWidth: 0},

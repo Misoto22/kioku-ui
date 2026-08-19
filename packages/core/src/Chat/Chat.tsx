@@ -16,6 +16,12 @@ import {Spinner} from '../Spinner/index.js';
 // transcript, so the bubble caps itself in spacing steps.
 const bubbleMaxWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
 
+// A dot, so it is two of the smallest spacing step across rather than a size
+// of its own. Hollow: the ring says the call is still running, where a filled
+// dot would read as a status that had already settled.
+const progressDotSize = `calc(2 * ${semanticTokens.spacingXs})`;
+const progressDotRing = `inset 0 0 0 ${semanticTokens.borderWidth} ${semanticTokens.colorTextMuted}`;
+
 const styles = stylex.create({
   layout: {
     display: 'grid',
@@ -27,7 +33,7 @@ const styles = stylex.create({
   list: {
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingMd,
+    gap: semanticTokens.spacingLg,
     listStyleType: 'none',
     marginBlock: 0,
     minHeight: 0,
@@ -40,8 +46,9 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   fromReader: {alignItems: 'flex-end'},
-  // A message is a small surface in the transcript, not a coloured balloon:
-  // the accent stays reserved for focus, marks and links.
+  // A transcript is a page of record, not a feed of balloons. Only the turns
+  // that need to be told apart from the page get a surface, and the accent
+  // stays reserved for focus, marks and links.
   bubble: {
     borderRadius: semanticTokens.radiusContainer,
     borderStyle: 'none',
@@ -50,18 +57,28 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     maxWidth: bubbleMaxWidth,
+  },
+  // The reader's own words are the interjection, so they are the ones set on a
+  // slip of darker stock and closed with a hairline. Muted, not raised: raised
+  // is the same paper as the card underneath it in this skin, and a slip you
+  // cannot see is a ring drawn for nothing.
+  bubbleReader: {
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    boxShadow: semanticTokens.elevationLow,
+    color: semanticTokens.colorText,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingMd,
   },
-  bubbleReader: {
-    backgroundColor: semanticTokens.colorSurfaceRaised,
-    boxShadow: semanticTokens.elevationLow,
-    color: semanticTokens.colorText,
-  },
+  // The reply is the body of the record, so it is set bare on the page. It is
+  // already named by the eyebrow above it and already the majority of the
+  // transcript; wrapping every one of them in its own card leaves a column of
+  // rings with nothing between them.
   bubbleAssistant: {
-    backgroundColor: semanticTokens.colorSurface,
-    boxShadow: semanticTokens.elevationLow,
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
     color: semanticTokens.colorText,
+    paddingBlock: 0,
+    paddingInline: 0,
   },
   bubbleSystem: {
     backgroundColor: 'transparent',
@@ -69,6 +86,7 @@ const styles = stylex.create({
     color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeSm,
     letterSpacing: semanticTokens.letterSpacingBody,
+    paddingBlock: 0,
     paddingInline: 0,
     textAlign: 'center',
   },
@@ -84,7 +102,7 @@ const styles = stylex.create({
   composer: {
     alignItems: 'flex-end',
     display: 'flex',
-    gap: semanticTokens.spacingSm,
+    gap: semanticTokens.spacingMd,
   },
   input: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
@@ -123,38 +141,49 @@ const styles = stylex.create({
       borderColor: semanticTokens.borderInteractive,
     },
   },
-  // A register of calls, ruled row by row rather than fenced in a box. A box
-  // inside a bubble draws a second edge around something that already has
-  // one; a rule between rows says the same thing with one line fewer.
+  // A register of calls, each one a slip pressed into the reply rather than a
+  // ruled table under it. A table implies a set the reader has to read across;
+  // a call is a single line of evidence, so it takes only the width it needs
+  // and the list stops at the longest one instead of stretching to the bubble.
   toolCalls: {
+    alignItems: 'flex-start',
     display: 'flex',
     flexDirection: 'column',
-    fontFamily: semanticTokens.fontFamilyMono,
-    fontSize: semanticTokens.fontSizeXs,
-    // Every figure in this register — row counts, durations, sizes — has to
-    // line up against the one above it.
-    fontVariantNumeric: 'tabular-nums',
-    letterSpacing: semanticTokens.letterSpacingMono,
-    lineHeight: semanticTokens.lineHeightBody,
+    gap: semanticTokens.spacingXs,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
   },
   toolCall: {
-    alignItems: 'baseline',
+    alignItems: 'center',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderRadius: semanticTokens.radiusElement,
     color: semanticTokens.colorTextSecondary,
-    display: 'flex',
+    display: 'inline-flex',
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeXs,
+    // Every figure in this register — row counts, durations, sizes — has to
+    // line up against the one above it.
+    fontVariantNumeric: 'tabular-nums',
     gap: semanticTokens.spacingSm,
-    justifyContent: 'space-between',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
-    ':not(:last-child)': {
-      borderBlockEndColor: semanticTokens.borderDefault,
-      borderBlockEndStyle: semanticTokens.borderStyle,
-      borderBlockEndWidth: semanticTokens.borderWidth,
-    },
+    paddingInline: semanticTokens.spacingSm,
+  },
+  toolCallProgress: {
+    backgroundColor: 'transparent',
+    borderRadius: semanticTokens.radiusFull,
+    boxShadow: progressDotRing,
+    flexShrink: 0,
+    height: progressDotSize,
+    width: progressDotSize,
   },
   // The name is what was called; the outcome beside it is context.
-  toolCallOutcome: {color: semanticTokens.colorTextMuted},
+  toolCallOutcome: {
+    color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyMono,
+  },
   // The row carries no type of its own: every fact inside it is set by the
   // pair below, so a size here would have to be overridden twice.
   metadata: {
@@ -320,6 +349,12 @@ export function ChatToolCalls({
     <ul {...props} aria-label={label} {...stylex.props(styles.toolCalls)}>
       {calls.map((call) => (
         <li key={call.id} {...stylex.props(styles.toolCall)}>
+          {call.status === 'running' ? (
+            <span
+              aria-hidden="true"
+              {...stylex.props(styles.toolCallProgress)}
+            />
+          ) : null}
           <span>{call.name}</span>
           <span {...stylex.props(styles.toolCallOutcome)}>
             {call.detail ?? call.status ?? ''}

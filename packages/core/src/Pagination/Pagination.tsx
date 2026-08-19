@@ -7,39 +7,43 @@ import {Icon} from '../Icon/index.js';
 
 const styles = stylex.create({
   nav: {fontFamily: semanticTokens.fontFamilyBody},
+  // A run of figures across the foot of a page, spaced like one: the strip is
+  // read as a line of type, so the steps stand the same distance from the
+  // numbers as the numbers stand from each other.
   list: {
     alignItems: 'center',
     display: 'flex',
-    gap: semanticTokens.spacingXs,
+    gap: semanticTokens.spacingMd,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
   },
+  // Previous and next are two more entries in that line, not two buttons
+  // bracketing it. A boxed control at either end turns a quiet footer into a
+  // toolbar, and the foot of a table is the last place that belongs — so the
+  // step carries no surface and no edge, and takes the figures' face with the
+  // numbers it sits beside.
   step: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: 'transparent',
     borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    borderStyle: 'none',
+    borderWidth: 0,
     boxSizing: 'border-box',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     display: 'inline-flex',
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
     height: semanticTokens.sizeControlSm,
     justifyContent: 'center',
-    letterSpacing: semanticTokens.letterSpacingLabel,
+    letterSpacing: semanticTokens.letterSpacingMono,
     minWidth: semanticTokens.sizeControlSm,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingXs,
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty:
-      'background-color, background-image, border-color, color',
+    transitionProperty: 'background-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {
-      backgroundColor: semanticTokens.colorDisabledSurface,
-      borderColor: semanticTokens.borderDisabled,
       color: semanticTokens.colorDisabledText,
       cursor: 'default',
     },
@@ -49,20 +53,22 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    // The step stands on `colorSurface`, so its wash is laid over that fill
-    // rather than replacing it: swapping the background colour for a 4%
-    // overlay drops the surface and lets the canvas through on hover.
     ':active:not(:disabled)': {
-      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
-      borderColor: semanticTokens.borderInteractive,
+      backgroundColor: semanticTokens.colorOverlayActive,
+      color: semanticTokens.colorText,
     },
     ':hover:not(:disabled):not(:active)': {
-      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
-      borderColor: semanticTokens.borderInteractive,
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
   },
   // A page number is a link in a row of links, not a control with an edge:
   // the strip stays quiet until one number is marked as the current page.
+  //
+  // That mark is a hairline rule under the figure, not the 2px one a tab
+  // takes. Pagination is a subordinate rank — it says where you are inside a
+  // view, never which view you are in — and a 2px underline in the foot of a
+  // table competes with the tab strip at the top of it.
   //
   // It is also a figure, so it is set in the mono face with tabular figures.
   // Proportional digits make 8 wider than 1, and a strip whose numbers change
@@ -72,7 +78,7 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     borderBlockEndColor: 'transparent',
     borderBlockEndStyle: semanticTokens.borderStyle,
-    borderBlockEndWidth: semanticTokens.focusWidth,
+    borderBlockEndWidth: semanticTokens.borderWidth,
     borderBlockStartStyle: 'none',
     borderBlockStartWidth: 0,
     borderInlineStyle: 'none',
@@ -90,7 +96,7 @@ const styles = stylex.create({
     justifyContent: 'center',
     letterSpacing: semanticTokens.letterSpacingMono,
     minWidth: semanticTokens.sizeControlSm,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingXs,
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, border-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,

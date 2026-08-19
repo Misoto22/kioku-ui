@@ -19,10 +19,13 @@ const styles = stylex.create({
     margin: 0,
     padding: 0,
   },
+  // The question the pair asks, set in the display face: a mincho line is how
+  // this system titles a group, and it is what keeps the legend from reading
+  // as a third field label sitting above two others.
   legend: {
     color: semanticTokens.colorText,
     flexBasis: '100%',
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingLabel,
@@ -41,7 +44,7 @@ const styles = stylex.create({
   // the same size and weight as the legend they competed with it.
   label: {
     color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeXs,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightHeading,

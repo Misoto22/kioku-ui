@@ -26,7 +26,11 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingLabel,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    // Asymmetric on purpose: the label is set in from the inline-start edge so
+    // the mark has an edge of its own to stand on, instead of touching the
+    // word it marks. The trailing side only has to clear a count or a chevron.
+    paddingInlineEnd: semanticTokens.spacingSm,
+    paddingInlineStart: semanticTokens.spacingMd,
     position: 'relative',
     textDecorationLine: 'none',
     transitionDuration: semanticTokens.durationFast,

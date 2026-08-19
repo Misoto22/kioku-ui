@@ -22,6 +22,9 @@ const styles = stylex.create({
     display: 'flex',
     gap: semanticTokens.spacingSm,
   },
+  // The glass and the query are one line of text with a well drawn round it,
+  // so they are separated by the same step that separates any icon from the
+  // word beside it — not by the hairline step used inside a token.
   field: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
@@ -32,15 +35,15 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     flexGrow: 1,
-    gap: semanticTokens.spacingXs,
+    gap: semanticTokens.spacingSm,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'border-color',
     transitionTimingFunction: semanticTokens.easingStandard,
-    ':focus-within': {borderColor: semanticTokens.borderInteractive},
     ':hover': {borderColor: semanticTokens.borderInteractive},
+    ':focus-within': {borderColor: semanticTokens.borderInteractive},
   },
   input: {
     backgroundColor: 'transparent',
@@ -65,7 +68,7 @@ const styles = stylex.create({
   filters: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: semanticTokens.spacingXs,
+    gap: semanticTokens.spacingSm,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
@@ -121,7 +124,9 @@ export function PowerSearch({
     >
       <div {...stylex.props(styles.row)}>
         <div {...stylex.props(styles.field)}>
-          <Icon tone="muted">
+          {/* Sized off the type scale rather than an inherited em, so the
+              glass keeps its proportion to the query at any density. */}
+          <Icon size="md" tone="muted">
             <path
               d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 4 4"
               fill="none"

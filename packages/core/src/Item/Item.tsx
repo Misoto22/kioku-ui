@@ -38,10 +38,12 @@ const styles = stylex.create({
     lineHeight: semanticTokens.lineHeightBody,
   },
   description: {
-    // Secondary, not muted. The label above it inherits the first rank from
-    // whatever placed the row, so one step down is already the full separation
-    // — and a row is placed on surfaces this system does not control, where
-    // muted at 12.5px falls under 4.5:1.
+    // Secondary, not muted, and it cannot become muted. A row that responds to
+    // the pointer is read against the hover wash, not the bare surface, and on
+    // that composite the third rank lands at 3.81:1 in every dark theme. The
+    // gap that would clear 4.5:1 puts muted at 97-105% of secondary, which is
+    // not a third rank at all. So an interactive row has two ink ranks, and
+    // the description separates from the label by size instead.
     color: semanticTokens.colorTextSecondary,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,

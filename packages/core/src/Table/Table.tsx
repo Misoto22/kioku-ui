@@ -42,9 +42,16 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingBody,
     width: '100%',
   },
+  // The caption is the page's title, so it is set as one: the heading face at
+  // card-title size, opened to the heading tracking, and only medium — a page
+  // of accounts is titled, not shouted at.
   caption: {
+    color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyHeading,
-    fontWeight: semanticTokens.fontWeightStrong,
+    fontSize: semanticTokens.fontSizeLg,
+    fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingHeading,
+    lineHeight: semanticTokens.lineHeightHeading,
     paddingBlock: semanticTokens.spacingSm,
     textAlign: 'start',
   },
@@ -72,11 +79,11 @@ const styles = stylex.create({
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightRegular,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
-    paddingInline: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
     textAlign: 'start',
   },
   cell: {
-    paddingInline: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
   },
   // A selected row is marked, not filled: the fill is what hover uses, and a
   // row that is both selected and pointed at must still show both.
@@ -95,6 +102,12 @@ const styles = stylex.create({
   compact: {paddingBlock: semanticTokens.spacingSm},
   default: {paddingBlock: semanticTokens.spacingMd},
   spacious: {paddingBlock: semanticTokens.spacingLg},
+  // The header sits one step tighter than the rows it names at every density.
+  // It carries a line of 11px eyebrow, not a line of data, so matching the row
+  // height would give the strip more air than the entries underneath it.
+  headCompact: {paddingBlock: semanticTokens.spacingXs},
+  headDefault: {paddingBlock: semanticTokens.spacingSm},
+  headSpacious: {paddingBlock: semanticTokens.spacingMd},
   rowDivider: {
     ':not(:last-child)': {
       borderBlockEndColor: semanticTokens.borderDefault,
@@ -115,6 +128,12 @@ const styles = stylex.create({
     },
   },
 });
+
+const headerDensities = {
+  compact: styles.headCompact,
+  default: styles.headDefault,
+  spacious: styles.headSpacious,
+} satisfies Record<TableDensity, (typeof styles)[keyof typeof styles]>;
 
 export interface TableProps extends Omit<
   TableHTMLAttributes<HTMLTableElement>,
@@ -234,7 +253,7 @@ export function TableHeaderCell({
       scope={scope}
       {...stylex.props(
         styles.headerCell,
-        styles[density],
+        headerDensities[density],
         numeric && styles.numericHeaderCell,
         usesRowDividers(dividers) && styles.headerRowDivider,
         usesColumnDividers(dividers) && styles.columnDivider,

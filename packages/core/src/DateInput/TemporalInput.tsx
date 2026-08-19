@@ -6,7 +6,10 @@ import {useFieldControl} from '../Field/index.js';
 
 const styles = stylex.create({
   // An input sinks below the card it sits on: a muted fill with a real
-  // hairline edge, never a shadow.
+  // hairline edge, never a shadow. What it holds is a figure, so it is set in
+  // the mono face with tabular figures — a date whose digits shift width as
+  // the reader steps a month is the loudest thing a quiet field can do, and
+  // two of these side by side in a range would never line up.
   control: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
     borderColor: semanticTokens.borderStrong,
@@ -15,10 +18,11 @@ const styles = stylex.create({
     borderWidth: semanticTokens.borderWidth,
     boxSizing: 'border-box',
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
     height: semanticTokens.sizeControlMd,
-    letterSpacing: semanticTokens.letterSpacingBody,
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,

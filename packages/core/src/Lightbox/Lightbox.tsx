@@ -16,15 +16,20 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingSm,
     maxHeight: '100%',
-    padding: semanticTokens.spacingLg,
+    // Caption band over well, divided by a rule that reaches both edges.
+    overflow: 'hidden',
   },
   header: {
     alignItems: 'center',
+    borderBlockEndColor: semanticTokens.borderDefault,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
     display: 'flex',
     gap: semanticTokens.spacingMd,
     justifyContent: 'space-between',
+    paddingBlock: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingLg,
   },
   // An eyebrow, not a headline. The media is the subject of this surface and
   // the caption only has to say which one it is.
@@ -39,15 +44,15 @@ const styles = stylex.create({
   },
   // The media sits in a well rather than on the plate itself, so a picture
   // with a pale edge still reads as a picture and not as part of the surface.
+  // The well runs to the surface edge; the surface clips its own corners.
   media: {
     alignItems: 'center',
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderRadius: semanticTokens.radiusInner,
     display: 'flex',
     justifyContent: 'center',
     minHeight: 0,
     overflow: 'auto',
-    padding: semanticTokens.spacingMd,
+    padding: semanticTokens.spacingLg,
   },
 });
 

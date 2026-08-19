@@ -5,40 +5,38 @@ import {semanticTokens} from '../authoring.stylex.js';
 import type {StatusTone} from '../Badge/index.js';
 
 const styles = stylex.create({
+  // A band of dyed paper, set in the darker shade of the same dye. It carries
+  // no outline: an edge in the tone colour draws the announcement twice, and
+  // the tint is already the whole of the signal at page width.
   banner: {
     alignItems: 'center',
     // Every corner in the system is three pixels. A square-cornered box is
     // the one shape here that belongs to no theme.
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    borderStyle: 'none',
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     gap: semanticTokens.spacingMd,
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
-    paddingBlock: semanticTokens.spacingSm,
+    paddingBlock: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingLg,
   },
   info: {
     backgroundColor: semanticTokens.statusInfoSurface,
-    borderColor: semanticTokens.statusInfoText,
     color: semanticTokens.statusInfoText,
   },
   success: {
     backgroundColor: semanticTokens.statusSuccessSurface,
-    borderColor: semanticTokens.statusSuccessText,
     color: semanticTokens.statusSuccessText,
   },
   warning: {
     backgroundColor: semanticTokens.statusWarningSurface,
-    borderColor: semanticTokens.statusWarningText,
     color: semanticTokens.statusWarningText,
   },
   danger: {
     backgroundColor: semanticTokens.statusDangerSurface,
-    borderColor: semanticTokens.statusDangerText,
     color: semanticTokens.statusDangerText,
   },
   message: {flexGrow: 1, minWidth: 0},

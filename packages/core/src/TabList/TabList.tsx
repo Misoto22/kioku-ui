@@ -10,10 +10,13 @@ const selectedMarkWidth = `calc(2 * ${semanticTokens.borderWidth})`;
 
 const styles = stylex.create({
   list: {
+    // The whole strip stands on one rule, and the tabs sit on it at a shared
+    // baseline so a label carrying a numeral or a count does not ride up.
+    alignItems: 'baseline',
     borderBlockEndColor: semanticTokens.borderDefault,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
-    columnGap: semanticTokens.spacingXs,
+    columnGap: semanticTokens.spacingXl,
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
   },
@@ -37,8 +40,12 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingLabel,
     // The mark overlaps the strip's own rule instead of sitting under it.
     marginBlockEnd: `calc(-1 * ${semanticTokens.borderWidth})`,
-    paddingBlock: semanticTokens.spacingSm,
-    paddingInline: semanticTokens.spacingMd,
+    // The underline is the width of the label and nothing else. Inline padding
+    // would run the mark out past the word it marks, and the tabs are held
+    // apart by the strip's own gap rather than by a box around each one.
+    paddingBlockEnd: semanticTokens.spacingMd,
+    paddingBlockStart: 0,
+    paddingInline: 0,
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'border-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,

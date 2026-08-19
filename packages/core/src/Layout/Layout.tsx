@@ -29,15 +29,19 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingLg,
     paddingInline: semanticTokens.spacingMd,
   },
+  // The page's own margins. The side margin is a step wider than the head and
+  // foot, the way a printed page is set: the column of text wants more air
+  // beside it than above it, and the rail already supplies an edge on one side.
   content: {
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
     minWidth: 0,
-    padding: semanticTokens.spacingXl,
+    paddingBlock: semanticTokens.spacingXl,
+    paddingInline: semanticTokens.spacing2xl,
     rowGap: semanticTokens.spacingXl,
   },
-  flush: {padding: 0, rowGap: 0},
+  flush: {paddingBlock: 0, paddingInline: 0, rowGap: 0},
   // A chapter opening, not a stacked title. The numeral hangs in the margin
   // the way a printed opening sets it — and it does so in the flow, because
   // positioning it out of the flow makes it collide with the title the moment

@@ -68,7 +68,7 @@ export const Sizes: Story = {
     <StateGrid
       items={[
         {
-          label: 'Small · 28px',
+          label: 'Small · 24px',
           content: (
             <IconButton aria-label="Small add action" size="sm">
               +
@@ -76,11 +76,11 @@ export const Sizes: Story = {
           ),
         },
         {
-          label: 'Medium · 32px',
+          label: 'Medium · 28px',
           content: <IconButton aria-label="Add action">+</IconButton>,
         },
         {
-          label: 'Large · 36px',
+          label: 'Large · 32px',
           content: (
             <IconButton aria-label="Large add action" size="lg">
               +

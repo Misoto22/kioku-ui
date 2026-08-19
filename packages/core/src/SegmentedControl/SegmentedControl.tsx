@@ -10,11 +10,20 @@ import {
 import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
+  // A groove cut into the paper: the well colour, closed by the control's own
+  // edge at the strong rank so the channel reads as sunk rather than as a
+  // paler card. The edge is a real border, not a ring — this is a control.
   root: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     display: 'inline-flex',
-    gap: semanticTokens.spacingXs,
+    // The options are adjacent segments of one channel, so nothing separates
+    // them but the edge of the block that floats.
+    gap: 0,
     padding: semanticTokens.spacingXs,
   },
   option: {
@@ -24,11 +33,11 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
+    fontSize: semanticTokens.fontSizeSm,
     letterSpacing: semanticTokens.letterSpacingLabel,
-    minHeight: semanticTokens.sizeControlMd,
+    minHeight: semanticTokens.sizeControlSm,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingMd,
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, box-shadow, color',
     transitionTimingFunction: semanticTokens.easingStandard,

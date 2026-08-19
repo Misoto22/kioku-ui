@@ -13,26 +13,25 @@ import {useInternationalization} from '../i18n/index.js';
 import {Icon} from '../Icon/index.js';
 import {IconButton} from '../IconButton/index.js';
 
-// Today is a rule twice the hairline along the bottom edge, never a fill:
-// the one filled day in the grid is the day that was actually chosen.
-const todayMark = `inset 0 calc(-2 * ${semanticTokens.borderWidth}) 0 0 ${semanticTokens.colorAccent}`;
-
-// The grid is tiled, not bordered: one hairline of separation drawn by the
-// table's own background showing through the spacing, with every cell opaque
-// over it. Bordering each cell would double every interior rule and leave the
-// perimeter twice as heavy as the inside.
-const gridRule = semanticTokens.borderWidth;
+// Today is a dot: the one round shape the system still allows, small enough
+// to sit under a figure without moving it. It is not a fill, because the one
+// filled day in the grid has to stay the day that was actually chosen.
+const todayDotSize = semanticTokens.spacingXs;
+const todayDotInset = `calc(${semanticTokens.spacingXs} - ${semanticTokens.borderWidth})`;
 
 const styles = stylex.create({
+  // The card the month sits on. A floating date picker is a sheet of paper
+  // laid on the page, so it carries the 1px lift as well as the hairline.
   calendar: {
     backgroundColor: semanticTokens.colorSurface,
     borderRadius: semanticTokens.radiusContainer,
-    boxShadow: semanticTokens.elevationLow,
+    boxShadow: semanticTokens.elevationMedium,
     display: 'inline-flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingMd,
-    padding: semanticTokens.spacingLg,
+    gap: semanticTokens.spacingSm,
+    paddingBlock: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
   },
   header: {
     alignItems: 'center',
@@ -40,9 +39,11 @@ const styles = stylex.create({
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
   },
+  // The month is set in the display face: a mincho line between two ghost
+  // arrows is what tells the reader this band is a heading and not a toolbar.
   month: {
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeMd,
     // The year is a figure sitting beside a word. Without tabular figures the
     // heading re-flows by a hair as the reader steps months, which reads as a
@@ -53,51 +54,46 @@ const styles = stylex.create({
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
-  // Not clipped. A tiled set is normally given `overflow: hidden` so the
-  // corner cells cannot square off the container, but every tile here is
-  // focusable and the focus ring stands two pixels outside its box — clipping
-  // would take the ring off the whole perimeter of the grid to tidy three
-  // pixels of corner.
-  grid: {
-    backgroundColor: semanticTokens.borderDefault,
-    borderCollapse: 'separate',
-    borderRadius: semanticTokens.radiusInner,
-    borderSpacing: gridRule,
-  },
+  // Not a tiled set. The month is a block of figures printed straight onto
+  // the card: no rules between the days, no fill behind the weekday row. A
+  // grid drawn with 42 hairlines turns a calendar into a spreadsheet, and the
+  // three ranks of ink already say which days belong to this month.
+  grid: {borderCollapse: 'collapse'},
   weekday: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
-    color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightHeading,
     paddingBlock: semanticTokens.spacingXs,
-    textTransform: 'uppercase',
     width: semanticTokens.sizeControlMd,
   },
-  cell: {backgroundColor: semanticTokens.colorSurface, padding: 0},
-  // No radius and no border. A day is a tile in a tiled set, so it fills its
-  // cell edge to edge; a rounded chip inside a tile would show the rule
-  // through its corners, and a hairline round a 28px box reads as a field
-  // that failed to grow.
+  cell: {padding: 0},
+  // No border. A day is a figure with a hit area round it, and a hairline
+  // round a 28px box reads as a field that failed to grow; the radius is
+  // there only so the chosen day's seal keeps the system's one corner.
   day: {
+    alignItems: 'center',
     backgroundColor: 'transparent',
+    borderRadius: semanticTokens.radiusInner,
     borderStyle: 'none',
     borderWidth: 0,
     boxSizing: 'border-box',
     cursor: 'pointer',
-    display: 'block',
+    display: 'flex',
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
     // A month whose digits do not line up column to column is the loudest
     // failure this grid can make.
     fontVariantNumeric: 'tabular-nums',
     height: semanticTokens.sizeControlMd,
+    justifyContent: 'center',
     letterSpacing: semanticTokens.letterSpacingMono,
     padding: 0,
+    position: 'relative',
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, box-shadow, color',
+    transitionProperty: 'background-color, color',
     transitionTimingFunction: semanticTokens.easingStandard,
     width: semanticTokens.sizeControlMd,
     ':disabled': {
@@ -127,11 +123,27 @@ const styles = stylex.create({
       color: semanticTokens.colorTextSecondary,
     },
   },
-  today: {boxShadow: todayMark, color: semanticTokens.colorText},
-  // A single square point is small enough to fill without shouting.
+  today: {
+    color: semanticTokens.colorText,
+    fontWeight: semanticTokens.fontWeightMedium,
+    '::after': {
+      backgroundColor: semanticTokens.colorAccent,
+      borderRadius: semanticTokens.radiusFull,
+      content: '',
+      height: todayDotSize,
+      insetBlockEnd: todayDotInset,
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translateX(-50%)',
+      width: todayDotSize,
+    },
+  },
+  // A single square point is small enough to fill without shouting, and the
+  // fill is ink on paper rather than the accent: the accent is spent on the
+  // dot and the focus ring, and two blues in one grid read as two meanings.
   chosen: {
-    backgroundColor: semanticTokens.colorAccent,
-    color: semanticTokens.colorTextOnAccent,
+    backgroundColor: semanticTokens.colorText,
+    color: semanticTokens.colorSurface,
     fontWeight: semanticTokens.fontWeightMedium,
   },
 });

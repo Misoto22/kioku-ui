@@ -15,23 +15,37 @@ import {Icon} from '../Icon/index.js';
 // by a fill. `focusWidth` is this system's 2px.
 const selectionMark = `inset ${semanticTokens.focusWidth} 0 0 0 ${semanticTokens.colorAccent}`;
 
+// The disclosure column, and where the rule beneath it falls. Both are
+// relationships rather than sizes: the marker occupies three spacing steps, the
+// rule drops through the middle of that column, and the row's own inline
+// padding shifts both. A density change moves the marker and its rule together.
+const markerColumn = `calc(3 * ${semanticTokens.spacingSm})`;
+const markerCentre = `calc(1.5 * ${semanticTokens.spacingSm})`;
+const guideIndent = `calc(${semanticTokens.spacingSm} + ${markerCentre})`;
+
 const styles = stylex.create({
   tree: {
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingXs,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
   },
+  // Children hang from one rule dropped through the marker that opened them,
+  // so depth is read off a single continuous stroke rather than off the left
+  // edge of every row. The inline margin is that indent — not sibling spacing,
+  // which the rows' own padding supplies.
   group: {
+    borderInlineStartColor: semanticTokens.borderDefault,
+    borderInlineStartStyle: semanticTokens.borderStyle,
+    borderInlineStartWidth: semanticTokens.borderWidth,
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
     listStyleType: 'none',
     marginBlock: 0,
-    paddingInlineStart: semanticTokens.spacingLg,
+    marginInlineStart: guideIndent,
+    paddingInlineStart: 0,
   },
   node: {
     alignItems: 'center',
@@ -49,8 +63,11 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
-    paddingBlock: semanticTokens.spacingMd,
-    paddingInline: semanticTokens.spacingLg,
+    // A ledger line, not a menu row. The rows are set close enough that the
+    // indent rule reads as one stroke through them; the leading is what keeps
+    // them apart, so the padding only has to clear the type.
+    paddingBlock: semanticTokens.spacingXs,
+    paddingInline: semanticTokens.spacingSm,
     textAlign: 'start',
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'background-color, box-shadow, color',
@@ -75,12 +92,20 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontWeight: semanticTokens.fontWeightMedium,
   },
+  // The marker holds its column whether or not the row has one, so every label
+  // in the tree starts on the same stem. Its ink is the third rank: it is
+  // apparatus, and it must not compete with the row it belongs to — including
+  // on the selected row, where the label alone is promoted.
   marker: {
+    alignItems: 'center',
+    color: semanticTokens.colorTextMuted,
+    display: 'inline-flex',
     flexShrink: 0,
+    justifyContent: 'center',
     transitionDuration: semanticTokens.durationModerate,
     transitionProperty: 'transform',
     transitionTimingFunction: semanticTokens.easingStandard,
-    width: semanticTokens.fontSizeMd,
+    width: markerColumn,
   },
   markerOpen: {transform: 'rotate(90deg)'},
 });

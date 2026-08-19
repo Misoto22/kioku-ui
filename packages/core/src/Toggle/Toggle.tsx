@@ -71,7 +71,9 @@ const styles = stylex.create({
     transitionTimingFunction: semanticTokens.easingStandard,
     width: trackWidth,
   },
-  trackOn: {backgroundColor: semanticTokens.colorAccent},
+  // On is ink. "In effect" is the same colour as the seal on the primary
+  // button, and for the same reason: the accent is reserved for thin marks.
+  trackOn: {backgroundColor: semanticTokens.colorText},
   trackDisabled: {backgroundColor: semanticTokens.colorDisabledSurface},
   // A round knob travelling inside a squared track reads as a physical switch;
   // two capsules read as a widget.
