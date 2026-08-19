@@ -1,7 +1,8 @@
 /* Ready-to-use theme CSS. Every selector targets a ThemeProvider data-theme root. */
 [data-theme='washi'],
 [data-theme='muji'],
-[data-theme='sumi'] {
+[data-theme='sumi'],
+[data-theme='kasumi'] {
   --kioku-ui-color-canvas: var(--kioku-theme-color-canvas);
   --kioku-ui-color-surface: var(--kioku-theme-color-surface);
   --kioku-ui-color-surface-raised: var(--kioku-theme-color-surface-raised);
@@ -172,7 +173,8 @@
 /* Density is a matter of eyesight and screen size, so it stays a knob. */
 [data-theme='washi'][data-density='standard'],
 [data-theme='muji'][data-density='standard'],
-[data-theme='sumi'][data-density='standard'] {
+[data-theme='sumi'][data-density='standard'],
+[data-theme='kasumi'][data-density='standard'] {
   --kioku-theme-spacing-xs: 4px;
   --kioku-theme-spacing-sm: 8px;
   --kioku-theme-spacing-md: 13px;
@@ -333,6 +335,179 @@
 }
 
 /* ThemeDefinition values resolve through a dictionary owned by each skin. */
+/* 霞: mist, and the only skin that expects something behind it.
+
+   Ported from Hermes Desktop's glass mode by way of Apple's own recipe, and
+   the three things that separate glass from a coloured film are all here.
+
+   1. THE TINT GOES TO AN EXTREME. Near-white in light, near-black in dark —
+      never the mid-tone a skin would otherwise use. A mid-tone film greys out
+      whatever is behind it; an extreme reads as light passing through. Solving
+      Radix's alpha equation for a panel that must composite to #f1f4f8 over
+      this canvas returns #fefeff at 50%, which is the same answer, and Apple's
+      navigation glass is rgba(0,0,0,0.8) rather than a dark grey. So the field
+      and the surfaces carry a near-neutral tint and the skin spends its whole
+      chromatic budget on the accent.
+
+   2. THE BLUR IS REAL, and it lives on this root's ::before. A backdrop-filter
+      on the root ITSELF would make it the containing block for every
+      `position: fixed` descendant — Tooltip, Toast, ContextMenu, AppShell,
+      Popover, Overlay and MobileNav all position against the viewport. A
+      pseudo-element has no descendants, so it cannot be a containing block for
+      anything, and `isolation: isolate` keeps its negative z-index inside this
+      root instead of letting it fall behind the host's page. Isolation makes a
+      stacking context, which is not a containing block, so fixed positioning
+      is untouched.
+
+   3. SATURATION COMES BACK. Glass amplifies the colour behind it; macOS
+      vibrancy and Apple's navigation bar both lift saturation to 180%. Mixing
+      a tint toward `transparent` does the opposite, which is what made an
+      earlier pass of this skin read as plastic.
+
+   ONE PAINTER, which is the rule Hermes paid for. Thinning nested field
+   surfaces stacks the tint once per layer, so a deep pane lands near-opaque
+   while a shallow route reads clear on the same setting. The field here is
+   `color.canvas` — three painters in the whole library (Layout, Box's canvas
+   variant, the global sheet) — plus `color.surfaceMuted` for the recessed
+   band. The 47 components wearing `color.surface` are raised content and clamp
+   above it.
+
+   THE LEVER is `--kioku-theme-kasumi-frost-keep`: the percent of its own tint
+   the skin keeps. 100% is an ordinary near-white skin, 0% is bare backdrop.
+   Raised surfaces clamp to max(84%, keep), which is where muted text still
+   holds AA over a backdrop of pure black or pure white.
+
+   Reduced transparency is a host policy: this sheet may only write a theme
+   root, so it ships no media query and a host that honours the preference pins
+   the lever back to 100% itself. */
+[data-theme='kasumi'] {
+  /* A stacking context so ::before's negative z-index stays in this root.
+     Deliberately not a filter or a transform — those would capture fixed
+     descendants; isolation does not. */
+  isolation: isolate;
+
+  --kioku-theme-kasumi-frost-keep: 64%;
+  --kioku-theme-kasumi-frost-raised: max(
+    84%,
+    var(--kioku-theme-kasumi-frost-keep, 100%)
+  );
+  --kioku-theme-kasumi-frost-blur: 26px;
+  --kioku-theme-kasumi-frost-saturate: 180%;
+
+  --kioku-theme-color-canvas: color-mix(
+    in srgb,
+    light-dark(#fbfcfe, #0b0d12) var(--kioku-theme-kasumi-frost-keep, 100%),
+    transparent
+  );
+  --kioku-theme-color-surface: color-mix(
+    in srgb,
+    light-dark(#ffffff, #12151b) var(--kioku-theme-kasumi-frost-raised, 100%),
+    transparent
+  );
+  --kioku-theme-color-surface-raised: color-mix(
+    in srgb,
+    light-dark(#ffffff, #171a21) var(--kioku-theme-kasumi-frost-raised, 100%),
+    transparent
+  );
+  --kioku-theme-color-surface-muted: color-mix(
+    in srgb,
+    light-dark(#e9edf3, #06080b) var(--kioku-theme-kasumi-frost-keep, 100%),
+    transparent
+  );
+  --kioku-theme-color-text: light-dark(#161b22, #eef1f6);
+  --kioku-theme-color-text-secondary: light-dark(#2f3846, #c3cbd8);
+  --kioku-theme-color-text-muted: light-dark(#414b59, #a3adbc);
+  --kioku-theme-color-text-on-accent: light-dark(#ffffff, #10131a);
+  --kioku-theme-color-accent: light-dark(#4c4a86, #a99bdc);
+  --kioku-theme-color-accent-hover: light-dark(#3b3a6b, #c2b7e9);
+  --kioku-theme-color-accent-active: light-dark(#2e2d54, #d6cef3);
+  --kioku-theme-color-overlay-hover: light-dark(
+    rgb(22 27 34 / 6%),
+    rgb(238 241 246 / 8%)
+  );
+  --kioku-theme-color-overlay-active: light-dark(
+    rgb(22 27 34 / 11%),
+    rgb(238 241 246 / 13%)
+  );
+  --kioku-theme-color-disabled-surface: light-dark(#e4e8ee, #0d1014);
+  --kioku-theme-color-disabled-text: light-dark(#7c8695, #6e7887);
+  --kioku-theme-color-focus: light-dark(#4c4a86, #a99bdc);
+  /* Structural borders are the rim, and on glass the rim is ALPHA — dark in
+     light mode, light in dark mode, both at low strength. An opaque line is
+     what makes a thinned card read as a flat box rather than a pane, which is
+     what an earlier pass of this skin got wrong; every glass UI worth copying
+     draws this edge with alpha instead. It stays legible over the field and
+     over the card alike because it straddles the two, and it never thins with
+     the lever, so a region always has an edge no matter what the host drew.
+
+     `interactive` is the exception and stays opaque: it is the accent, it
+     carries focus and selected state, and those must be the exact colour
+     rather than an approximation of it over an unknown backdrop. */
+  --kioku-theme-border-default: light-dark(
+    rgb(22 27 34 / 14%),
+    rgb(255 255 255 / 14%)
+  );
+  --kioku-theme-border-strong: light-dark(
+    rgb(22 27 34 / 28%),
+    rgb(255 255 255 / 26%)
+  );
+  --kioku-theme-border-interactive: light-dark(#4c4a86, #a99bdc);
+  --kioku-theme-border-disabled: light-dark(
+    rgb(22 27 34 / 7%),
+    rgb(255 255 255 / 7%)
+  );
+  --kioku-theme-status-info-surface: light-dark(#e2eaf6, #7ba6cf26);
+  --kioku-theme-status-info-text: light-dark(#28496e, #a3c4e2);
+  --kioku-theme-status-success-surface: light-dark(#e0ece5, #6fae9022);
+  --kioku-theme-status-success-text: light-dark(#39654c, #7fbf9d);
+  --kioku-theme-status-warning-surface: light-dark(#f4ecd9, #c9a45c22);
+  --kioku-theme-status-warning-text: light-dark(#775d13, #d8b46a);
+  --kioku-theme-status-danger-surface: light-dark(#f5e2e3, #cf737d22);
+  --kioku-theme-status-danger-text: light-dark(#973d45, #e08b93);
+  /* Matte, not gloss. The speckle is what stops a thinned fill reading as a
+     polished sheet, and it is the reason the mode is called matte
+     transparency rather than glass. */
+  --kioku-theme-texture-grain: light-dark(
+    rgb(22 27 34 / 3%),
+    rgb(238 241 246 / 5%)
+  );
+  --kioku-theme-font-family-display:
+    'Shippori Mincho', 'Hiragino Mincho ProN', serif;
+  /* The specular edge: a bright inset hairline along the top, which is the
+     single strongest cue that a surface is a pane rather than a panel. The
+     outer ring stays a neutral so a card still has an edge on a host that
+     drew nothing behind the app. `high` is the one place this skin spends a
+     drop shadow — glass needs the lift, and the pack's hairline rule is
+     already carried by the ring in front of it. */
+  --kioku-theme-elevation-low:
+    inset 0 1px 0 light-dark(rgb(255 255 255 / 85%), rgb(255 255 255 / 12%)),
+    0 0 0 1px light-dark(rgb(22 27 34 / 10%), rgb(255 255 255 / 10%));
+  --kioku-theme-elevation-medium:
+    inset 0 1px 0 light-dark(rgb(255 255 255 / 88%), rgb(255 255 255 / 14%)),
+    0 0 0 1px light-dark(rgb(22 27 34 / 11%), rgb(255 255 255 / 11%)),
+    0 1px 2px light-dark(rgb(22 27 34 / 6%), rgb(0 0 0 / 30%));
+  --kioku-theme-elevation-high:
+    inset 0 1px 0 light-dark(rgb(255 255 255 / 90%), rgb(255 255 255 / 16%)),
+    0 0 0 1px light-dark(rgb(22 27 34 / 12%), rgb(255 255 255 / 12%)),
+    0 8px 24px light-dark(rgb(22 27 34 / 14%), rgb(0 0 0 / 45%));
+}
+
+/* The frost itself. On the pseudo-element, never on the root — see (2) above.
+   The host draws whatever goes behind the app; this blurs it. With nothing
+   back there the filter is a no-op and the skin is simply a clean near-white
+   (or near-black) theme. */
+[data-theme='kasumi']::before {
+  backdrop-filter: blur(var(--kioku-theme-kasumi-frost-blur, 26px))
+    saturate(var(--kioku-theme-kasumi-frost-saturate, 180%));
+  -webkit-backdrop-filter: blur(var(--kioku-theme-kasumi-frost-blur, 26px))
+    saturate(var(--kioku-theme-kasumi-frost-saturate, 180%));
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
 [data-theme='washi'] {
   --kioku-theme-washi-color-canvas: var(--kioku-theme-color-canvas);
   --kioku-theme-washi-color-surface: var(--kioku-theme-color-surface);
@@ -762,9 +937,163 @@
   );
 }
 
+[data-theme='kasumi'] {
+  --kioku-theme-kasumi-color-canvas: var(--kioku-theme-color-canvas);
+  --kioku-theme-kasumi-color-surface: var(--kioku-theme-color-surface);
+  --kioku-theme-kasumi-color-surface-raised: var(
+    --kioku-theme-color-surface-raised
+  );
+  --kioku-theme-kasumi-color-surface-muted: var(
+    --kioku-theme-color-surface-muted
+  );
+  --kioku-theme-kasumi-color-text: var(--kioku-theme-color-text);
+  --kioku-theme-kasumi-color-text-secondary: var(
+    --kioku-theme-color-text-secondary
+  );
+  --kioku-theme-kasumi-color-text-muted: var(--kioku-theme-color-text-muted);
+  --kioku-theme-kasumi-color-text-on-accent: var(
+    --kioku-theme-color-text-on-accent
+  );
+  --kioku-theme-kasumi-color-accent: var(--kioku-theme-color-accent);
+  --kioku-theme-kasumi-color-accent-hover: var(
+    --kioku-theme-color-accent-hover
+  );
+  --kioku-theme-kasumi-color-accent-active: var(
+    --kioku-theme-color-accent-active
+  );
+  --kioku-theme-kasumi-color-overlay-hover: var(
+    --kioku-theme-color-overlay-hover
+  );
+  --kioku-theme-kasumi-color-overlay-active: var(
+    --kioku-theme-color-overlay-active
+  );
+  --kioku-theme-kasumi-color-disabled-surface: var(
+    --kioku-theme-color-disabled-surface
+  );
+  --kioku-theme-kasumi-color-disabled-text: var(
+    --kioku-theme-color-disabled-text
+  );
+  --kioku-theme-kasumi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-kasumi-border-default: var(--kioku-theme-border-default);
+  --kioku-theme-kasumi-border-strong: var(--kioku-theme-border-strong);
+  --kioku-theme-kasumi-border-interactive: var(
+    --kioku-theme-border-interactive
+  );
+  --kioku-theme-kasumi-border-disabled: var(--kioku-theme-border-disabled);
+  --kioku-theme-kasumi-border-width: var(--kioku-theme-border-width);
+  --kioku-theme-kasumi-border-style: var(--kioku-theme-border-style);
+  --kioku-theme-kasumi-status-info-surface: var(
+    --kioku-theme-status-info-surface
+  );
+  --kioku-theme-kasumi-status-info-text: var(--kioku-theme-status-info-text);
+  --kioku-theme-kasumi-status-success-surface: var(
+    --kioku-theme-status-success-surface
+  );
+  --kioku-theme-kasumi-status-success-text: var(
+    --kioku-theme-status-success-text
+  );
+  --kioku-theme-kasumi-status-warning-surface: var(
+    --kioku-theme-status-warning-surface
+  );
+  --kioku-theme-kasumi-status-warning-text: var(
+    --kioku-theme-status-warning-text
+  );
+  --kioku-theme-kasumi-status-danger-surface: var(
+    --kioku-theme-status-danger-surface
+  );
+  --kioku-theme-kasumi-status-danger-text: var(
+    --kioku-theme-status-danger-text
+  );
+  --kioku-theme-kasumi-focus-width: var(--kioku-theme-focus-width);
+  --kioku-theme-kasumi-focus-offset: var(--kioku-theme-focus-offset);
+  --kioku-theme-kasumi-font-family-body: var(--kioku-theme-font-family-body);
+  --kioku-theme-kasumi-font-family-heading: var(
+    --kioku-theme-font-family-heading
+  );
+  --kioku-theme-kasumi-font-family-display: var(
+    --kioku-theme-font-family-display
+  );
+  --kioku-theme-kasumi-font-family-mono: var(--kioku-theme-font-family-mono);
+  --kioku-theme-kasumi-font-feature-settings: var(
+    --kioku-theme-font-feature-settings
+  );
+  --kioku-theme-kasumi-font-size-xs: var(--kioku-theme-font-size-xs);
+  --kioku-theme-kasumi-font-size-sm: var(--kioku-theme-font-size-sm);
+  --kioku-theme-kasumi-font-size-md: var(--kioku-theme-font-size-md);
+  --kioku-theme-kasumi-font-size-lg: var(--kioku-theme-font-size-lg);
+  --kioku-theme-kasumi-font-size-xl: var(--kioku-theme-font-size-xl);
+  --kioku-theme-kasumi-font-size-2xl: var(--kioku-theme-font-size-2xl);
+  --kioku-theme-kasumi-font-weight-regular: var(
+    --kioku-theme-font-weight-regular
+  );
+  --kioku-theme-kasumi-font-weight-medium: var(
+    --kioku-theme-font-weight-medium
+  );
+  --kioku-theme-kasumi-font-weight-strong: var(
+    --kioku-theme-font-weight-strong
+  );
+  --kioku-theme-kasumi-line-height-body: var(--kioku-theme-line-height-body);
+  --kioku-theme-kasumi-line-height-heading: var(
+    --kioku-theme-line-height-heading
+  );
+  --kioku-theme-kasumi-letter-spacing-title: var(
+    --kioku-theme-letter-spacing-title
+  );
+  --kioku-theme-kasumi-letter-spacing-heading: var(
+    --kioku-theme-letter-spacing-heading
+  );
+  --kioku-theme-kasumi-letter-spacing-body: var(
+    --kioku-theme-letter-spacing-body
+  );
+  --kioku-theme-kasumi-letter-spacing-label: var(
+    --kioku-theme-letter-spacing-label
+  );
+  --kioku-theme-kasumi-letter-spacing-eyebrow: var(
+    --kioku-theme-letter-spacing-eyebrow
+  );
+  --kioku-theme-kasumi-letter-spacing-mono: var(
+    --kioku-theme-letter-spacing-mono
+  );
+  --kioku-theme-kasumi-spacing-xs: var(--kioku-theme-spacing-xs);
+  --kioku-theme-kasumi-spacing-sm: var(--kioku-theme-spacing-sm);
+  --kioku-theme-kasumi-spacing-md: var(--kioku-theme-spacing-md);
+  --kioku-theme-kasumi-spacing-lg: var(--kioku-theme-spacing-lg);
+  --kioku-theme-kasumi-spacing-xl: var(--kioku-theme-spacing-xl);
+  --kioku-theme-kasumi-spacing-2xl: var(--kioku-theme-spacing-2xl);
+  --kioku-theme-kasumi-radius-inner: var(--kioku-theme-radius-inner);
+  --kioku-theme-kasumi-radius-element: var(--kioku-theme-radius-element);
+  --kioku-theme-kasumi-radius-container: var(--kioku-theme-radius-container);
+  --kioku-theme-kasumi-radius-page: var(--kioku-theme-radius-page);
+  --kioku-theme-kasumi-radius-full: var(--kioku-theme-radius-full);
+  --kioku-theme-kasumi-size-control-sm: var(--kioku-theme-size-control-sm);
+  --kioku-theme-kasumi-size-control-md: var(--kioku-theme-size-control-md);
+  --kioku-theme-kasumi-size-control-lg: var(--kioku-theme-size-control-lg);
+  --kioku-theme-kasumi-size-hit-target: var(--kioku-theme-size-hit-target);
+  --kioku-theme-kasumi-elevation-low: var(--kioku-theme-elevation-low);
+  --kioku-theme-kasumi-elevation-medium: var(--kioku-theme-elevation-medium);
+  --kioku-theme-kasumi-elevation-high: var(--kioku-theme-elevation-high);
+  --kioku-theme-kasumi-texture-grain: var(--kioku-theme-texture-grain);
+  --kioku-theme-kasumi-motion-duration-fast: var(
+    --kioku-theme-motion-duration-fast
+  );
+  --kioku-theme-kasumi-motion-duration-moderate: var(
+    --kioku-theme-motion-duration-moderate
+  );
+  --kioku-theme-kasumi-motion-duration-slow: var(
+    --kioku-theme-motion-duration-slow
+  );
+  --kioku-theme-kasumi-motion-easing-standard: var(
+    --kioku-theme-motion-easing-standard
+  );
+  --kioku-theme-kasumi-motion-easing-emphasized: var(
+    --kioku-theme-motion-easing-emphasized
+  );
+}
+
 /* Chinese uses complete SC families inside each selected theme. */
 [data-theme='washi']:lang(zh),
-[data-theme='sumi']:lang(zh) {
+[data-theme='sumi']:lang(zh),
+[data-theme='kasumi']:lang(zh) {
   --kioku-theme-font-family-body:
     'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   --kioku-theme-font-family-heading:

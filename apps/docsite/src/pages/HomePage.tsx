@@ -26,8 +26,8 @@ const facts = [
     label: 'semantic tokens',
   },
   {
-    detail: 'Washi, Muji, and Sumi, in light and dark.',
-    figure: '3',
+    detail: 'Washi, Muji, Sumi, and frosted Kasumi, in light and dark.',
+    figure: '4',
     label: 'themes',
   },
   {
