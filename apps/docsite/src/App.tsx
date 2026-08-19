@@ -1,4 +1,4 @@
-import {AppShell, ThemeProvider, useTheme} from '@misoto22/kioku-ui';
+import {AppShell, ThemeProvider} from '@misoto22/kioku-ui';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 
 import {SiteFooter} from './layout/SiteFooter.js';
@@ -32,7 +32,6 @@ export function App() {
 
 function Site() {
   const [location, navigate] = useRoute();
-  const {mode, setMode} = useTheme();
 
   return (
     <>
