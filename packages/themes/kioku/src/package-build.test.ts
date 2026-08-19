@@ -44,9 +44,9 @@ describe('published theme package build', {timeout: 120_000}, () => {
     const consumer = join(fixtureRoot, 'consumer.mjs');
     await writeFile(
       consumer,
-      `import {kiokuThemes, washiTheme} from '${packageName}';
+      `import {kasumiTheme, kiokuThemes, washiTheme} from '${packageName}';
 
-if (kiokuThemes.length !== 3 || washiTheme.id !== 'washi') {
+if (kiokuThemes.length !== 4 || washiTheme.id !== 'washi' || kasumiTheme.id !== 'kasumi') {
   throw new Error('The public theme runtime did not expose the registered themes.');
 }
 if (!washiTheme.tokens['color.canvas'].includes('--kioku-theme-washi-color-canvas')) {
