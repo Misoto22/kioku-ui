@@ -53,7 +53,10 @@ const facts = [
     value: String(tokenNames.length),
   },
   {
-    detail: 'Washi, Muji, and Sumi, in light and dark.',
+    // Named from the pack rather than typed out: main added a fourth skin
+    // while this branch was open, and a hand-written list is one release from
+    // being wrong.
+    detail: `${kiokuThemes.map(({label}) => label).join(', ')}, in light and dark.`,
     label: 'themes',
     value: String(kiokuThemes.length),
   },

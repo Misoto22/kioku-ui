@@ -9,9 +9,9 @@ import {
 import {describe, expect, it} from 'vitest';
 
 import * as themeModule from './index.js';
-import {mujiTheme, sumiTheme, washiTheme} from './themes.js';
+import {kasumiTheme, mujiTheme, sumiTheme, washiTheme} from './themes.js';
 
-const themes = [washiTheme, mujiTheme, sumiTheme] as const;
+const themes = [washiTheme, mujiTheme, sumiTheme, kasumiTheme] as const;
 
 interface CssBlock {
   readonly declarations: ReadonlyMap<string, string>;
@@ -134,6 +134,25 @@ function contrastRatio(foreground: string, background: string) {
   return ((luminances[0] ?? 0) + 0.05) / ((luminances[1] ?? 0) + 0.05);
 }
 
+/* Alpha-composite `foreground` at `alpha` over an opaque `background`. Under
+   frost the true background is whatever the host drew, so the only contrast
+   claim worth making is the one that survives the extremes. */
+function compositeOver(foreground: string, alpha: number, background: string) {
+  const channels = (hex: string) =>
+    (hex.slice(1).match(/.{2}/g) ?? []).map((value) =>
+      Number.parseInt(value, 16),
+    );
+  const [over, under] = [channels(foreground), channels(background)];
+
+  return `#${over
+    .map((value, index) =>
+      Math.round(alpha * value + (1 - alpha) * (under[index] ?? 0))
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
 describe('Kioku themes', () => {
   it.each(themes)('fulfills the complete token contract for $id', (theme) => {
     expect(validateThemeDefinition(theme)).toEqual([]);
@@ -141,6 +160,7 @@ describe('Kioku themes', () => {
 
   it('publishes only host-selectable themes, without persistence or defaults', () => {
     expect(Object.keys(themeModule).sort()).toEqual([
+      'kasumiTheme',
       'kiokuThemes',
       'mujiTheme',
       'sumiTheme',
@@ -155,11 +175,12 @@ describe('Kioku themes', () => {
       {id: 'washi', label: 'Washi'},
       {id: 'muji', label: 'Muji'},
       {id: 'sumi', label: 'Sumi'},
+      {id: 'kasumi', label: 'Kasumi'},
     ]);
   });
 
   it('gives every theme its own skin-specific semantic token dictionary', () => {
-    expect(new Set(themes.map(({tokens}) => tokens)).size).toBe(3);
+    expect(new Set(themes.map(({tokens}) => tokens)).size).toBe(4);
 
     for (const theme of themes) {
       for (const tokenName of tokenNames) {
@@ -451,5 +472,210 @@ describe('compiled theme CSS', () => {
         expect(display).toContain('serif');
       }
     }
+  });
+  /* The frost discipline. Each of these locks one rule Hermes Desktop's glass
+     mode, or Apple's own recipe, paid for in production. */
+
+  it('thins only the kasumi field roles and holds raised content above them', async () => {
+    const keep = '--kioku-theme-kasumi-frost-keep';
+    const raised = '--kioku-theme-kasumi-frost-raised';
+
+    for (const role of ['color.canvas', 'color.surfaceMuted'] as const) {
+      expect(
+        await resolveThemeValue('kasumi', role),
+        `kasumi ${role} does not thin with the lever`,
+      ).toContain(keep);
+    }
+
+    for (const role of ['color.surface', 'color.surfaceRaised'] as const) {
+      const value = await resolveThemeValue('kasumi', role);
+      expect(value, `kasumi ${role} is not clamped`).toContain(raised);
+      expect(value, `kasumi ${role} thins with the field`).not.toContain(
+        `var(${keep}`,
+      );
+    }
+  });
+
+  it('never lets a kasumi card thin past the field beneath it', async () => {
+    const css = await readFile(new URL('./theme.css', import.meta.url), 'utf8');
+    const declarations = declarationsFor(cssBlocks(css), 'kasumi');
+
+    expect(
+      declarations
+        .get('--kioku-theme-kasumi-frost-raised')
+        ?.replaceAll(/\s+/g, ''),
+    ).toBe('max(84%,var(--kioku-theme-kasumi-frost-keep,100%))');
+  });
+
+  it('never thins a kasumi border with the lever, a region always having an edge', async () => {
+    /* The rim is drawn with alpha so a card reads as a pane rather than a flat
+       box, but it must not follow the lever: whatever the host drew, and
+       however far down the frost is dragged, two regions still have to
+       separate. `interactive` is the accent and stays an exact colour. */
+    for (const role of [
+      'border.default',
+      'border.strong',
+      'border.interactive',
+      'border.disabled',
+    ] as const) {
+      const value = await resolveThemeValue('kasumi', role);
+      expect(value, `kasumi ${role} thins with the field`).not.toContain(
+        '--kioku-theme-kasumi-frost',
+      );
+      expect(value, `kasumi ${role} carries no light and dark value`).toContain(
+        'light-dark(',
+      );
+    }
+
+    expect(
+      lightDarkHexPair(await resolveThemeValue('kasumi', 'border.interactive')),
+    ).toHaveLength(2);
+  });
+
+  it('ships the kasumi lever where the skin still reads with nothing behind it', async () => {
+    const css = await readFile(new URL('./theme.css', import.meta.url), 'utf8');
+    const declarations = declarationsFor(cssBlocks(css), 'kasumi');
+    const keep = Number.parseInt(
+      declarations.get('--kioku-theme-kasumi-frost-keep') ?? '',
+      10,
+    );
+
+    expect(keep).toBeGreaterThanOrEqual(60);
+    expect(keep).toBeLessThan(100);
+  });
+
+  it('leaves the opaque skins opaque, frost being kasumi and nothing else', async () => {
+    for (const id of ['washi', 'muji', 'sumi'] as const) {
+      for (const role of [
+        'color.canvas',
+        'color.surface',
+        'color.surfaceRaised',
+        'color.surfaceMuted',
+      ] as const) {
+        expect(
+          await resolveThemeValue(id, role),
+          `${id} ${role} carries a frost mix`,
+        ).not.toContain('color-mix');
+      }
+    }
+  });
+
+  it('tints kasumi from an extreme rather than a mid-tone, glass being light not film', async () => {
+    /* A mid-tone tint greys out whatever is behind it — that is the difference
+       between glass and a coloured film, and it is what an earlier pass of this
+       skin got wrong. Solving Radix's alpha equation returns a near-white, and
+       Apple's navigation glass is rgba(0,0,0,0.8) rather than a dark grey. */
+    const luminance = (hex: string) =>
+      relativeLuminance(hex) as unknown as number;
+
+    for (const role of ['color.canvas', 'color.surface'] as const) {
+      const [light, dark] = lightDarkHexPair(
+        await resolveThemeValue('kasumi', role),
+      );
+
+      expect(
+        luminance(light),
+        `kasumi light ${role} is a mid-tone`,
+      ).toBeGreaterThan(0.85);
+      expect(luminance(dark), `kasumi dark ${role} is a mid-tone`).toBeLessThan(
+        0.03,
+      );
+    }
+  });
+
+  it('holds kasumi muted text at AA on a raised surface over any backdrop at all', async () => {
+    /* The whole purpose of the max(84%, keep) clamp. Raised content never thins
+       past 84%, so 16% of an arbitrary backdrop is the most that can ever reach
+       it — and black and white bracket every backdrop a host can draw. Lower
+       the clamp or lighten muted text and this is what notices. */
+    const raisedFloor = 0.84;
+    const [lightSurface, darkSurface] = lightDarkHexPair(
+      await resolveThemeValue('kasumi', 'color.surface'),
+    );
+    const [lightMuted, darkMuted] = lightDarkHexPair(
+      await resolveThemeValue('kasumi', 'color.textMuted'),
+    );
+
+    for (const [mode, surface, muted] of [
+      ['light', lightSurface, lightMuted],
+      ['dark', darkSurface, darkMuted],
+    ] as const) {
+      for (const backdrop of ['#000000', '#ffffff']) {
+        expect(
+          contrastRatio(muted, compositeOver(surface, raisedFloor, backdrop)),
+          `kasumi ${mode} muted text fails AA on a raised surface over ${backdrop}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it('holds kasumi body text at AA on the bare field at the setting it ships', async () => {
+    /* The field is not clamped, so this is only true because 64% is where the
+       lever ships. It is the number the README's guidance is derived from:
+       drop the lever far enough and body text on the bare field stops being
+       guaranteed against an adversarial backdrop. */
+    const shippedKeep = 0.64;
+    const [lightCanvas, darkCanvas] = lightDarkHexPair(
+      await resolveThemeValue('kasumi', 'color.canvas'),
+    );
+    const [lightText, darkText] = lightDarkHexPair(
+      await resolveThemeValue('kasumi', 'color.text'),
+    );
+
+    for (const [mode, canvas, text] of [
+      ['light', lightCanvas, lightText],
+      ['dark', darkCanvas, darkText],
+    ] as const) {
+      for (const backdrop of ['#000000', '#ffffff']) {
+        expect(
+          contrastRatio(text, compositeOver(canvas, shippedKeep, backdrop)),
+          `kasumi ${mode} body text fails AA on the field over ${backdrop}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it('carries the blur on a pseudo-element so fixed descendants keep the viewport', async () => {
+    /* A backdrop-filter on the theme root would make it the containing block
+       for every `position: fixed` descendant — Tooltip, Toast, ContextMenu,
+       AppShell, Popover, Overlay and MobileNav. A pseudo-element has no
+       descendants and so can never be one, and `isolation` opens a stacking
+       context rather than a containing block. Moving the filter up onto the
+       root is the regression this catches. */
+    const css = await readFile(new URL('./theme.css', import.meta.url), 'utf8');
+    const rules = cssBlocks(css).map((block, index) => ({
+      block,
+      body:
+        [
+          ...css
+            .replaceAll(/\/\*[\s\S]*?\*\//g, '')
+            .matchAll(/([^{}]+)\{([^{}]*)\}/g),
+        ][index]?.[2] ?? '',
+    }));
+    const isKasumiRoot = ({block}: (typeof rules)[number]) =>
+      block.selectors.includes("[data-theme='kasumi']");
+    const isFrostLayer = ({block}: (typeof rules)[number]) =>
+      block.selectors.includes("[data-theme='kasumi']::before");
+
+    const roots = rules.filter(isKasumiRoot);
+    const frost = rules.filter(isFrostLayer);
+
+    expect(
+      roots.some(({body}) => body.includes('isolation: isolate')),
+      'no kasumi root opens a stacking context',
+    ).toBe(true);
+    expect(
+      roots.every(({body}) => !body.includes('backdrop-filter')),
+      'a kasumi root filters its own backdrop',
+    ).toBe(true);
+    expect(frost).toHaveLength(1);
+    expect(frost[0]?.body).toContain('backdrop-filter');
+    expect(frost[0]?.body, 'the frost paints over the content').toContain(
+      'z-index: -1',
+    );
+    // Nothing else in the sheet may filter a backdrop either.
+    expect(
+      rules.filter(({body}) => body.includes('backdrop-filter')),
+    ).toHaveLength(1);
   });
 });

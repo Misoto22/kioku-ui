@@ -1,6 +1,6 @@
 import type {ThemeDefinition} from '@misoto22/kioku-ui/theme';
 
-type ThemeId = 'washi' | 'muji' | 'sumi';
+type ThemeId = 'washi' | 'muji' | 'sumi' | 'kasumi';
 
 function themeTokenReferences(id: ThemeId): ThemeDefinition['tokens'] {
   const variable = (role: string) => `var(--kioku-theme-${id}-${role})`;
@@ -99,9 +99,11 @@ function defineTheme(id: ThemeId, label: string): ThemeDefinition {
 export const washiTheme = defineTheme('washi', 'Washi');
 export const mujiTheme = defineTheme('muji', 'Muji');
 export const sumiTheme = defineTheme('sumi', 'Sumi');
+export const kasumiTheme = defineTheme('kasumi', 'Kasumi');
 
 export const kiokuThemes = Object.freeze([
   washiTheme,
   mujiTheme,
   sumiTheme,
+  kasumiTheme,
 ]) satisfies readonly ThemeDefinition[];
