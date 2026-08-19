@@ -32,8 +32,14 @@ const progressProperty = '--kioku-ui-slider-progress';
 // CSS has no logical direction keyword for a gradient, so this is physical.
 // Under `direction: rtl` the engine flips the control but not the gradient,
 // and the fill would sit on the wrong side.
-const fill = (from: string, to: string) =>
-  `linear-gradient(to right, ${from} 0 var(${progressProperty}, 0%), ${to} var(${progressProperty}, 0%) 100%)`;
+//
+// Written out twice rather than built by a helper. StyleX statically evaluates
+// every identifier a style refers to, and a function is not something it can
+// evaluate: a two-argument helper compiled fine through the CLI and failed the
+// consumer that builds this package from source, which is the build that
+// matters because it is the one a user of the library runs.
+const restFill = `linear-gradient(to right, ${semanticTokens.colorAccent} 0 var(${progressProperty}, 0%), ${semanticTokens.colorSurfaceMuted} var(${progressProperty}, 0%) 100%)`;
+const disabledFill = `linear-gradient(to right, ${semanticTokens.colorDisabledText} 0 var(${progressProperty}, 0%), ${semanticTokens.colorDisabledSurface} var(${progressProperty}, 0%) 100%)`;
 
 // The knob's size is a relationship to the rule it rides, not a token that
 // happens to look right: the track plus one spacing step of relief on each
@@ -94,10 +100,7 @@ const styles = stylex.create({
     minInlineSize: 0,
     '::-webkit-slider-runnable-track': {
       backgroundColor: semanticTokens.colorSurfaceMuted,
-      backgroundImage: fill(
-        semanticTokens.colorAccent,
-        semanticTokens.colorSurfaceMuted,
-      ),
+      backgroundImage: restFill,
       blockSize: trackThickness,
       borderRadius: semanticTokens.radiusFull,
     },
@@ -112,10 +115,7 @@ const styles = stylex.create({
     },
     '::-moz-range-track': {
       backgroundColor: semanticTokens.colorSurfaceMuted,
-      backgroundImage: fill(
-        semanticTokens.colorAccent,
-        semanticTokens.colorSurfaceMuted,
-      ),
+      backgroundImage: restFill,
       blockSize: trackThickness,
       borderRadius: semanticTokens.radiusFull,
     },
@@ -145,10 +145,7 @@ const styles = stylex.create({
     cursor: 'default',
     '::-webkit-slider-runnable-track': {
       backgroundColor: semanticTokens.colorDisabledSurface,
-      backgroundImage: fill(
-        semanticTokens.colorDisabledText,
-        semanticTokens.colorDisabledSurface,
-      ),
+      backgroundImage: disabledFill,
     },
     '::-webkit-slider-thumb': {
       backgroundColor: semanticTokens.colorDisabledText,
@@ -156,10 +153,7 @@ const styles = stylex.create({
     },
     '::-moz-range-track': {
       backgroundColor: semanticTokens.colorDisabledSurface,
-      backgroundImage: fill(
-        semanticTokens.colorDisabledText,
-        semanticTokens.colorDisabledSurface,
-      ),
+      backgroundImage: disabledFill,
     },
     '::-moz-range-thumb': {
       backgroundColor: semanticTokens.colorDisabledText,
