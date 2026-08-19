@@ -358,9 +358,10 @@
       "templates-pages--shell-nav",
       "templates-pages--shell-side-nav",
       "templates-pages--shell-top-nav",
+      "themes-kioku--kasumi-frost",
       "themes-kioku--theme-matrix"
     ],
-    "themes": ["washi", "muji", "sumi"]
+    "themes": ["washi", "muji", "sumi", "kasumi"]
   },
   "version": 1,
   "violations": []
