@@ -4,19 +4,25 @@ import type {ChangeEvent, TextareaHTMLAttributes} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
 
+// Four lines of body copy plus the control's own block padding. Written as the
+// relationship rather than as a length, so the field still opens on four lines
+// when density or type size moves under it.
+const minimumHeight = `calc(4 * ${semanticTokens.fontSizeMd} * ${semanticTokens.lineHeightBody} + 2 * ${semanticTokens.spacingXs})`;
+
 const controlStyles = stylex.create({
   base: {
-    backgroundColor: semanticTokens.colorSurface,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     boxSizing: 'border-box',
-    borderColor: semanticTokens.borderDefault,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
-    minHeight: '96px',
+    minHeight: minimumHeight,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     '::placeholder': {color: semanticTokens.colorTextMuted},
@@ -40,7 +46,8 @@ const controlStyles = stylex.create({
     },
   },
   readOnly: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
+    backgroundColor: semanticTokens.colorSurface,
+    borderColor: semanticTokens.borderDefault,
     color: semanticTokens.colorText,
   },
   invalid: {

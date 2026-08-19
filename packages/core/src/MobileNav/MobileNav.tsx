@@ -8,6 +8,10 @@ import {Icon} from '../Icon/index.js';
 import {IconButton} from '../IconButton/index.js';
 import {Layer} from '../Layer/index.js';
 
+// Wide enough for a two-word destination and its glyph, narrow enough that the
+// page behind it stays visible. Built from the scale, not written as a length.
+const drawerMaxWidth = `calc(11 * ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
   scrim: {
     backgroundColor: semanticTokens.colorOverlayActive,
@@ -15,30 +19,49 @@ const styles = stylex.create({
     inset: 0,
     position: 'fixed',
   },
+  // A floating surface: elevation and no border, because stacking both draws
+  // the same line twice.
   drawer: {
     backgroundColor: semanticTokens.colorSurface,
     borderEndEndRadius: semanticTokens.radiusPage,
     borderStartEndRadius: semanticTokens.radiusPage,
+    borderStyle: 'none',
     boxShadow: semanticTokens.elevationHigh,
+    color: semanticTokens.colorText,
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingMd,
-    maxWidth: '20rem',
-    outline: 'none',
+    fontFamily: semanticTokens.fontFamilyBody,
+    maxWidth: drawerMaxWidth,
+    outlineStyle: 'none',
     overflowY: 'auto',
     padding: semanticTokens.spacingLg,
+    rowGap: semanticTokens.spacingLg,
     width: '85%',
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
+  // The drawer's own masthead, parted from the destinations by a rule.
   header: {
     alignItems: 'center',
+    borderBlockEndColor: semanticTokens.borderStrong,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
+    columnGap: semanticTokens.spacingSm,
     display: 'flex',
     justifyContent: 'space-between',
+    paddingBlockEnd: semanticTokens.spacingMd,
   },
   title: {
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeLg,
-    fontWeight: semanticTokens.fontWeightStrong,
+    fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingHeading,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
 });
@@ -107,8 +130,8 @@ export function MobileNav({
               }}
               ref={setDrawer}
               role="dialog"
-              tabIndex={-1}
               {...stylex.props(styles.drawer)}
+              tabIndex={-1}
             >
               <div {...stylex.props(styles.header)}>
                 <p id={titleId} {...stylex.props(styles.title)}>

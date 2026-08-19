@@ -12,7 +12,7 @@ export const treeListDoc = {
     {name: 'selectedId', description: 'Marks which node is selected.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLUListElement> except children, className, onSelect, and role',
+    'HTMLAttributes<HTMLUListElement> except aria-label, children, className, onSelect, and role',
   ],
   example:
     '<TreeList expandedIds={open} label="Files" nodes={tree} onExpandedChange={setOpen} />',

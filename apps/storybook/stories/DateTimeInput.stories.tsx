@@ -3,7 +3,7 @@ import {useState} from 'react';
 
 import {DateTimeInput, Field} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-date-time-input',
@@ -36,7 +36,11 @@ function DateTimeInputDemo(
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <DateTimeInputDemo {...args} />
+      <StateGrid
+        items={[
+          {label: 'Publish at', content: <DateTimeInputDemo {...args} />},
+        ]}
+      />
     </DemoFrame>
   ),
 };
@@ -44,9 +48,21 @@ export const Default: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Field label="Publish at" description="Local time, exchanged as ISO.">
-        <DateTimeInputDemo />
-      </Field>
+      <StateGrid
+        items={[
+          {
+            label: 'In a field',
+            content: (
+              <Field
+                label="Publish at"
+                description="Local time, exchanged as ISO."
+              >
+                <DateTimeInputDemo />
+              </Field>
+            ),
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

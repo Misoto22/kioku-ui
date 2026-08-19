@@ -67,9 +67,18 @@ filter or list row is indicated by:
 - `colorText` instead of `colorTextSecondary`, plus `fontWeightMedium`.
 
 Not by a filled rectangle, not by a coloured pill, not by a grey background.
-`SegmentedControl` is the one documented exception: its selected option gets
-`colorSurfaceRaised` + `elevationLow`, because the control's whole metaphor is a
-physical switch.
+
+Pick the lightest of the three that still reads, and in a **navigation rail
+pick the last one without the weight** — ink alone. A rail is a short column of
+short words: a stroke beside one of them reads as a second divider, and bolding
+the row the reader is already on makes it the heaviest thing on the page. That
+is why `NavItem` draws no bar and adds no weight; `aria-current` carries the
+fact for anyone who cannot see the ink. Keep the bar for a mark that has to
+survive beside longer content — a menu row, a selected table row.
+
+`SegmentedControl` is the one documented exception to the no-fill rule: its
+selected option gets `colorSurfaceRaised` + `elevationLow`, because the
+control's whole metaphor is a physical switch.
 
 ### 6. Tracking runs inverse to size
 
@@ -255,3 +264,43 @@ These are enforced by `pnpm check` and will fail the build:
   three themes and two modes against `.github/a11y-baseline.json`, which
   currently records **zero** violations. A change that introduces one fails CI;
   fix the component rather than re-recording.
+
+---
+
+## Part 4 — Finish
+
+Part 1 says what the system looks like. This part says what separates a
+component that follows those rules from one that looks finished. Every item was
+read off the console's own screens, and each is a thing a fast implementation
+gets wrong while still passing every rule above.
+
+44. **Figures are set in the mono face with `tabular-nums`.** Counts, metrics,
+    dates, durations, page numbers, keyboard hints, percentages. A column of
+    numbers that does not line up is the fastest way to look unfinished.
+45. **A tiled set draws its rules with the gap, not with a border per cell.**
+    `gap: 1px` over a `borderDefault` background, cells opaque, `overflow:
+hidden` on the container. Bordering every cell doubles every interior line.
+46. **A micro-control is a solid block, not a tiny outlined box.** A 14px switch
+    track with a border reads as a field that failed to grow. Below about 20px,
+    drop the border and carry the state in the fill.
+47. **Proportions are relationships, not literals.** A knob is the track height
+    less its inset on both sides; travel is the track width less its height.
+    Write them as `calc()` over tokens so the control survives a density change.
+48. **Three ranks of ink do the work colour would.** `colorText` for what is
+    current, `colorTextSecondary` for what is available, `colorTextMuted` for
+    what is context. Reaching for a fill usually means the ranks were not used.
+
+    The third rank is for static copy only. A row that responds to the pointer
+    is read against the hover wash rather than the bare surface, and on that
+    composite `colorTextMuted` measures 3.81:1 in every dark theme. The value
+    that would clear 4.5:1 there sits at 97-105% of `colorTextSecondary` — not
+    a third rank at all. So an interactive row has two ink ranks, and its
+    secondary line separates from the first by size.
+
+49. **A specimen has a plate.** Anything that presents a set — states in a
+    story, tokens in a table, options in a picker — sits on a surface with an
+    edge. Content floating on the canvas reads as unplaced, not as spacious.
+50. **The eyebrow is the label of last resort.** `fontSizeXs`,
+    `letterSpacingEyebrow`, `colorTextSecondary`, heading face. It names a thing
+    without competing with it, and it is how every small label in the console is
+    set.

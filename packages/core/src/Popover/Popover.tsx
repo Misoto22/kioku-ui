@@ -18,14 +18,12 @@ import {Layer} from '../Layer/index.js';
 const styles = stylex.create({
   surface: {
     backgroundColor: semanticTokens.colorSurfaceRaised,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     boxShadow: semanticTokens.elevationMedium,
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     padding: semanticTokens.spacingMd,
     position: 'fixed',

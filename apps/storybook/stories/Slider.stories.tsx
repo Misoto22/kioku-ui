@@ -1,7 +1,7 @@
 import type {Meta, StoryObj} from '@storybook/react-vite';
 import {useState} from 'react';
 
-import {Field, Slider, Stack, Text} from '@misoto22/kioku-ui';
+import {Field, Slider} from '@misoto22/kioku-ui';
 
 import {DemoFrame, StateGrid} from './support/StoryFrame';
 
@@ -22,19 +22,16 @@ function SliderDemo(
 ) {
   const [value, setValue] = useState(40);
 
+  // The readout is the control's own, in tabular figures beside the track, so
+  // the story no longer hand-rolls a second one underneath it.
   return (
-    <Stack gap="xs">
-      <Slider
-        aria-label="Rollout"
-        {...props}
-        formatValue={(current) => `${current} percent`}
-        onValueChange={setValue}
-        value={value}
-      />
-      <Text size="sm" tone="muted">
-        {value} percent
-      </Text>
-    </Stack>
+    <Slider
+      aria-label="Rollout"
+      {...props}
+      formatValue={(current) => `${current} percent`}
+      onValueChange={setValue}
+      value={value}
+    />
   );
 }
 
@@ -68,7 +65,7 @@ export const Composition: Story = {
     <DemoFrame>
       <Field
         label="Rollout"
-        description="formatValue supplies the text a screen reader announces."
+        description="formatValue supplies the figure shown and the text announced."
       >
         <SliderDemo />
       </Field>

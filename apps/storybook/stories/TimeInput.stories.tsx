@@ -3,7 +3,7 @@ import {useState} from 'react';
 
 import {Field, TimeInput} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-time-input',
@@ -36,7 +36,9 @@ function TimeInputDemo(
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <TimeInputDemo {...args} />
+      <StateGrid
+        items={[{label: 'Start time', content: <TimeInputDemo {...args} />}]}
+      />
     </DemoFrame>
   ),
 };
@@ -44,9 +46,21 @@ export const Default: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Field label="Start time" description="Exchanged as an ISO string.">
-        <TimeInputDemo />
-      </Field>
+      <StateGrid
+        items={[
+          {
+            label: 'In a field',
+            content: (
+              <Field
+                label="Start time"
+                description="Exchanged as an ISO string."
+              >
+                <TimeInputDemo />
+              </Field>
+            ),
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

@@ -12,6 +12,10 @@ export const hoverCardDoc = {
     },
     {name: 'content', description: 'Supplies the preview content.'},
     {
+      name: 'label',
+      description: 'Names the interactive surface for assistive technology.',
+    },
+    {
       name: 'openDelay',
       description: 'Delays opening after the pointer arrives.',
     },

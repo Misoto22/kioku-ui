@@ -8,11 +8,11 @@ const styles = stylex.create({
     borderBlockStartColor: semanticTokens.borderDefault,
     borderBlockStartStyle: semanticTokens.borderStyle,
     borderBlockStartWidth: semanticTokens.borderWidth,
-    marginBlockEnd: `calc(-1 * ${semanticTokens.spacingXl})`,
-    marginBlockStart: semanticTokens.spacingXl,
-    marginInline: `calc(-1 * ${semanticTokens.spacingXl})`,
-    paddingBlock: semanticTokens.spacingLg,
-    paddingInline: semanticTokens.spacingXl,
+    marginBlockEnd: `calc(-1 * ${semanticTokens.spacingLg})`,
+    marginBlockStart: semanticTokens.spacingLg,
+    marginInline: `calc(-1 * ${semanticTokens.spacingLg})`,
+    paddingBlock: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
   },
 });
 

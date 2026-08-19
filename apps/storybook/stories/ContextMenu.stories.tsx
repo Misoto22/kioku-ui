@@ -41,6 +41,8 @@ export const Default: Story = {
   ),
 };
 
+// The menu opens on a secondary click and nothing else, so the story performs
+// one; a closed story shows a card and calls it a menu.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -50,11 +52,20 @@ export const Composition: Story = {
           same rules as any other anchored surface.
         </Text>
         <ContextMenu label="Release actions" menu={menu}>
-          <Card>
+          <Card data-story-target="region">
             <Text>Release 12 — secondary-click for actions</Text>
           </Card>
         </ContextMenu>
       </Stack>
     </DemoFrame>
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const region = canvasElement.querySelector<HTMLElement>(
+      '[data-story-target="region"]',
+    );
+    if (!region) {
+      throw new Error('ContextMenu region is missing');
+    }
+    await userEvent.pointer({keys: '[MouseRight]', target: region});
+  },
 };

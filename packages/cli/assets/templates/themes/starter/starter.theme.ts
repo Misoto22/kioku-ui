@@ -28,6 +28,7 @@ export const starterTheme: ThemeDefinition = validateThemeDefinition({
     'color-overlay-active': 'light-dark(#0000001a, #ffffff24)',
     'color-disabled-surface': 'light-dark(#eceae6, #26252c)',
     'color-disabled-text': 'light-dark(#a5a1ac, #6d6975)',
+    'color-scrim': 'rgb(0 0 0 / 34%)',
     'color-focus': 'light-dark(#3f5d8f, #9db6df)',
     'border-default': 'light-dark(#dcd9d3, #35333c)',
     'border-strong': 'light-dark(#bdb9b2, #4a4752)',

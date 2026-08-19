@@ -15,70 +15,107 @@ import {semanticTokens} from '../authoring.stylex.js';
 import type {StatusTone} from '../Badge/index.js';
 import {Layer} from '../Layer/index.js';
 
+// A toast is a floating surface, so its width is set in spacing steps rather
+// than in a literal the token contract cannot theme.
+const regionWidth = `calc(16 * ${semanticTokens.spacingXl})`;
+
+// The dot that names the tone. Two of the smallest spacing step: any larger
+// and it stops being a mark on the slip and starts being a bullet.
+const dotSize = `calc(2 * ${semanticTokens.spacingXs})`;
+
+// Notifications arrive from the edge they are anchored to.
+const enter = stylex.keyframes({
+  from: {opacity: 0, transform: 'translateY(25%)'},
+  to: {opacity: 1, transform: 'translateY(0)'},
+});
+
 const styles = stylex.create({
   region: {
-    bottom: 0,
     display: 'flex',
     flexDirection: 'column',
     gap: semanticTokens.spacingSm,
+    insetBlockEnd: 0,
     insetInlineEnd: 0,
-    maxWidth: '24rem',
+    maxWidth: regionWidth,
     padding: semanticTokens.spacingLg,
     pointerEvents: 'none',
     position: 'fixed',
     width: '100%',
   },
+  // A slip of the same paper as everything else, laid on the stack. Dyeing the
+  // whole slip to carry the tone made four differently coloured cards; the
+  // tone is one dot, and the slip stays paper so a stack of them reads as a
+  // stack rather than as a paint chart.
   toast: {
-    borderColor: semanticTokens.borderDefault,
+    alignItems: 'center',
+    animationDuration: semanticTokens.durationModerate,
+    animationName: {
+      default: enter,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingEmphasized,
+    backgroundColor: semanticTokens.colorSurface,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    // A floating surface carries elevation instead of an edge; stacking both
+    // would draw the same line twice.
+    borderStyle: 'none',
     boxShadow: semanticTokens.elevationMedium,
+    color: semanticTokens.colorText,
     display: 'flex',
-    flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingXs,
-    padding: semanticTokens.spacingMd,
+    gap: semanticTokens.spacingMd,
+    paddingBlock: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
     pointerEvents: 'auto',
   },
-  info: {
-    backgroundColor: semanticTokens.statusInfoSurface,
-    color: semanticTokens.statusInfoText,
+  // The one round shape the system allows outside a knob.
+  dot: {
+    blockSize: dotSize,
+    borderRadius: semanticTokens.radiusFull,
+    flexShrink: 0,
+    inlineSize: dotSize,
   },
-  success: {
-    backgroundColor: semanticTokens.statusSuccessSurface,
-    color: semanticTokens.statusSuccessText,
+  info: {backgroundColor: semanticTokens.statusInfoText},
+  success: {backgroundColor: semanticTokens.statusSuccessText},
+  warning: {backgroundColor: semanticTokens.statusWarningText},
+  danger: {backgroundColor: semanticTokens.statusDangerText},
+  message: {
+    display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
+    gap: semanticTokens.spacingXs,
+    minWidth: 0,
   },
-  warning: {
-    backgroundColor: semanticTokens.statusWarningSurface,
-    color: semanticTokens.statusWarningText,
-  },
-  danger: {
-    backgroundColor: semanticTokens.statusDangerSurface,
-    color: semanticTokens.statusDangerText,
-  },
+  // Two ranks of ink instead of two faces. A notification is one line long
+  // often enough that a heading face on top of it reads as a headline.
   title: {
-    fontSize: semanticTokens.fontSizeMd,
-    fontWeight: semanticTokens.fontWeightMedium,
+    color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
   description: {
+    color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
   action: {
+    alignItems: 'center',
     display: 'flex',
+    flexShrink: 0,
     gap: semanticTokens.spacingSm,
-    justifyContent: 'flex-end',
   },
 });
 
 /** Props for one notification surface. */
 export interface ToastProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'children' | 'className' | 'title'
+  'children' | 'className' | 'role' | 'title'
 > {
   readonly action?: ReactNode;
   readonly description?: ReactNode;
@@ -94,12 +131,22 @@ export function Toast({
   tone = 'info',
   ...props
 }: ToastProps) {
+  const isDanger = tone === 'danger';
+
   return (
-    <div {...props} {...stylex.props(styles.toast, styles[tone])}>
-      <p {...stylex.props(styles.title)}>{title}</p>
-      {description === undefined ? null : (
-        <p {...stylex.props(styles.description)}>{description}</p>
-      )}
+    <div
+      {...props}
+      aria-live={isDanger ? 'assertive' : 'polite'}
+      role={isDanger ? 'alert' : 'status'}
+      {...stylex.props(styles.toast)}
+    >
+      <span aria-hidden="true" {...stylex.props(styles.dot, styles[tone])} />
+      <div {...stylex.props(styles.message)}>
+        <p {...stylex.props(styles.title)}>{title}</p>
+        {description === undefined ? null : (
+          <p {...stylex.props(styles.description)}>{description}</p>
+        )}
+      </div>
       {action === undefined ? null : (
         <div {...stylex.props(styles.action)}>{action}</div>
       )}

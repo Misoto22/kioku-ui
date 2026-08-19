@@ -6,13 +6,26 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   list: {
     display: 'flex',
-    gap: semanticTokens.spacingXs,
+    fontFamily: semanticTokens.fontFamilyBody,
     listStyleType: 'none',
     marginBlock: 0,
+    marginInline: 0,
     paddingInlineStart: 0,
   },
-  horizontal: {alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap'},
-  vertical: {flexDirection: 'column'},
+  horizontal: {
+    alignItems: 'center',
+    columnGap: semanticTokens.spacingXs,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: semanticTokens.spacingXs,
+  },
+  // Rows stretch so every selection mark starts at the same inline edge, and
+  // they tile one hairline apart: the mark, not a gutter, separates them.
+  vertical: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
+    rowGap: semanticTokens.borderWidth,
+  },
 });
 
 /** Axis a navigation menu lays its destinations along. */

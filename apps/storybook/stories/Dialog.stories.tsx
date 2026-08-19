@@ -17,9 +17,12 @@ type Story = StoryObj<typeof meta>;
 
 function DialogDemo({
   label = 'Open dialog',
+  startOpen = false,
   ...dialogProps
-}: {readonly label?: string} & Partial<Parameters<typeof Dialog>[0]>) {
-  const [open, setOpen] = useState(false);
+}: {readonly label?: string; readonly startOpen?: boolean} & Partial<
+  Parameters<typeof Dialog>[0]
+>) {
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -65,6 +68,8 @@ export const Sizes: Story = {
   ),
 };
 
+// The surface starts out, so the plate, its rules and its footer are visible
+// without anyone having to press the trigger first.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -73,7 +78,11 @@ export const Composition: Story = {
           Focus is trapped inside the surface and the page behind stops
           scrolling until the dialog closes.
         </Text>
-        <DialogDemo description="This cannot be undone." label="Open" />
+        <DialogDemo
+          description="This cannot be undone."
+          label="Open"
+          startOpen
+        />
       </Stack>
     </DemoFrame>
   ),

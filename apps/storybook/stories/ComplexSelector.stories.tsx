@@ -3,7 +3,7 @@ import {useState} from 'react';
 
 import {ComplexSelector, Field} from '@misoto22/kioku-ui';
 
-import {DemoFrame} from './support/StoryFrame';
+import {DemoFrame, StateGrid} from './support/StoryFrame';
 
 const meta = {
   id: 'core-complex-selector',
@@ -52,7 +52,15 @@ function ComplexSelectorDemo(
 export const Default: Story = {
   render: (args) => (
     <DemoFrame>
-      <ComplexSelectorDemo {...args} />
+      <StateGrid
+        items={[
+          {label: 'Owner', content: <ComplexSelectorDemo {...args} />},
+          {
+            label: 'Disabled',
+            content: <ComplexSelectorDemo disabled />,
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };
@@ -60,9 +68,18 @@ export const Default: Story = {
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Field label="Owner" description="Grouped by team.">
-        <ComplexSelectorDemo />
-      </Field>
+      <StateGrid
+        items={[
+          {
+            label: 'In a field',
+            content: (
+              <Field label="Owner" description="Grouped by team.">
+                <ComplexSelectorDemo />
+              </Field>
+            ),
+          },
+        ]}
+      />
     </DemoFrame>
   ),
 };

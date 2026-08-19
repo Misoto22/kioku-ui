@@ -4,6 +4,13 @@ import {useId, useState, type HTMLAttributes, type ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {Icon} from '../Icon/index.js';
 
+// The panel grows from a closed track to an open one. `grid-template-rows` is
+// the only height that interpolates, so the reveal is a grid, not a `height`.
+const reveal = stylex.keyframes({
+  from: {gridTemplateRows: '0fr'},
+  to: {gridTemplateRows: '1fr'},
+});
+
 const styles = stylex.create({
   region: {
     display: 'grid',
@@ -23,9 +30,14 @@ const styles = stylex.create({
     fontSize: semanticTokens.fontSizeMd,
     fontWeight: semanticTokens.fontWeightMedium,
     gap: semanticTokens.spacingSm,
-    paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingXs,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    paddingBlock: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingSm,
     textAlign: 'start',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
@@ -33,17 +45,39 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover': {backgroundColor: semanticTokens.colorOverlayHover},
+    ':hover:not(:disabled)': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+    },
   },
   marker: {
+    color: semanticTokens.colorTextSecondary,
     flexShrink: 0,
-    transitionDuration: semanticTokens.durationFast,
+    transitionDuration: semanticTokens.durationModerate,
     transitionProperty: 'transform',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
   markerOpen: {transform: 'rotate(90deg)'},
   label: {flexGrow: 1, minWidth: 0},
-  panel: {paddingInlineStart: semanticTokens.spacingLg},
+  // The rule the indent hangs off. An indent alone leaves the revealed body
+  // floating beside its own heading; the hairline says the run belongs to the
+  // section above it, which is how the console draws a second level.
+  panel: {
+    borderInlineStartColor: semanticTokens.borderDefault,
+    borderInlineStartStyle: semanticTokens.borderStyle,
+    borderInlineStartWidth: semanticTokens.borderWidth,
+    paddingInlineStart: semanticTokens.spacingLg,
+  },
+  reveal: {
+    animationDuration: semanticTokens.durationModerate,
+    animationName: {
+      default: reveal,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingEmphasized,
+    display: 'grid',
+    gridTemplateRows: '1fr',
+  },
+  revealContent: {minHeight: 0, overflow: 'hidden'},
 });
 
 type SharedCollapsibleProps = Omit<
@@ -100,8 +134,8 @@ export function Collapsible({
           }
           onOpenChange?.(next);
         }}
-        type="button"
         {...stylex.props(styles.trigger)}
+        type="button"
       >
         <span {...stylex.props(styles.marker, isOpen && styles.markerOpen)}>
           <Icon>
@@ -122,7 +156,9 @@ export function Collapsible({
         role="region"
         {...stylex.props(styles.panel)}
       >
-        {children}
+        <div {...stylex.props(styles.reveal)}>
+          <div {...stylex.props(styles.revealContent)}>{children}</div>
+        </div>
       </div>
     </div>
   );

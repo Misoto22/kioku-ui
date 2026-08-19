@@ -48,10 +48,10 @@ export const Sizes: Story = {
   render: () => (
     <StateGrid
       items={[
-        {label: 'Small · 28px', content: <Button size="sm">Add note</Button>},
-        {label: 'Medium · 32px', content: <Button>Save view</Button>},
+        {label: 'Small · 24px', content: <Button size="sm">Add note</Button>},
+        {label: 'Medium · 28px', content: <Button>Save view</Button>},
         {
-          label: 'Large · 36px',
+          label: 'Large · 32px',
           content: <Button size="lg">Create workspace</Button>,
         },
       ]}

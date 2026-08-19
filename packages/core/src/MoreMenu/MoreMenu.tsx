@@ -1,9 +1,14 @@
+import * as stylex from '@stylexjs/stylex';
 import {useRef, useState, type ReactNode} from 'react';
 
 import {DropdownMenu} from '../DropdownMenu/index.js';
 import type {Alignment, Placement} from '../hooks/useAnchoredPosition.js';
 import {Icon} from '../Icon/index.js';
 import {IconButton} from '../IconButton/index.js';
+
+const styles = stylex.create({
+  anchor: {display: 'inline-flex'},
+});
 
 /** Props for the self-managed overflow menu. */
 export interface MoreMenuProps {
@@ -28,7 +33,7 @@ export function MoreMenu({
 
   return (
     <>
-      <span ref={anchorRef} style={{display: 'inline-flex'}}>
+      <span ref={anchorRef} {...stylex.props(styles.anchor)}>
         <IconButton
           aria-expanded={open}
           aria-haspopup="menu"

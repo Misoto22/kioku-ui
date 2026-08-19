@@ -1,6 +1,6 @@
 import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import {Button, Card, Stack} from '@misoto22/kioku-ui';
+import {Button, Stack} from '@misoto22/kioku-ui';
 
 import {DataTable} from '../../../../packages/cli/assets/templates/blocks/components/data-table/DataTable';
 import {ResultsEmptyState} from '../../../../packages/cli/assets/templates/blocks/components/empty-state/ResultsEmptyState';
@@ -72,9 +72,9 @@ export const Composed: Story = {
         title="Releases"
       />
       <DataTable caption="Recent releases" rows={rows} />
-      <Card>
-        <ResultsEmptyState searched />
-      </Card>
+      {/* No Card around it: the block draws its own plate, and two rings
+          around one thing is the doubled edge rule 2 exists to stop. */}
+      <ResultsEmptyState searched />
     </Stack>
   ),
 };

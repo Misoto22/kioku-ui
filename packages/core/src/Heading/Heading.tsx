@@ -4,16 +4,29 @@ import {createElement, type HTMLAttributes} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
+  // Medium, not strong. A heading on this paper is separated from the copy by
+  // size, tracking and the face it is cut in; adding weight on top of all
+  // three makes it shout, and the display face has no bold worth synthesising
+  // anyway. Every title in the console is set at the medium weight.
   base: {
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyHeading,
-    fontWeight: semanticTokens.fontWeightStrong,
+    fontWeight: semanticTokens.fontWeightMedium,
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
-  page: {fontSize: semanticTokens.fontSize2xl},
-  section: {fontSize: semanticTokens.fontSizeXl},
-  subsection: {fontSize: semanticTokens.fontSizeLg},
+  page: {
+    fontSize: semanticTokens.fontSize2xl,
+    letterSpacing: semanticTokens.letterSpacingTitle,
+  },
+  section: {
+    fontSize: semanticTokens.fontSizeXl,
+    letterSpacing: semanticTokens.letterSpacingTitle,
+  },
+  subsection: {
+    fontSize: semanticTokens.fontSizeLg,
+    letterSpacing: semanticTokens.letterSpacingHeading,
+  },
   interface: {fontFamily: semanticTokens.fontFamilyHeading},
   display: {
     fontFamily: semanticTokens.fontFamilyDisplay,

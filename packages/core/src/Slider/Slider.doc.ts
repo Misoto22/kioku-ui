@@ -7,7 +7,7 @@ export const sliderDoc = {
     {name: 'defaultValue', description: 'Sets the initial uncontrolled value.'},
     {
       name: 'formatValue',
-      description: 'Supplies the text announced for a value.',
+      description: 'Supplies the text shown and announced for a value.',
     },
     {name: 'max', description: 'Sets the upper bound of the range.'},
     {name: 'min', description: 'Sets the lower bound of the range.'},

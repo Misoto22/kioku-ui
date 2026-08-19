@@ -9,7 +9,7 @@ export const selectableCardDoc = {
     {name: 'multiple', description: 'Allows several cards to hold at once.'},
   ],
   inheritedProps: [
-    'InputHTMLAttributes<HTMLInputElement> except children, className, and type',
+    'InputHTMLAttributes<HTMLInputElement> except checked, children, className, defaultChecked, and type',
   ],
   example: '<SelectableCard label="Standard" name="plan" value="standard" />',
   storyId: 'core-selectable-card--default',

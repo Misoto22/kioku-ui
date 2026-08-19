@@ -4,6 +4,10 @@ export const codeBlockDoc = {
   name: 'CodeBlock',
   description: 'Shows a block of source with a copy control.',
   props: [
+    {
+      name: 'wrap',
+      description: 'Wraps long lines instead of scrolling them out of view.',
+    },
     {name: 'code', description: 'Supplies the source to show and copy.'},
     {name: 'copiedLabel', description: 'Names the control after a copy.'},
     {name: 'copyLabel', description: 'Names the copy control.'},

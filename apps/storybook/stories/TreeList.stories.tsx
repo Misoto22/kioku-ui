@@ -36,12 +36,14 @@ const nodes: readonly TreeNode[] = [
 
 function TreeDemo({
   initialExpanded = [],
+  initialSelected = '',
 }: {
   readonly initialExpanded?: readonly string[];
+  readonly initialSelected?: string;
 }) {
   const [expandedIds, setExpandedIds] =
     useState<readonly string[]>(initialExpanded);
-  const [selectedId, setSelectedId] = useState('');
+  const [selectedId, setSelectedId] = useState(initialSelected);
 
   return (
     <TreeList
@@ -73,6 +75,15 @@ export const States: Story = {
             label: 'expanded',
             content: <TreeDemo initialExpanded={['packages']} />,
           },
+          {
+            label: 'selected',
+            content: (
+              <TreeDemo
+                initialExpanded={['packages']}
+                initialSelected="themes"
+              />
+            ),
+          },
         ]}
       />
     </DemoFrame>
@@ -84,7 +95,10 @@ export const Composition: Story = {
     <DemoFrame>
       <Card>
         <Stack gap="sm">
-          <TreeDemo initialExpanded={['packages', 'apps']} />
+          <TreeDemo
+            initialExpanded={['packages', 'apps']}
+            initialSelected="themes"
+          />
           <Text size="sm" tone="muted">
             The whole tree is one tab stop: up and down move between visible
             nodes, right opens a branch, left closes it.

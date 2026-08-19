@@ -13,7 +13,7 @@ export const toastDoc = {
     {name: 'tone', description: 'Selects a semantic status colour.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLDivElement> except children, className, and title',
+    'HTMLAttributes<HTMLDivElement> except children, className, role, and title',
   ],
   example: '<Toast title="Draft saved" tone="success" />',
   storyId: 'core-toast--default',

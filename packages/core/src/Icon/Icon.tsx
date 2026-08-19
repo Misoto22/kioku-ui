@@ -70,12 +70,12 @@ export function Icon({
       aria-hidden={decorative ? 'true' : undefined}
       aria-label={decorative ? undefined : label}
       role={decorative ? undefined : 'img'}
-      viewBox={viewBox}
       {...stylex.props(
         styles.base,
         sizes[size],
         tone !== 'inherit' && tones[tone],
       )}
+      viewBox={viewBox}
     >
       {children}
     </svg>

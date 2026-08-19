@@ -4,31 +4,51 @@ import {useId, useRef, type HTMLAttributes, type ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {useListFocus} from '../hooks/useListFocus.js';
 
+// The primary rank of underline: two hairlines, one weight above the rule the
+// strip stands on. A subordinate rank of tab would take a single hairline.
+const selectedMarkWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+
 const styles = stylex.create({
   list: {
+    // The whole strip stands on one rule, and the tabs sit on it at a shared
+    // baseline so a label carrying a numeral or a count does not ride up.
+    alignItems: 'baseline',
     borderBlockEndColor: semanticTokens.borderDefault,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
+    columnGap: semanticTokens.spacingXl,
     display: 'flex',
-    gap: semanticTokens.spacingXs,
+    fontFamily: semanticTokens.fontFamilyBody,
   },
   tab: {
     backgroundColor: 'transparent',
     borderBlockEndColor: 'transparent',
     borderBlockEndStyle: semanticTokens.borderStyle,
-    borderBlockEndWidth: semanticTokens.focusWidth,
-    borderInlineStyle: 'none',
-    borderInlineWidth: 0,
+    borderBlockEndWidth: selectedMarkWidth,
     borderBlockStartStyle: 'none',
     borderBlockStartWidth: 0,
+    borderInlineStyle: 'none',
+    borderInlineWidth: 0,
     color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    fontWeight: semanticTokens.fontWeightMedium,
+    // One weight throughout. Setting the whole strip medium made it shout
+    // over the page and left nothing for the selected tab to gain; the ink
+    // rank and the underline say which tab is current, and neither reflows.
+    fontWeight: semanticTokens.fontWeightRegular,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    // The mark overlaps the strip's own rule instead of sitting under it.
     marginBlockEnd: `calc(-1 * ${semanticTokens.borderWidth})`,
-    paddingBlock: semanticTokens.spacingSm,
-    paddingInline: semanticTokens.spacingMd,
+    // The underline is the width of the label and nothing else. Inline padding
+    // would run the mark out past the word it marks, and the tabs are held
+    // apart by the strip's own gap rather than by a box around each one.
+    paddingBlockEnd: semanticTokens.spacingMd,
+    paddingBlockStart: 0,
+    paddingInline: 0,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
@@ -36,10 +56,14 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+  },
+  unselected: {
     ':hover:not(:disabled)': {color: semanticTokens.colorText},
   },
+  // Selection is a mark, never a fill: the tab keeps its transparent ground
+  // and states its case with an underline in ink.
   selected: {
-    borderBlockEndColor: semanticTokens.colorAccent,
+    borderBlockEndColor: semanticTokens.colorText,
     color: semanticTokens.colorText,
   },
 });
@@ -111,9 +135,12 @@ export function TabList({
               }
             }}
             role="tab"
+            {...stylex.props(
+              styles.tab,
+              selected ? styles.selected : styles.unselected,
+            )}
             tabIndex={selected ? 0 : -1}
             type="button"
-            {...stylex.props(styles.tab, selected && styles.selected)}
           >
             {tabLabel}
           </button>

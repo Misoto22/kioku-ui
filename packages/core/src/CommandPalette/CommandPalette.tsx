@@ -8,41 +8,65 @@ import {
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {Icon} from '../Icon/index.js';
 import {useInternationalization} from '../i18n/index.js';
-import {Kbd} from '../Kbd/index.js';
 import {Overlay} from '../Overlay/index.js';
+
+// About twenty spacing steps wide: long command names read on one line.
+const surfaceWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
+
+// The bookmark the sidebar draws beside the reader's page, drawn again beside
+// the row the keys are pointing at: two hairlines wide, short of the row so
+// it reads as a stroke laid on the row rather than a rule dividing it.
+const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+const markHeight = '64%';
 
 const styles = stylex.create({
   surface: {
     backgroundColor: semanticTokens.colorSurfaceRaised,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     boxShadow: semanticTokens.elevationHigh,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
     maxHeight: '70vh',
-    maxWidth: '36rem',
+    maxWidth: surfaceWidth,
     overflow: 'hidden',
     width: '100%',
   },
-  input: {
-    backgroundColor: 'transparent',
-    borderBlockEndColor: semanticTokens.borderDefault,
+  // The query line is set bare on the paper with one rule under it, not in a
+  // second box: a field inside a floating panel draws the panel's edge twice.
+  // The rule is the strong hairline, because it is the only thing separating
+  // what the reader is typing from what the typing is turning up.
+  search: {
+    alignItems: 'center',
+    borderBlockEndColor: semanticTokens.borderStrong,
     borderBlockEndStyle: semanticTokens.borderStyle,
     borderBlockEndWidth: semanticTokens.borderWidth,
-    borderInlineStyle: 'none',
-    borderInlineWidth: 0,
-    borderBlockStartStyle: 'none',
-    borderBlockStartWidth: 0,
-    color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeLg,
-    outline: 'none',
+    display: 'flex',
+    gap: semanticTokens.spacingMd,
     paddingBlock: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingLg,
+  },
+  input: {
+    backgroundColor: 'transparent',
+    borderStyle: 'none',
+    borderWidth: 0,
+    color: semanticTokens.colorText,
+    flexGrow: 1,
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    minWidth: 0,
+    padding: 0,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   list: {
     listStyleType: 'none',
@@ -51,30 +75,89 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingXs,
     paddingInlineStart: 0,
   },
+  // The eyebrow: display face, smallest size, opened right up, secondary ink.
+  // It names the group without competing with the commands inside it, and the
+  // mincho line is what marks it as a caption rather than a shouted heading —
+  // which is why it is not set in capitals as well.
   groupLabel: {
-    color: semanticTokens.colorTextMuted,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
-    letterSpacing: '0.06em',
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
+    marginBlock: 0,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingLg,
-    textTransform: 'uppercase',
   },
+  // A command that is merely available is set in the second rank; the one the
+  // keys are pointing at rises to the first. The wash alone would say it, but
+  // a wash this quiet needs the ink to agree with it.
   option: {
     alignItems: 'center',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     cursor: 'pointer',
     display: 'flex',
-    fontSize: semanticTokens.fontSizeMd,
-    gap: semanticTokens.spacingSm,
+    gap: semanticTokens.spacingMd,
     justifyContent: 'space-between',
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingLg,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
   },
-  active: {backgroundColor: semanticTokens.colorOverlayHover},
+  idle: {
+    ':hover': {
+      backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
+    },
+  },
+  // Focus never leaves the field, so the row the keys point at has to say so
+  // on its own: the wash, the first rank of ink, and the bookmark at the
+  // inline-start edge — never a filled blue bar, which would be the only
+  // block of colour on the page.
+  active: {
+    backgroundColor: semanticTokens.colorOverlayHover,
+    color: semanticTokens.colorText,
+    '::before': {
+      backgroundColor: semanticTokens.colorAccent,
+      content: '',
+      height: markHeight,
+      insetBlockStart: '50%',
+      insetInlineStart: 0,
+      position: 'absolute',
+      transform: 'translateY(-50%)',
+      width: markWidth,
+    },
+  },
+  label: {
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+  },
+  activeLabel: {fontWeight: semanticTokens.fontWeightMedium},
+  // A keyboard hint is a figure, and a key cap is a well in the paper: mono
+  // and tabular so a column of them lines up down the list, on the sunken
+  // fill so it reads as something to press rather than as more prose.
+  shortcut: {
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderRadius: semanticTokens.radiusInner,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    paddingInline: semanticTokens.spacingXs,
+    whiteSpace: 'nowrap',
+  },
   empty: {
-    color: semanticTokens.colorTextMuted,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    marginBlock: 0,
     paddingBlock: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingLg,
   },
@@ -143,6 +226,14 @@ export function CommandPalette({
       }
       return;
     }
+    if (event.key === 'Home' || event.key === 'End') {
+      if (matches.length === 0) {
+        return;
+      }
+      event.preventDefault();
+      setActiveIndex(event.key === 'Home' ? 0 : matches.length - 1);
+      return;
+    }
     if (event.key === 'Enter' && active) {
       event.preventDefault();
       onRun(active);
@@ -154,66 +245,87 @@ export function CommandPalette({
   return (
     <Overlay onDismiss={onDismiss} open={open}>
       <div aria-label={label} role="dialog" {...stylex.props(styles.surface)}>
-        <input
-          aria-activedescendant={
-            active ? `${optionPrefix}-${activeIndex}` : undefined
-          }
-          aria-autocomplete="list"
-          aria-controls={listboxId}
-          aria-expanded
-          aria-label={resolvedPlaceholder}
-          autoComplete="off"
-          onChange={(event) => {
-            setQuery(event.currentTarget.value);
-            setActiveIndex(0);
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder={resolvedPlaceholder}
-          role="combobox"
-          type="text"
-          value={query}
-          {...stylex.props(styles.input)}
-        />
+        <div {...stylex.props(styles.search)}>
+          {/* The glass names the line as a search without a word of chrome. */}
+          <Icon size="md" tone="muted">
+            <path
+              d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 4 4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </Icon>
+          <input
+            aria-activedescendant={
+              active ? `${optionPrefix}-${activeIndex}` : undefined
+            }
+            aria-autocomplete="list"
+            aria-controls={listboxId}
+            aria-expanded
+            aria-label={resolvedPlaceholder}
+            autoComplete="off"
+            onChange={(event) => {
+              setQuery(event.currentTarget.value);
+              setActiveIndex(0);
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder={resolvedPlaceholder}
+            role="combobox"
+            value={query}
+            {...stylex.props(styles.input)}
+            type="text"
+          />
+        </div>
         <ul id={listboxId} role="listbox" {...stylex.props(styles.list)}>
-          {matches.length === 0 ? (
-            <li {...stylex.props(styles.empty)}>
-              {emptyMessage ?? messages.commandPaletteEmpty}
-            </li>
-          ) : (
-            matches.map((command, index) => {
-              const showGroup =
-                command.group !== undefined && command.group !== lastGroup;
-              lastGroup = command.group;
+          {matches.map((command, index) => {
+            const showGroup =
+              command.group !== undefined && command.group !== lastGroup;
+            lastGroup = command.group;
 
-              return (
-                <li key={command.id} role="none">
-                  {showGroup ? (
-                    <p aria-hidden="true" {...stylex.props(styles.groupLabel)}>
-                      {command.group}
-                    </p>
-                  ) : null}
-                  <div
-                    aria-selected={index === activeIndex}
-                    id={`${optionPrefix}-${index}`}
-                    onClick={() => {
-                      onRun(command);
-                    }}
-                    role="option"
+            return (
+              <li key={command.id} role="none">
+                {showGroup ? (
+                  <p aria-hidden="true" {...stylex.props(styles.groupLabel)}>
+                    {command.group}
+                  </p>
+                ) : null}
+                <div
+                  aria-selected={index === activeIndex}
+                  id={`${optionPrefix}-${index}`}
+                  onClick={() => {
+                    onRun(command);
+                  }}
+                  role="option"
+                  {...stylex.props(
+                    styles.option,
+                    index === activeIndex ? styles.active : styles.idle,
+                  )}
+                >
+                  <span
                     {...stylex.props(
-                      styles.option,
-                      index === activeIndex && styles.active,
+                      styles.label,
+                      index === activeIndex ? styles.activeLabel : undefined,
                     )}
                   >
-                    <span>{command.label}</span>
-                    {command.shortcut === undefined ? null : (
-                      <Kbd>{command.shortcut}</Kbd>
-                    )}
-                  </div>
-                </li>
-              );
-            })
-          )}
+                    {command.label}
+                  </span>
+                  {command.shortcut === undefined ? null : (
+                    <kbd {...stylex.props(styles.shortcut)}>
+                      {command.shortcut}
+                    </kbd>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
+        {matches.length === 0 ? (
+          // A listbox may own nothing but options, so the notice sits beside
+          // it and announces itself instead.
+          <p role="status" {...stylex.props(styles.empty)}>
+            {emptyMessage ?? messages.commandPaletteEmpty}
+          </p>
+        ) : null}
       </div>
     </Overlay>
   );

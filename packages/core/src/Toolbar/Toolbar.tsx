@@ -5,14 +5,34 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useListFocus} from '../hooks/useListFocus.js';
 import type {ListOrientation} from '../hooks/useListFocus.js';
 
+// Tools sit against each other, parted by the width of a rule rather than by
+// a gutter. Spread on the spacing scale they read as three separate buttons
+// that happen to be near each other; closed up they read as one instrument.
+const toolGap = `calc(2 * ${semanticTokens.borderWidth})`;
+
 const styles = stylex.create({
+  // The strip carries no ground of its own: the controls inside it are the
+  // only marks, so the toolbar reads as a row of tools rather than a bar.
   toolbar: {
     alignItems: 'center',
+    color: semanticTokens.colorText,
     display: 'flex',
-    gap: semanticTokens.spacingXs,
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    minWidth: 0,
   },
-  horizontal: {flexDirection: 'row', flexWrap: 'wrap'},
-  vertical: {alignItems: 'stretch', flexDirection: 'column'},
+  horizontal: {
+    columnGap: toolGap,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: toolGap,
+  },
+  vertical: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
+    rowGap: toolGap,
+  },
 });
 
 /** Props for a grouped set of controls that shares one tab stop. */

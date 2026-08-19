@@ -59,6 +59,12 @@ export function ToggleButtonGroup(props: ToggleButtonGroupProps) {
       ? props.value.includes(value)
       : props.value === value;
 
+  // One tab stop for the whole group: the tab order lands on whichever option
+  // is already pressed, and the arrow keys take it from there.
+  const tabStopValue =
+    options.find((option) => !option.disabled && isPressed(option.value))
+      ?.value ?? options.find((option) => !option.disabled)?.value;
+
   function choose(value: string, pressed: boolean) {
     if (props.selectionMode === 'multiple') {
       props.onValueChange(
@@ -92,6 +98,7 @@ export function ToggleButtonGroup(props: ToggleButtonGroupProps) {
           }}
           pressed={isPressed(option.value)}
           size={size}
+          tabIndex={option.value === tabStopValue ? 0 : -1}
         >
           {option.label}
         </ToggleButton>

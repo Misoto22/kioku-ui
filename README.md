@@ -160,6 +160,7 @@ Compiled consumers configure no StyleX. Source consumers add
 | [`packages/build/README.md`](packages/build/README.md)                  | StyleX setup for Vite, Babel, and PostCSS              |
 | [`docs/adr/0001`](docs/adr/0001-astryx-aligned-product-architecture.md) | Why the repository is shaped the way it is             |
 | [`docs/operations/release.md`](docs/operations/release.md)              | Release authority, npm trusted publishing, recovery    |
+| [`docs/design-language.md`](docs/design-language.md)                    | The rules a component is judged against                |
 
 ---
 

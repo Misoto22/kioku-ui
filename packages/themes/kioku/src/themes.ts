@@ -22,6 +22,7 @@ function themeTokenReferences(id: ThemeId): ThemeDefinition['tokens'] {
     'color.disabledSurface': variable('color-disabled-surface'),
     'color.disabledText': variable('color-disabled-text'),
     'color.focus': variable('color-focus'),
+    'color.scrim': variable('color-scrim'),
     'border.default': variable('border-default'),
     'border.strong': variable('border-strong'),
     'border.interactive': variable('border-interactive'),

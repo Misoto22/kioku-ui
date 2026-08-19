@@ -12,7 +12,7 @@ export const switchDoc = {
     {name: 'onPressedChange', description: 'Receives the next state.'},
     {name: 'pressed', description: 'Controls the current state.'},
   ],
-  inheritedProps: ['ToggleProps, which Switch forwards unchanged'],
+  inheritedProps: ['ToggleProps, the same prop contract Toggle accepts'],
   example:
     '<Switch onPressedChange={setLive} pressed={live}>Live updates</Switch>',
   storyId: 'core-switch--default',

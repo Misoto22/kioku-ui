@@ -41,6 +41,22 @@ const supportedStyleSelectors = new Set([
   ':hover:not(:active)',
   ':not(:last-child)',
   ':focus-visible',
+  // A range input's track and thumb have no standard pseudo-element, so each
+  // engine exposes its own and ignores the other's. Without these a slider can
+  // only be tinted through `accentColor`, which cannot put the track on the
+  // surface ladder. They are listed rather than matched by prefix because this
+  // set is meant to be read: an unfamiliar selector should have to be argued
+  // for, not slip in behind a wildcard.
+  '::-webkit-slider-runnable-track',
+  '::-webkit-slider-thumb',
+  '::-moz-range-track',
+  '::-moz-range-progress',
+  '::-moz-range-thumb',
+  // A file input's button is the last piece of native chrome the page cannot
+  // replace: hiding it costs the control its keyboard behaviour and its
+  // platform file dialog. Styling it is the only way it stops being the one
+  // control on the page wearing a different system's paint.
+  '::file-selector-button',
 ]);
 const supportedStyleAtRules = new Set([
   '@media (prefers-reduced-motion: reduce)',

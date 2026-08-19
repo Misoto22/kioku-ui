@@ -5,14 +5,22 @@ import {semanticTokens} from '../authoring.stylex.js';
 import type {StatusTone} from '../Badge/index.js';
 
 const styles = stylex.create({
+  // A band of dyed paper, set in the darker shade of the same dye. It carries
+  // no outline: an edge in the tone colour draws the announcement twice, and
+  // the tint is already the whole of the signal at page width.
   banner: {
     alignItems: 'center',
+    // Every corner in the system is three pixels. A square-cornered box is
+    // the one shape here that belongs to no theme.
+    borderRadius: semanticTokens.radiusContainer,
+    borderStyle: 'none',
     display: 'flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     gap: semanticTokens.spacingMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
-    paddingBlock: semanticTokens.spacingSm,
+    paddingBlock: semanticTokens.spacingMd,
     paddingInline: semanticTokens.spacingLg,
   },
   info: {
@@ -43,7 +51,7 @@ const styles = stylex.create({
 /** Props for a page-width announcement. */
 export interface BannerProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'children' | 'className'
+  'children' | 'className' | 'role'
 > {
   readonly actions?: ReactNode;
   readonly children: ReactNode;
@@ -61,10 +69,13 @@ export function Banner({
   tone = 'info',
   ...props
 }: BannerProps) {
+  const isDanger = tone === 'danger';
+
   return (
     <div
       {...props}
-      {...(tone === 'danger' ? {role: 'alert'} : {role: 'status'})}
+      aria-live={isDanger ? 'assertive' : 'polite'}
+      role={isDanger ? 'alert' : 'status'}
       {...stylex.props(styles.banner, styles[tone])}
     >
       <div {...stylex.props(styles.message)}>{children}</div>

@@ -3,6 +3,18 @@
 [data-theme='muji'],
 [data-theme='sumi'],
 [data-theme='kasumi'] {
+  /*
+   * Declared here, in CSS, rather than left to the host to set inline. Two
+   * reasons, and the second is the one that bites. `light-dark()` resolves
+   * against the element's used color-scheme, so without this a theme root
+   * follows whatever an ancestor happened to declare. And a bundler that
+   * lowers `light-dark()` for older targets — lightningcss does — only emits
+   * the toggle custom properties when it can see a `color-scheme` declaration
+   * in the stylesheet. An inline style is invisible to it, so it rewrote every
+   * colour to `var(--lightningcss-light, …)` and emitted no definition: 104
+   * dead declarations in a built site that rendered correctly in dev.
+   */
+  color-scheme: light dark;
   --kioku-ui-color-canvas: var(--kioku-theme-color-canvas);
   --kioku-ui-color-surface: var(--kioku-theme-color-surface);
   --kioku-ui-color-surface-raised: var(--kioku-theme-color-surface-raised);
@@ -19,6 +31,7 @@
   --kioku-ui-color-disabled-surface: var(--kioku-theme-color-disabled-surface);
   --kioku-ui-color-disabled-text: var(--kioku-theme-color-disabled-text);
   --kioku-ui-color-focus: var(--kioku-theme-color-focus);
+  --kioku-ui-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-ui-border-default: var(--kioku-theme-border-default);
   --kioku-ui-border-strong: var(--kioku-theme-border-strong);
   --kioku-ui-border-interactive: var(--kioku-theme-border-interactive);
@@ -207,6 +220,7 @@
   --kioku-theme-color-disabled-surface: light-dark(#e2dccb, #151310);
   --kioku-theme-color-disabled-text: light-dark(#8a8375, #7d766a);
   --kioku-theme-color-focus: light-dark(#2f5d8a, #7ba6cf);
+  --kioku-theme-color-scrim: light-dark(rgb(38 34 28 / 34%), rgb(0 0 0 / 62%));
   --kioku-theme-border-default: light-dark(#ddd7c5, #302b24);
   --kioku-theme-border-strong: light-dark(#c8c0aa, #423b31);
   --kioku-theme-border-interactive: light-dark(#2f5d8a, #7ba6cf);
@@ -258,6 +272,7 @@
   --kioku-theme-color-disabled-surface: light-dark(#e0d9ca, #141613);
   --kioku-theme-color-disabled-text: light-dark(#93968b, #75786f);
   --kioku-theme-color-focus: light-dark(#566b52, #9cb597);
+  --kioku-theme-color-scrim: light-dark(rgb(47 50 44 / 34%), rgb(0 0 0 / 62%));
   --kioku-theme-border-default: light-dark(#dcdcd4, #31342d);
   --kioku-theme-border-strong: light-dark(#c2c3b8, #43463d);
   --kioku-theme-border-interactive: light-dark(#566b52, #9cb597);
@@ -310,6 +325,7 @@
   --kioku-theme-color-disabled-surface: light-dark(#e4e4e0, #090908);
   --kioku-theme-color-disabled-text: light-dark(#7c7c76, #7b7b75);
   --kioku-theme-color-focus: light-dark(#1d4d7c, #79aade);
+  --kioku-theme-color-scrim: light-dark(rgb(19 19 17 / 36%), rgb(0 0 0 / 66%));
   --kioku-theme-border-default: light-dark(#dcdcd8, #2a2a27);
   --kioku-theme-border-strong: light-dark(#b4b4ae, #3d3d39);
   --kioku-theme-border-interactive: light-dark(#1d4d7c, #79aade);
@@ -432,6 +448,10 @@
   --kioku-theme-color-disabled-surface: light-dark(#e4e8ee, #0d1014);
   --kioku-theme-color-disabled-text: light-dark(#7c8695, #6e7887);
   --kioku-theme-color-focus: light-dark(#4c4a86, #a99bdc);
+  /* Frosted glass already dims what is behind it, so the scrim only has to
+     separate the surface from the page rather than hide it: lighter than the
+     opaque skins in both modes. */
+  --kioku-theme-color-scrim: light-dark(rgb(22 27 34 / 28%), rgb(0 0 0 / 56%));
   /* Structural borders are the rim, and on glass the rim is ALPHA — dark in
      light mode, light in dark mode, both at low strength. An opaque line is
      what makes a thinned card read as a flat box rather than a pane, which is
@@ -543,6 +563,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-washi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-washi-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-washi-border-default: var(--kioku-theme-border-default);
   --kioku-theme-washi-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-washi-border-interactive: var(--kioku-theme-border-interactive);
@@ -686,6 +707,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-muji-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-muji-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-muji-border-default: var(--kioku-theme-border-default);
   --kioku-theme-muji-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-muji-border-interactive: var(--kioku-theme-border-interactive);
@@ -829,6 +851,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-sumi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-sumi-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-sumi-border-default: var(--kioku-theme-border-default);
   --kioku-theme-sumi-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-sumi-border-interactive: var(--kioku-theme-border-interactive);
@@ -974,6 +997,7 @@
     --kioku-theme-color-disabled-text
   );
   --kioku-theme-kasumi-color-focus: var(--kioku-theme-color-focus);
+  --kioku-theme-kasumi-color-scrim: var(--kioku-theme-color-scrim);
   --kioku-theme-kasumi-border-default: var(--kioku-theme-border-default);
   --kioku-theme-kasumi-border-strong: var(--kioku-theme-border-strong);
   --kioku-theme-kasumi-border-interactive: var(

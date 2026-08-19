@@ -375,7 +375,21 @@ process.stdout.write(JSON.stringify({
       );
     }
 
+    // The seal: ink ground, paper letters, and pointer states that run down
+    // the ranks of ink rather than into the accent. The accent is reserved for
+    // thin marks — focus ring, selection bar, link hover — so a filled accent
+    // button is the one thing this contract must keep out.
     expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `background-color:var(${variable('--kioku-ui-color-text')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      markup.buttonPrimary,
+      `color:var(${variable('--kioku-ui-color-text-on-accent')})`,
+    );
+    expectNoRenderedDeclaration(
       packageCss,
       markup.buttonPrimary,
       `background-color:var(${variable('--kioku-ui-color-accent')})`,
@@ -383,12 +397,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       markup.buttonPrimary,
-      `color:var(${variable('--kioku-ui-color-text-on-accent')})`,
-    );
-    expectRenderedRule(
-      packageCss,
-      markup.buttonPrimary,
-      `background-color:var(${variable('--kioku-ui-color-accent-hover')})`,
+      `background-color:var(${variable('--kioku-ui-color-text-secondary')})`,
       ':hover',
       true,
       [':not(:active)'],
@@ -396,7 +405,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       markup.buttonPrimary,
-      `background-color:var(${variable('--kioku-ui-color-accent-active')})`,
+      `background-color:var(${variable('--kioku-ui-color-text-muted')})`,
       ':active',
       true,
     );
@@ -648,7 +657,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       fieldLabel,
-      `color:var(${variable('--kioku-ui-color-text')})`,
+      `color:var(${variable('--kioku-ui-color-text-secondary')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -670,12 +679,12 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `background-color:var(${variable('--kioku-ui-color-surface')})`,
+        `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
       );
       expectRenderedRule(
         packageCss,
         markup[name],
-        `border-color:var(${variable('--kioku-ui-border-default')})`,
+        `border-color:var(${variable('--kioku-ui-border-strong')})`,
       );
       expectRenderedRule(
         packageCss,
@@ -736,7 +745,14 @@ process.stdout.write(JSON.stringify({
       `height:var(${variable('--kioku-ui-size-control-md')})`,
     );
     expectRenderedRule(packageCss, markup.input, 'box-sizing:border-box');
-    expectRenderedRule(packageCss, markup.textArea, 'min-height:96px');
+    // Four lines of body copy plus the control's own block padding, so the
+    // field still opens on four lines when density or type size moves under
+    // it. It was a literal 96px, which is the one thing the scale forbids.
+    expectRenderedRule(
+      packageCss,
+      markup.textArea,
+      `min-height:calc(4 * var(${variable('--kioku-ui-typography-font-size-md')}) * var(${variable('--kioku-ui-typography-line-height-body')}) + 2 * var(${variable('--kioku-ui-spacing-xs')}))`,
+    );
 
     for (const name of ['inputDisabled', 'textAreaDisabled'] as const) {
       expectRenderedRule(
@@ -763,7 +779,7 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+        `background-color:var(${variable('--kioku-ui-color-surface')})`,
       );
       expectRenderedRule(
         packageCss,
@@ -799,6 +815,7 @@ process.stdout.write(JSON.stringify({
     const toggleTrackOff = elementMarkup(markup.toggleOff, 'span');
     const toggleThumbOff = elementMarkup(markup.toggleOff, 'span', 1);
     const toggleTrackOn = elementMarkup(markup.toggleOn, 'span');
+    const toggleThumbOn = elementMarkup(markup.toggleOn, 'span', 1);
     expectRenderedRule(
       packageCss,
       markup.toggleOff,
@@ -809,27 +826,42 @@ process.stdout.write(JSON.stringify({
       markup.toggleOff,
       `min-width:var(${variable('--kioku-ui-size-hit-target')})`,
     );
+    /*
+     * The track is a solid block, not a tiny outlined box: below about 20px a
+     * border reads as a field that failed to grow, so the off state is carried
+     * by a mid-grey fill and the track declares no border at all. Its knob and
+     * travel are relationships over the same two tokens rather than measured
+     * values, so `calc(` is the assertion — the arithmetic is the contract.
+     */
     expectRenderedRule(
       packageCss,
       toggleTrackOff,
-      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+      `background-color:var(${variable('--kioku-ui-border-strong')})`,
+    );
+    expectNoRenderedDeclaration(packageCss, toggleTrackOff, 'border-color:');
+    expectRenderedRule(
+      packageCss,
+      toggleTrackOff,
+      `width:var(${variable('--kioku-ui-size-control-md')})`,
     );
     expectRenderedRule(
       packageCss,
       toggleTrackOff,
-      `width:var(${variable('--kioku-ui-size-control-lg')})`,
+      `height:var(${variable('--kioku-ui-spacing-lg')})`,
     );
+    expectRenderedRule(packageCss, toggleThumbOff, 'height:calc(');
+    expectRenderedRule(packageCss, toggleThumbOff, 'inset-inline-start:0');
     expectRenderedRule(
       packageCss,
       toggleThumbOff,
-      `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
+      `background-color:var(${variable('--kioku-ui-color-surface')})`,
     );
     expectRenderedRule(
       packageCss,
       toggleTrackOn,
-      `background-color:var(${variable('--kioku-ui-color-accent')})`,
+      `background-color:var(${variable('--kioku-ui-color-text')})`,
     );
-    expectRenderedRule(packageCss, toggleTrackOn, 'justify-content:flex-end');
+    expectRenderedRule(packageCss, toggleThumbOn, 'inset-inline-start:calc(');
     expectRenderedRule(
       packageCss,
       markup.toggleOff,
@@ -1036,7 +1068,7 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         markup[name],
-        `padding:var(${variable('--kioku-ui-spacing-xl')})`,
+        `padding:var(${variable('--kioku-ui-spacing-lg')})`,
       );
     }
 
@@ -1044,17 +1076,17 @@ process.stdout.write(JSON.stringify({
       expectRenderedRule(
         packageCss,
         name === 'cardHeader' ? cardHeader : cardFooter,
-        `margin-inline:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+        `margin-inline:calc(-1 * var(${variable('--kioku-ui-spacing-lg')}))`,
       );
       expectRenderedRule(
         packageCss,
         name === 'cardHeader' ? cardHeader : cardFooter,
-        `padding-block:var(${variable('--kioku-ui-spacing-lg')})`,
+        `padding-block:var(${variable('--kioku-ui-spacing-md')})`,
       );
       expectRenderedRule(
         packageCss,
         name === 'cardHeader' ? cardHeader : cardFooter,
-        `padding-inline:var(${variable('--kioku-ui-spacing-xl')})`,
+        `padding-inline:var(${variable('--kioku-ui-spacing-lg')})`,
       );
     }
     expectRenderedRule(
@@ -1075,12 +1107,12 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       cardHeader,
-      `margin-top:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+      `margin-top:calc(-1 * var(${variable('--kioku-ui-spacing-lg')}))`,
     );
     expectRenderedRule(
       packageCss,
       cardHeader,
-      `margin-bottom:var(${variable('--kioku-ui-spacing-xl')})`,
+      `margin-bottom:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1100,12 +1132,12 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       cardFooter,
-      `margin-top:var(${variable('--kioku-ui-spacing-xl')})`,
+      `margin-top:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     expectRenderedRule(
       packageCss,
       cardFooter,
-      `margin-bottom:calc(-1 * var(${variable('--kioku-ui-spacing-xl')}))`,
+      `margin-bottom:calc(-1 * var(${variable('--kioku-ui-spacing-lg')}))`,
     );
     expectNoRenderedDeclaration(packageCss, cardHeader, 'border-top');
     expectNoRenderedDeclaration(packageCss, cardFooter, 'border-bottom');
@@ -1275,20 +1307,47 @@ process.stdout.write(JSON.stringify({
     const emptyCompact = elementMarkup(markup.emptyCompact, 'div', 1);
     const emptyDefaultDetail = elementMarkup(markup.emptyDefault, 'p', 1);
     const emptyDefaultTitle = elementMarkup(markup.emptyDefault, 'p');
+    // The empty state is a plate, not floating copy, and its foot is tighter
+    // than its head so the actions close the block instead of hanging in it.
     expectRenderedRule(
       packageCss,
       emptyDefault,
-      `padding:var(${variable('--kioku-ui-spacing-2xl')})`,
+      `background-color:var(${variable('--kioku-ui-color-surface')})`,
     );
     expectRenderedRule(
       packageCss,
       emptyDefault,
-      `gap:var(${variable('--kioku-ui-spacing-md')})`,
+      `box-shadow:var(${variable('--kioku-ui-elevation-medium')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `padding-top:var(${variable('--kioku-ui-spacing-2xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `padding-bottom:var(${variable('--kioku-ui-spacing-xl')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyDefault,
+      `gap:var(${variable('--kioku-ui-spacing-sm')})`,
     );
     expectRenderedRule(
       packageCss,
       emptyCompact,
-      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+      `padding-top:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyCompact,
+      `padding-bottom:var(${variable('--kioku-ui-spacing-lg')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      emptyCompact,
+      `padding-inline:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1299,15 +1358,18 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(packageCss, emptyDefaultTitle, 'max-width:calc(');
 
     const spinnerVisual = elementMarkup(markup.spinner, 'span', 1);
+    // The resting ring is a hairline, not a filled track: the arc that moves
+    // is the only part carrying ink, so the ring has to sit at the border rank
+    // or the spinner reads as a donut with a bite out of it.
     expectRenderedRule(
       packageCss,
       spinnerVisual,
-      `border-color:var(${variable('--kioku-ui-color-surface-muted')})`,
+      `border-color:var(${variable('--kioku-ui-border-default')})`,
     );
     expectRenderedRule(
       packageCss,
       spinnerVisual,
-      `border-top-color:var(${variable('--kioku-ui-color-accent')})`,
+      `border-top-color:var(${variable('--kioku-ui-color-text')})`,
     );
     expectRenderedMediaRule(
       packageCss,
@@ -1326,22 +1388,20 @@ process.stdout.write(JSON.stringify({
       markup.skeleton,
       `border-radius:var(${variable('--kioku-ui-radius-element')})`,
     );
+    // The placeholder is still in every mode, so there is no cycle to guard:
+    // a page of bars that breathes makes the wait the loudest thing on it.
+    expectNoRenderedDeclaration(packageCss, markup.skeleton, 'animation-name:');
     expectRenderedRule(
       packageCss,
       markup.skeleton,
-      `animation-duration:var(${variable('--kioku-ui-motion-duration-slow')})`,
-    );
-    expectRenderedMediaRule(
-      packageCss,
-      markup.skeleton,
-      '(prefers-reduced-motion: reduce)',
-      'animation-name:none',
+      `min-height:var(${variable('--kioku-ui-spacing-md')})`,
     );
 
     const defaultCell = elementMarkup(markup.tableDefault, 'td');
     const compactCell = elementMarkup(markup.tableCompactGrid, 'td');
     const spaciousCell = elementMarkup(markup.tableSpaciousNone, 'td');
     const compactHeaderCell = elementMarkup(markup.tableCompactGrid, 'th');
+    const defaultHeaderCell = elementMarkup(markup.tableDefault, 'th');
     for (const [cell, spacing] of [
       [defaultCell, '--kioku-ui-spacing-md'],
       [compactCell, '--kioku-ui-spacing-sm'],
@@ -1353,11 +1413,19 @@ process.stdout.write(JSON.stringify({
         `padding-block:var(${variable(spacing)})`,
       );
     }
-    expectRenderedRule(
-      packageCss,
-      compactHeaderCell,
-      `padding-block:var(${variable('--kioku-ui-spacing-sm')})`,
-    );
+    // The header carries a line of 11px eyebrow rather than a line of data, so
+    // it sits one spacing step tighter than the rows it names at every density
+    // — matching the body would give the strip more air than the entries.
+    for (const [cell, spacing] of [
+      [defaultHeaderCell, '--kioku-ui-spacing-sm'],
+      [compactHeaderCell, '--kioku-ui-spacing-xs'],
+    ] as const) {
+      expectRenderedRule(
+        packageCss,
+        cell,
+        `padding-block:var(${variable(spacing)})`,
+      );
+    }
 
     const defaultRow = elementMarkup(markup.tableDefault, 'tr', 1);
     const columnsRow = elementMarkup(markup.tableColumns, 'tr', 1);
@@ -1392,7 +1460,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       compactHeaderCell,
-      `border-bottom-color:var(${variable('--kioku-ui-border-default')})`,
+      `border-bottom-color:var(${variable('--kioku-ui-border-strong')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1408,11 +1476,9 @@ process.stdout.write(JSON.stringify({
     );
 
     const headerCell = elementMarkup(markup.tableDefault, 'th');
-    expectRenderedRule(
-      packageCss,
-      headerCell,
-      `background-color:var(${variable('--kioku-ui-color-surface-muted')})`,
-    );
+    // A ledger header separates itself by ink rank and by the rule beneath it,
+    // never by a fill behind it.
+    expectNoRenderedDeclaration(packageCss, headerCell, 'background-color:');
     expectRenderedRule(
       packageCss,
       headerCell,
@@ -1461,13 +1527,30 @@ process.stdout.write(JSON.stringify({
     );
     expectRenderedRule(
       packageCss,
+      metricRoot,
+      `background-color:var(${variable('--kioku-ui-border-default')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricRoot,
+      `gap:var(${variable('--kioku-ui-border-width')})`,
+    );
+    expectNoRenderedDeclaration(packageCss, metricItem, 'border-color:');
+    expectNoRenderedDeclaration(packageCss, metricItem, 'border-width:');
+    expectRenderedRule(
+      packageCss,
       metricLabel,
       `color:var(${variable('--kioku-ui-color-text-secondary')})`,
     );
     expectRenderedRule(
       packageCss,
       metricValue,
-      `font-family:var(${variable('--kioku-ui-typography-font-family-heading')})`,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-mono')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      metricValue,
+      'font-variant-numeric:tabular-nums',
     );
     expectRenderedRule(
       packageCss,
@@ -1819,7 +1902,7 @@ process.stdout.write(JSON.stringify({
     expectRenderedRule(
       packageCss,
       emptyState,
-      `padding:var(${variable('--kioku-ui-spacing-lg')})`,
+      `padding-inline:var(${variable('--kioku-ui-spacing-lg')})`,
     );
     const tableRow = elementMarkup(markup.table, 'tr', 1);
     const tableCell = elementMarkup(markup.table, 'td');
@@ -2158,30 +2241,31 @@ void [docs, individualDocs, textName, missing, incompleteDoc];
 
 const expectedNames = [
   'Text', 'Heading', 'Code', 'Kbd',
-  'Icon', 'Stack', 'Grid', 'Section',
-  'Card', 'CardHeader', 'CardFooter', 'Divider',
-  'Center', 'List', 'ListItem', 'Item',
-  'VisuallyHidden', 'Button', 'IconButton', 'Badge',
-  'StatusDot', 'Field', 'TextInput', 'TextArea',
-  'Toggle', 'SegmentedControl', 'CheckboxInput', 'CheckboxList',
-  'RadioList', 'Switch', 'Selector', 'ComplexSelector',
-  'Typeahead', 'TypeaheadItem', 'MultiSelector', 'NumberInput',
-  'FileInput', 'Slider', 'DateInput', 'TimeInput',
-  'DateTimeInput', 'DateRangeInput', 'Calendar', 'FieldStatus',
-  'InputGroup', 'FormLayout', 'EmptyState', 'AsyncState',
-  'Spinner', 'Skeleton', 'Alert', 'Avatar',
-  'AvatarGroup', 'Thumbnail', 'AspectRatio', 'Box',
-  'Banner', 'Blockquote', 'Citation', 'CodeBlock',
-  'Markdown', 'MetadataList', 'Timestamp', 'Token',
-  'Tokenizer', 'ProgressBar', 'Indicator', 'Carousel',
-  'Lightbox', 'Layer', 'Overlay', 'Popover',
-  'Tooltip', 'Dialog', 'AlertDialog', 'BottomSheet',
-  'HoverCard', 'DropdownMenu', 'DropdownMenuItem', 'ContextMenu',
-  'MoreMenu', 'Toast', 'ToastProvider', 'Table',
-  'TableCaption', 'TableHead', 'TableBody', 'TableRow',
-  'TableHeaderCell', 'TableCell', 'MetricGrid', 'HStack',
-  'VStack', 'ButtonGroup', 'ToggleButton', 'ToggleButtonGroup',
-  'ClickableCard', 'SelectableCard', 'Collapsible', 'Resizable',
+  'Eyebrow', 'Numeral', 'Icon', 'Stack',
+  'Grid', 'Section', 'Card', 'CardHeader',
+  'CardFooter', 'Divider', 'Center', 'List',
+  'ListItem', 'Item', 'VisuallyHidden', 'Button',
+  'IconButton', 'Badge', 'StatusDot', 'Field',
+  'TextInput', 'TextArea', 'Toggle', 'SegmentedControl',
+  'CheckboxInput', 'CheckboxList', 'RadioList', 'Switch',
+  'Selector', 'ComplexSelector', 'Typeahead', 'TypeaheadItem',
+  'MultiSelector', 'NumberInput', 'FileInput', 'Slider',
+  'DateInput', 'TimeInput', 'DateTimeInput', 'DateRangeInput',
+  'Calendar', 'FieldStatus', 'InputGroup', 'FormLayout',
+  'EmptyState', 'AsyncState', 'Spinner', 'Skeleton',
+  'Alert', 'Avatar', 'AvatarGroup', 'Thumbnail',
+  'AspectRatio', 'Box', 'Banner', 'Blockquote',
+  'Citation', 'CodeBlock', 'Markdown', 'MetadataList',
+  'Timestamp', 'Token', 'Tokenizer', 'ProgressBar',
+  'Indicator', 'Carousel', 'Lightbox', 'Layer',
+  'Overlay', 'Popover', 'Tooltip', 'Dialog',
+  'AlertDialog', 'BottomSheet', 'BottomSheetSwitcher', 'HoverCard',
+  'DropdownMenu', 'DropdownMenuItem', 'ContextMenu', 'MoreMenu',
+  'Toast', 'ToastProvider', 'Table', 'TableCaption',
+  'TableHead', 'TableBody', 'TableRow', 'TableHeaderCell',
+  'TableCell', 'MetricGrid', 'HStack', 'VStack',
+  'ButtonGroup', 'ToggleButton', 'ToggleButtonGroup', 'ClickableCard',
+  'SelectableCard', 'Collapsible', 'Resizable', 'ResizeHandle',
   'OverflowList', 'TreeList', 'CommandPalette', 'PowerSearch',
   'ChatLayout', 'ChatMessageList', 'ChatMessage', 'ChatMessageMetadata',
   'ChatSystemMessage', 'ChatToolCalls', 'ChatComposer', 'TabList',

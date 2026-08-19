@@ -7,7 +7,14 @@ const spin = stylex.keyframes({
   to: {transform: 'rotate(360deg)'},
 });
 
+// Two hairlines wide. At fourteen pixels a one-pixel ring is a thread: it
+// reads as a control that failed to draw rather than as something turning.
+const ringWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+
 const styles = stylex.create({
+  // The ring at rest is the hairline rank; the arc that moves is full ink.
+  // The accent's jobs are the focus ring, the selected mark and a link on
+  // hover, and a spinner is none of the three.
   spinner: {
     animationDuration: semanticTokens.durationSlow,
     animationIterationCount: 'infinite',
@@ -16,11 +23,11 @@ const styles = stylex.create({
       '@media (prefers-reduced-motion: reduce)': 'none',
     },
     animationTimingFunction: semanticTokens.easingStandard,
-    borderBlockStartColor: semanticTokens.colorAccent,
-    borderColor: semanticTokens.colorSurfaceMuted,
+    borderBlockStartColor: semanticTokens.colorText,
+    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusFull,
     borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    borderWidth: ringWidth,
     display: 'inline-block',
     height: semanticTokens.spacingLg,
     width: semanticTokens.spacingLg,

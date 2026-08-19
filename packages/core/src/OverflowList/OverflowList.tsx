@@ -15,6 +15,20 @@ const styles = stylex.create({
     minWidth: 0,
   },
   item: {flexShrink: 0},
+  anchor: {display: 'inline-flex'},
+  label: {
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+  },
+  // How many are folded away is a figure, so it is set as one: mono and
+  // tabular, so the button does not change width between 9 and 10.
+  count: {
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+  },
 });
 
 /** One entry that can move into the overflow menu. */
@@ -60,7 +74,7 @@ export function OverflowList({
       ))}
       {hidden.length === 0 ? null : (
         <span {...stylex.props(styles.item)}>
-          <span ref={anchorRef} style={{display: 'inline-flex'}}>
+          <span ref={anchorRef} {...stylex.props(styles.anchor)}>
             <Button
               onClick={() => {
                 setOpen((value) => !value);
@@ -68,7 +82,10 @@ export function OverflowList({
               size="sm"
               variant="ghost"
             >
-              {overflowLabel} ({hidden.length})
+              <span {...stylex.props(styles.label)}>
+                {overflowLabel} (
+                <span {...stylex.props(styles.count)}>{hidden.length}</span>)
+              </span>
             </Button>
           </span>
           <DropdownMenu

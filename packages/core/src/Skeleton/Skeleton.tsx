@@ -3,23 +3,16 @@ import type {HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
-const pulse = stylex.keyframes({
-  '50%': {backgroundColor: semanticTokens.colorSurface},
-});
-
 const styles = stylex.create({
+  // A bar of timber standing in for ink that has not dried yet. It does not
+  // breathe, shimmer or travel: a page of placeholders that pulses turns the
+  // wait into the loudest thing on the screen, and the placeholder's whole job
+  // is to hold a line quietly until the line arrives.
   base: {
-    animationDirection: 'alternate',
-    animationDuration: semanticTokens.durationSlow,
-    animationIterationCount: 'infinite',
-    animationName: {
-      default: pulse,
-      '@media (prefers-reduced-motion: reduce)': 'none',
-    },
-    animationTimingFunction: semanticTokens.easingStandard,
     backgroundColor: semanticTokens.colorSurfaceMuted,
     borderRadius: semanticTokens.radiusElement,
-    minHeight: semanticTokens.sizeControlMd,
+    // The rule of type it stands in for, not the control it might become.
+    minHeight: semanticTokens.spacingMd,
     width: '100%',
   },
 });

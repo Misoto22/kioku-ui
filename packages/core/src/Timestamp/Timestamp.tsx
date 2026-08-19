@@ -4,10 +4,14 @@ import type {TimeHTMLAttributes} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
+  // A date is a figure, and figures are set in the mono face: tabular so a
+  // column of them lines up, and tightened because mono is already too wide.
   time: {
     color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyBody,
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
   },
 });

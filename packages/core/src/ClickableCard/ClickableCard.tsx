@@ -6,17 +6,29 @@ import {semanticTokens} from '../authoring.stylex.js';
 const styles = stylex.create({
   card: {
     backgroundColor: semanticTokens.colorSurface,
+    // A control's own edge is a real border, so the card carries no
+    // elevation: drawing both would draw the same line twice.
     borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxShadow: 'none',
+    boxSizing: 'border-box',
     color: semanticTokens.colorText,
     cursor: 'pointer',
     display: 'block',
     fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    fontWeight: semanticTokens.fontWeightRegular,
     inlineSize: '100%',
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     padding: semanticTokens.spacingLg,
     textAlign: 'start',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty:
+      'background-color, background-image, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
@@ -29,8 +41,14 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    // Hover is a wash laid *over* the surface, not a swap of it. The overlay
+    // token is a few per cent of ink; assigning it to `backgroundColor`
+    // throws the card's own fill away and lets the canvas show through, so
+    // the plate loses its ground at exactly the moment it is being pointed
+    // at. The card never lifts, scales, or grows a shadow either: nothing in
+    // this system blurs.
     ':hover:not(:disabled)': {
-      backgroundColor: semanticTokens.colorOverlayHover,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
       borderColor: semanticTokens.borderInteractive,
     },
   },
@@ -54,7 +72,7 @@ export function ClickableCard({
   ...props
 }: ClickableCardProps) {
   return (
-    <button {...props} type={type} {...stylex.props(styles.card)}>
+    <button {...props} {...stylex.props(styles.card)} type={type}>
       {children}
     </button>
   );

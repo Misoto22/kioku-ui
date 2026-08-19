@@ -11,6 +11,7 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    cursor: 'pointer',
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontWeight: semanticTokens.fontWeightMedium,
@@ -18,10 +19,14 @@ const styles = stylex.create({
     justifyContent: 'center',
     lineHeight: semanticTokens.lineHeightBody,
     position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
       color: semanticTokens.colorDisabledText,
+      cursor: 'default',
     },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
@@ -30,32 +35,47 @@ const styles = stylex.create({
       outlineWidth: semanticTokens.focusWidth,
     },
   },
+  // A button wears a label, and a label is set at the label size: the console
+  // sets its buttons a step below the body copy they sit among, so the row
+  // reads as a sentence with an action at the end rather than two competing
+  // voices. Only the largest size comes up to body size.
   sm: {
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     height: semanticTokens.sizeControlSm,
     paddingInline: semanticTokens.spacingSm,
   },
   md: {
-    fontSize: semanticTokens.fontSizeMd,
+    fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     height: semanticTokens.sizeControlMd,
     paddingInline: semanticTokens.spacingMd,
   },
   lg: {
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingLabel,
     height: semanticTokens.sizeControlLg,
     paddingInline: semanticTokens.spacingLg,
   },
+  // The signature: ink ground, paper letters. The emphatic button is a seal
+  // pressed on the sheet, not a brand-coloured rectangle — the accent's jobs
+  // are the focus ring, the selection mark and a link on hover, all of them
+  // thin, and filling a control with it is the one way to make this system
+  // look like somebody else's. Ink is already the darkest thing on the page,
+  // so the pointer states run down the ranks of ink rather than deeper; the
+  // overlay wash the coloured variants use is invisible over a fill this dark
+  // in light mode and this pale in dark mode.
   primary: {
-    backgroundColor: semanticTokens.colorAccent,
-    borderColor: semanticTokens.colorAccent,
+    backgroundColor: semanticTokens.colorText,
+    borderColor: semanticTokens.colorText,
     color: semanticTokens.colorTextOnAccent,
     ':hover:not(:disabled):not(:active)': {
-      backgroundColor: semanticTokens.colorAccentHover,
-      borderColor: semanticTokens.colorAccentHover,
+      backgroundColor: semanticTokens.colorTextSecondary,
+      borderColor: semanticTokens.colorTextSecondary,
     },
     ':active:not(:disabled)': {
-      backgroundColor: semanticTokens.colorAccentActive,
-      borderColor: semanticTokens.colorAccentActive,
+      backgroundColor: semanticTokens.colorTextMuted,
+      borderColor: semanticTokens.colorTextMuted,
     },
   },
   secondary: {
@@ -71,15 +91,20 @@ const styles = stylex.create({
       borderColor: semanticTokens.borderInteractive,
     },
   },
+  // A ghost is the subordinate action in whatever row it appears in, so it
+  // takes the available rank of ink and comes up to full ink under the pointer.
+  // Reaching for `colorText` at rest made it argue with the button beside it.
   ghost: {
     backgroundColor: 'transparent',
     borderColor: 'transparent',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     ':hover:not(:disabled):not(:active)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
     ':active:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayActive,
+      color: semanticTokens.colorText,
     },
   },
   destructive: {
@@ -93,7 +118,9 @@ const styles = stylex.create({
       backgroundImage: `linear-gradient(${semanticTokens.colorOverlayActive}, ${semanticTokens.colorOverlayActive})`,
     },
   },
-  loading: {cursor: 'progress'},
+  // A loading button is disabled, so the waiting cursor has to be declared
+  // against the same state the disabled cursor is, or it never wins.
+  loading: {cursor: 'progress', ':disabled': {cursor: 'progress'}},
   iconOnly: {paddingInline: 0},
   iconSm: {width: semanticTokens.sizeControlSm},
   iconMd: {width: semanticTokens.sizeControlMd},

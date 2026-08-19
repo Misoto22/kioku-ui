@@ -61,6 +61,12 @@ const semanticTokenScopeClass = (
 
 export type Density = 'compact' | 'standard';
 
+/**
+ * Which appearance the theme resolves its `light-dark()` pairs against.
+ * `system` follows the reader's own setting.
+ */
+export type ColorMode = 'dark' | 'light' | 'system';
+
 const densities: readonly Density[] = ['compact', 'standard'];
 
 // A theme pack fulfills the token contract twice, once per density. Density is
@@ -71,11 +77,14 @@ export interface ThemePersistence {
   write(themeId: string): void;
   readDensity?(): string | undefined;
   writeDensity?(density: Density): void;
+  readMode?(): string | undefined;
+  writeMode?(mode: ColorMode): void;
 }
 
 export interface ThemeProviderProps {
   readonly children: ReactNode;
   readonly defaultDensity?: Density;
+  readonly defaultMode?: ColorMode;
   readonly defaultThemeId: string;
   readonly persistence?: ThemePersistence;
   readonly themes: readonly ThemeDefinition[];
@@ -83,6 +92,15 @@ export interface ThemeProviderProps {
 
 export interface ThemeContextValue {
   readonly density: Density;
+  readonly mode: ColorMode;
+  readonly setMode: (mode: ColorMode) => void;
+  /**
+   * The element the theme's custom properties are written to. A floating
+   * surface has to portal into this rather than into `document.body`: the
+   * tokens live here, not on the document, so a surface that escapes it
+   * resolves every `var()` to nothing and renders unpainted.
+   */
+  readonly root: HTMLElement | null;
   readonly setDensity: (density: Density) => void;
   readonly setThemeId: (themeId: string) => void;
   readonly theme: ThemeDefinition;
@@ -114,6 +132,14 @@ function requiredDensity(density: string | undefined, fallback: Density) {
     : fallback;
 }
 
+const colorModes: readonly ColorMode[] = ['dark', 'light', 'system'];
+
+function requiredMode(mode: string | undefined, fallback: ColorMode) {
+  return colorModes.includes(mode as ColorMode)
+    ? (mode as ColorMode)
+    : fallback;
+}
+
 function requiredTheme(themes: readonly ThemeDefinition[], themeId: string) {
   const theme = themes.find(({id}) => id === themeId);
   if (!theme) {
@@ -134,6 +160,7 @@ function themeStyle(theme: ThemeDefinition): CSSProperties {
 export function ThemeProvider({
   children,
   defaultDensity = 'compact',
+  defaultMode = 'system',
   defaultThemeId,
   persistence,
   themes,
@@ -163,9 +190,21 @@ export function ThemeProvider({
     },
     [defaultDensity, persistence],
   );
+  const [mode, setCurrentMode] = useState(() =>
+    requiredMode(persistence?.readMode?.(), defaultMode),
+  );
+  const setMode = useCallback(
+    (nextMode: ColorMode) => {
+      const resolved = requiredMode(nextMode, defaultMode);
+      persistence?.writeMode?.(resolved);
+      setCurrentMode(resolved);
+    },
+    [defaultMode, persistence],
+  );
+  const [root, setRoot] = useState<HTMLElement | null>(null);
   const value = useMemo(
-    () => ({density, setDensity, setThemeId, theme}),
-    [density, setDensity, setThemeId, theme],
+    () => ({density, mode, root, setDensity, setMode, setThemeId, theme}),
+    [density, mode, root, setDensity, setMode, setThemeId, theme],
   );
 
   const {className, style} = stylex.props(styles.root);
@@ -177,13 +216,37 @@ export function ThemeProvider({
           .filter(Boolean)
           .join(' ')}
         data-density={density}
+        data-mode={mode}
         data-theme={theme.id}
-        style={{...style, ...themeStyle(theme)}}
+        ref={setRoot}
+        /*
+         * `color-scheme` is stamped on this element and no other. It is the
+         * element that carries the tokens, and `light-dark()` resolves against
+         * the used color-scheme of the element the value lands on — so a host
+         * that sets the scheme on a div *inside* the provider changes nothing,
+         * which is exactly the bug this replaced. `system` omits the property
+         * so the stylesheet's own `light dark` stands and the reader's setting
+         * decides.
+         */
+        style={{
+          ...style,
+          ...themeStyle(theme),
+          ...(mode === 'system' ? {} : {colorScheme: mode}),
+        }}
       >
         {children}
       </div>
     </ThemeContext>
   );
+}
+
+/**
+ * The theme, or `null` when there is no provider above. `useTheme` throws in
+ * that case, which is right for a component that cannot work unthemed; a
+ * portal boundary can, so it asks without insisting.
+ */
+export function useOptionalTheme(): ThemeContextValue | null {
+  return useContext(ThemeContext) ?? null;
 }
 
 export function useTheme(): ThemeContextValue {

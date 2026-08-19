@@ -3,15 +3,22 @@ import type {FormHTMLAttributes, ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 
+// The narrowest a labelled field stays readable at before two columns should
+// collapse into one. The spacing scale has no single step that measures it.
+const columnMinimumWidth = `calc(${semanticTokens.spacing2xl} * 8)`;
+
 const styles = stylex.create({
   form: {
+    // Fields sit a medium step apart down the page and a large one across it,
+    // so a two-column form reads as columns rather than as a mesh.
+    columnGap: semanticTokens.spacingLg,
     display: 'grid',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingLg,
+    rowGap: semanticTokens.spacingMd,
   },
   single: {gridTemplateColumns: '1fr'},
   double: {
-    gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))',
+    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${columnMinimumWidth}), 1fr))`,
   },
   actions: {
     display: 'flex',

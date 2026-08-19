@@ -18,6 +18,14 @@ const styles = stylex.create({
     overflowX: 'auto',
     paddingBlockEnd: semanticTokens.spacingXs,
     scrollSnapType: 'x mandatory',
+    // The viewport is a tab stop of its own, so it declares the ring every
+    // focusable element in this system declares.
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   slide: {flexShrink: 0, scrollSnapAlign: 'start'},
   controls: {
@@ -27,10 +35,22 @@ const styles = stylex.create({
   },
 });
 
+/**
+ * Honours the same reduced-motion contract the stylesheet does: a reader who
+ * asked for less motion gets the jump rather than the glide.
+ *
+ * @internal
+ */
+function scrollBehavior(): ScrollBehavior {
+  return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ? 'auto'
+    : 'smooth';
+}
+
 /** Props for a horizontally scrolling row of slides. */
 export interface CarouselProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'className' | 'role'
+  'aria-label' | 'aria-roledescription' | 'className' | 'role'
 > {
   readonly children: ReactNode;
   readonly label: string;
@@ -57,7 +77,7 @@ export function Carousel({
     const viewport = viewportRef.current;
     if (viewport) {
       viewport.scrollBy({
-        behavior: 'smooth',
+        behavior: scrollBehavior(),
         left: direction * viewport.clientWidth,
       });
     }

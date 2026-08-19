@@ -18,9 +18,12 @@ type Story = StoryObj<typeof meta>;
 
 function BottomSheetDemo({
   label = 'Open filters',
+  startOpen = false,
   ...sheetProps
-}: {readonly label?: string} & Partial<Parameters<typeof BottomSheet>[0]>) {
-  const [open, setOpen] = useState(false);
+}: {readonly label?: string; readonly startOpen?: boolean} & Partial<
+  Parameters<typeof BottomSheet>[0]
+>) {
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -50,6 +53,7 @@ export const Default: Story = {
   ),
 };
 
+// The panel starts out, pinned to the bottom edge where it actually sits.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -58,7 +62,7 @@ export const Composition: Story = {
           A bottom sheet carries the same focus trap and scroll lock as Dialog,
           placed where a thumb can reach it.
         </Text>
-        <BottomSheetDemo label="Open" />
+        <BottomSheetDemo label="Open" startOpen />
       </Stack>
     </DemoFrame>
   ),

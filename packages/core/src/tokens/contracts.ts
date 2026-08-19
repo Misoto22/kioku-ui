@@ -18,7 +18,8 @@ type ColorRole =
   | 'overlayActive'
   | 'disabledSurface'
   | 'disabledText'
-  | 'focus';
+  | 'focus'
+  | 'scrim';
 type BorderRole =
   'default' | 'strong' | 'interactive' | 'disabled' | 'width' | 'style';
 type StatusRole =
@@ -98,6 +99,7 @@ export const tokenContract = {
     disabledSurface: 'color.disabledSurface',
     disabledText: 'color.disabledText',
     focus: 'color.focus',
+    scrim: 'color.scrim',
   },
   border: {
     default: 'border.default',

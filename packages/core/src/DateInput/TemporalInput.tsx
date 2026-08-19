@@ -5,20 +5,30 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
 
 const styles = stylex.create({
+  // An input sinks below the card it sits on: a muted fill with a real
+  // hairline edge, never a shadow. What it holds is a figure, so it is set in
+  // the mono face with tabular figures — a date whose digits shift width as
+  // the reader steps a month is the loudest thing a quiet field can do, and
+  // two of these side by side in a range would never line up.
   control: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     boxSizing: 'border-box',
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
     height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
@@ -32,11 +42,30 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.colorAccentActive,
+    },
     ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
       borderColor: semanticTokens.borderInteractive,
     },
   },
-  invalid: {borderColor: semanticTokens.statusDangerText},
+  // Read-only is not disabled: the value still reads at full strength, but the
+  // control stops looking like a well you can type into.
+  readOnly: {
+    backgroundColor: semanticTokens.colorSurface,
+    borderColor: semanticTokens.borderDefault,
+    color: semanticTokens.colorText,
+  },
+  invalid: {
+    borderColor: semanticTokens.statusDangerText,
+    ':focus-visible': {borderColor: semanticTokens.statusDangerText},
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.statusDangerText,
+    },
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.statusDangerText,
+    },
+  },
 });
 
 /** Native input types that accept a point in time. */
@@ -72,6 +101,7 @@ export function TemporalInput({
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
   defaultValue = '',
+  disabled,
   id,
   onValueChange,
   readOnly,
@@ -104,13 +134,18 @@ export function TemporalInput({
       {...props}
       aria-describedby={describedBy}
       aria-invalid={resolvedInvalid}
+      disabled={disabled}
       id={field?.controlId ?? id}
       onChange={handleChange}
       readOnly={readOnly}
       required={required ?? field?.required}
+      {...stylex.props(
+        styles.control,
+        readOnly && !disabled ? styles.readOnly : undefined,
+        invalid && !disabled ? styles.invalid : undefined,
+      )}
       type={type}
       value={value ?? internalValue}
-      {...stylex.props(styles.control, invalid && styles.invalid)}
     />
   );
 }

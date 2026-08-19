@@ -5,11 +5,14 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
 import {Token} from '../Token/index.js';
 
+// Wide enough that a half-typed tag is still readable once tokens wrap.
+const draftWidth = `calc(${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl} + ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
   frame: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
@@ -17,8 +20,13 @@ const styles = stylex.create({
     flexWrap: 'wrap',
     fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingXs,
+    minHeight: semanticTokens.sizeControlMd,
     padding: semanticTokens.spacingXs,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':focus-within': {borderColor: semanticTokens.borderInteractive},
+    ':hover': {borderColor: semanticTokens.borderInteractive},
   },
   input: {
     backgroundColor: 'transparent',
@@ -28,10 +36,18 @@ const styles = stylex.create({
     flexGrow: 1,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    minWidth: '6rem',
-    outline: 'none',
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    minWidth: draftWidth,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingXs,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
 });
 
@@ -107,9 +123,9 @@ export function Tokenizer({
         }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        type="text"
         value={draft}
         {...stylex.props(styles.input)}
+        type="text"
       />
     </div>
   );

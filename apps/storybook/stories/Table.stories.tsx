@@ -65,6 +65,7 @@ function TableExample({density, dividers, focus, states}: TableExampleProps) {
               </TableHeaderCellComponent>
               <TableHeaderCellComponent>Status</TableHeaderCellComponent>
               <TableHeaderCellComponent>Owner</TableHeaderCellComponent>
+              <TableHeaderCellComponent numeric>Units</TableHeaderCellComponent>
             </TableRowComponent>
           </TableHeadComponent>
           <TableBodyComponent>
@@ -84,6 +85,7 @@ function TableExample({density, dividers, focus, states}: TableExampleProps) {
               <TableCellComponent>
                 <Link href="/owners/operations">Operations</Link>
               </TableCellComponent>
+              <TableCellComponent numeric>1,248</TableCellComponent>
             </TableRowComponent>
             <TableRowComponent data-story-state={states ? 'focus' : undefined}>
               <TableCellComponent>
@@ -99,6 +101,7 @@ function TableExample({density, dividers, focus, states}: TableExampleProps) {
               <TableCellComponent>
                 <Link href="/owners/support">Support</Link>
               </TableCellComponent>
+              <TableCellComponent numeric>96</TableCellComponent>
             </TableRowComponent>
             {states ? (
               <>
@@ -110,6 +113,7 @@ function TableExample({density, dividers, focus, states}: TableExampleProps) {
                   <TableCellComponent>
                     <Link href="/owners/planning">Planning</Link>
                   </TableCellComponent>
+                  <TableCellComponent numeric>7,310</TableCellComponent>
                 </TableRowComponent>
                 <TableRowComponent data-story-state="active">
                   <TableCellComponent>Active — West region</TableCellComponent>
@@ -124,6 +128,7 @@ function TableExample({density, dividers, focus, states}: TableExampleProps) {
                       Review team
                     </Link>
                   </TableCellComponent>
+                  <TableCellComponent numeric>412</TableCellComponent>
                 </TableRowComponent>
               </>
             ) : null}

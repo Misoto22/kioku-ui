@@ -5,26 +5,52 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useClipboard} from '../hooks/useClipboard.js';
 import {Button} from '../Button/index.js';
 
+// The control is a small Button inset by one step on each side. Written as a
+// relationship so a denser theme moves the gutter with the control.
+const copyGutter = `calc(${semanticTokens.sizeControlSm} + ${semanticTokens.spacingXs} * 3)`;
+
 const styles = stylex.create({
+  // The well sinks below the surface it sits on, so it needs no border of
+  // its own: the fill already draws the edge.
   frame: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    borderRadius: semanticTokens.radiusInner,
+    borderStyle: 'none',
     display: 'grid',
     position: 'relative',
   },
   pre: {
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
     marginBlock: 0,
     overflowX: 'auto',
-    padding: semanticTokens.spacingMd,
+    paddingBlock: semanticTokens.spacingMd,
+    paddingInlineStart: semanticTokens.spacingMd,
+    // The copy control floats over this box, so the source needs a gutter to
+    // end in rather than a symmetric padding to run under. Without it a single
+    // long line — an install command is always one long line — disappeared
+    // beneath the button, and the block read as truncated.
+    paddingInlineEnd: copyGutter,
   },
   code: {
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
+  },
+  // A wrapped line has to look like a continuation, not like the next line of
+  // source. The hanging indent is what says so: the first line starts at the
+  // gutter and every line it wraps onto is set in by one step.
+  wrap: {
+    overflowWrap: 'anywhere',
+    paddingInlineStart: `calc(${semanticTokens.spacingMd} + ${semanticTokens.spacingLg})`,
+    textIndent: `calc(-1 * ${semanticTokens.spacingLg})`,
+    whiteSpace: 'pre-wrap',
   },
   copy: {
     insetBlockStart: semanticTokens.spacingXs,
@@ -42,6 +68,12 @@ export interface CodeBlockProps extends Omit<
   readonly copiedLabel?: string;
   readonly copyLabel?: string;
   readonly language?: string;
+  /**
+   * Wraps long lines instead of scrolling them. Worth setting whenever a line
+   * can outrun the column — an install command or a `<link>` tag always does,
+   * and source that leaves the viewport is source a reader copies wrongly.
+   */
+  readonly wrap?: boolean;
 }
 
 /**
@@ -53,13 +85,14 @@ export function CodeBlock({
   copiedLabel = 'Copied',
   copyLabel = 'Copy',
   language,
+  wrap = false,
   ...props
 }: CodeBlockProps) {
   const {copied, copy} = useClipboard();
 
   return (
     <div {...props} {...stylex.props(styles.frame)}>
-      <pre {...stylex.props(styles.pre)}>
+      <pre {...stylex.props(styles.pre, wrap && styles.wrap)}>
         <code
           {...(language === undefined ? {} : {'data-language': language})}
           {...stylex.props(styles.code)}

@@ -6,7 +6,8 @@ import {CheckboxInput} from '../CheckboxInput/index.js';
 
 const styles = stylex.create({
   group: {
-    border: 0,
+    borderStyle: 'none',
+    borderWidth: 0,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
@@ -14,10 +15,16 @@ const styles = stylex.create({
     margin: 0,
     padding: 0,
   },
+  // The question above the answers, set as the same eyebrow `Field` gives its
+  // label: a legend and a field label do one job, and a form that mixes the
+  // two sizes reads as two forms.
   legend: {
-    color: semanticTokens.colorText,
-    fontSize: semanticTokens.fontSizeSm,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     padding: 0,
   },
 });

@@ -17,10 +17,13 @@ type Story = StoryObj<typeof meta>;
 
 function PopoverDemo({
   label = 'Details',
+  startOpen = false,
   ...popoverProps
-}: {readonly label?: string} & Partial<Parameters<typeof Popover>[0]>) {
+}: {readonly label?: string; readonly startOpen?: boolean} & Partial<
+  Parameters<typeof Popover>[0]
+>) {
   const anchorRef = useRef<HTMLSpanElement>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -64,6 +67,8 @@ export const Variants: Story = {
   ),
 };
 
+// The surface starts out, so the plate is on the page rather than behind a
+// button nobody in an audit ever presses.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -72,7 +77,12 @@ export const Composition: Story = {
           A popover is non-modal: the page behind stays scrollable and
           reachable.
         </Text>
-        <PopoverDemo alignment="start" placement="bottom" />
+        <PopoverDemo
+          alignment="start"
+          aria-label="Release detail"
+          placement="bottom"
+          startOpen
+        />
       </Stack>
     </DemoFrame>
   ),

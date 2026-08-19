@@ -2,7 +2,7 @@ import type {ComponentDoc} from '../docs/types.js';
 
 export const tokenDoc = {
   name: 'Token',
-  description: 'Shows one discrete value as a removable pill.',
+  description: 'Shows one discrete value as a removable chip.',
   props: [
     {name: 'children', description: 'Supplies the value label.'},
     {name: 'leading', description: 'Places content before the label.'},

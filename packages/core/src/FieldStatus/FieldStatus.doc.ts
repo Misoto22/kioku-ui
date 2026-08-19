@@ -8,7 +8,7 @@ export const fieldStatusDoc = {
     {name: 'tone', description: 'Selects the semantic status colour.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLParagraphElement> except children and className',
+    'HTMLAttributes<HTMLParagraphElement> except aria-live, children, className, and role',
   ],
   example: '<FieldStatus tone="danger">Enter a release number.</FieldStatus>',
   storyId: 'core-field-status--default',

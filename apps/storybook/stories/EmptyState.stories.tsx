@@ -1,6 +1,6 @@
 import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import {Button, Card, EmptyState, Grid} from '@misoto22/kioku-ui';
+import {Button, EmptyState, Grid} from '@misoto22/kioku-ui';
 
 import {DemoFrame, StateGrid} from './support/StoryFrame';
 
@@ -93,22 +93,22 @@ export const States: Story = {
   ),
 };
 
+// The empty state brings its own plate, so it is placed on the canvas rather
+// than inside a Card: nesting one would draw the same edge twice.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
-      <Card>
-        <EmptyState
-          visual={<span aria-hidden="true">◇</span>}
-          title="No activity matches this view"
-          detail="Adjust the date range or clear filters to see workspace updates."
-          action={
-            <Grid columns={2} gap="sm">
-              <Button>Clear filters</Button>
-              <Button variant="secondary">Edit view</Button>
-            </Grid>
-          }
-        />
-      </Card>
+      <EmptyState
+        visual={<span aria-hidden="true">◇</span>}
+        title="No activity matches this view"
+        detail="Adjust the date range or clear filters to see workspace updates."
+        action={
+          <Grid columns={2} gap="sm">
+            <Button>Clear filters</Button>
+            <Button variant="secondary">Edit view</Button>
+          </Grid>
+        }
+      />
     </DemoFrame>
   ),
 };

@@ -9,31 +9,50 @@ import {Overlay} from '../Overlay/index.js';
 
 const styles = stylex.create({
   surface: {
+    backgroundColor: semanticTokens.colorSurfaceRaised,
+    borderRadius: semanticTokens.radiusContainer,
+    boxShadow: semanticTokens.elevationHigh,
+    color: semanticTokens.colorText,
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingSm,
+    fontFamily: semanticTokens.fontFamilyBody,
     maxHeight: '100%',
-    outline: 'none',
+    // Caption band over well, divided by a rule that reaches both edges.
+    overflow: 'hidden',
   },
   header: {
     alignItems: 'center',
-    color: semanticTokens.colorTextOnAccent,
+    borderBlockEndColor: semanticTokens.borderDefault,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
     display: 'flex',
     gap: semanticTokens.spacingMd,
     justifyContent: 'space-between',
+    paddingBlock: semanticTokens.spacingSm,
+    paddingInline: semanticTokens.spacingLg,
   },
+  // An eyebrow, not a headline. The media is the subject of this surface and
+  // the caption only has to say which one it is.
   title: {
-    color: semanticTokens.colorTextOnAccent,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
+    textTransform: 'uppercase',
   },
+  // The media sits in a well rather than on the plate itself, so a picture
+  // with a pale edge still reads as a picture and not as part of the surface.
+  // The well runs to the surface edge; the surface clips its own corners.
   media: {
     alignItems: 'center',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     display: 'flex',
     justifyContent: 'center',
     minHeight: 0,
     overflow: 'auto',
+    padding: semanticTokens.spacingLg,
   },
 });
 

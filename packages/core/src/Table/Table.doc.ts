@@ -70,7 +70,13 @@ export const tableBodyDoc = {
 export const tableRowDoc = {
   name: 'TableRow',
   description: 'Groups related header or data cells in a native table row.',
-  props: [{name: 'children', description: 'Supplies cells.', required: true}],
+  props: [
+    {
+      name: 'selected',
+      description: 'Marks the row as chosen with a rule down its leading edge.',
+    },
+    {name: 'children', description: 'Supplies cells.', required: true},
+  ],
   inheritedProps: ['HTMLAttributes<HTMLTableRowElement> except className'],
   example: '<TableRow><TableCell>Value</TableCell></TableRow>',
   storyId: 'core-table--table-row',
@@ -86,6 +92,10 @@ export const tableHeaderCellDoc = {
       required: true,
     },
     {name: 'scope', description: 'Associates the header with a row or column.'},
+    {
+      name: 'numeric',
+      description: 'Aligns the label over a column of figures.',
+    },
   ],
   inheritedProps: ['ThHTMLAttributes<HTMLTableCellElement> except className'],
   example: '<TableHeaderCell scope="col">Name</TableHeaderCell>',
@@ -97,6 +107,10 @@ export const tableCellDoc = {
   description: 'Renders one native data cell in a table row.',
   props: [
     {name: 'children', description: 'Supplies the cell value.', required: true},
+    {
+      name: 'numeric',
+      description: 'Sets the value as a figure so a column of them lines up.',
+    },
   ],
   inheritedProps: ['TdHTMLAttributes<HTMLTableCellElement> except className'],
   example: '<TableCell>24</TableCell>',

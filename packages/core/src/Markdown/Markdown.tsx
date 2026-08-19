@@ -17,6 +17,19 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingMd,
   },
+  // Nothing rendered here leans on inheritance for its face. `em` and
+  // `strong` are the only elements this file draws itself, so they name the
+  // family they are set in. Neither sets a size, so neither sets tracking:
+  // an emphasised run keeps whatever the block around it was opened to.
+  emphasis: {
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontStyle: 'italic',
+  },
+  strong: {
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontStyle: 'normal',
+    fontWeight: semanticTokens.fontWeightStrong,
+  },
 });
 
 function renderInline(spans: readonly InlineNode[]) {
@@ -25,7 +38,11 @@ function renderInline(spans: readonly InlineNode[]) {
       case 'code':
         return <Code key={index}>{span.text}</Code>;
       case 'emphasis':
-        return <em key={index}>{span.text}</em>;
+        return (
+          <em key={index} {...stylex.props(styles.emphasis)}>
+            {span.text}
+          </em>
+        );
       case 'link':
         return (
           <Link href={span.href} key={index}>
@@ -33,7 +50,11 @@ function renderInline(spans: readonly InlineNode[]) {
           </Link>
         );
       case 'strong':
-        return <strong key={index}>{span.text}</strong>;
+        return (
+          <strong key={index} {...stylex.props(styles.strong)}>
+            {span.text}
+          </strong>
+        );
       default:
         return <Fragment key={index}>{span.text}</Fragment>;
     }

@@ -6,10 +6,21 @@ import {useFocusTrap} from '../hooks/useFocusTrap.js';
 import {useScrollLock} from '../hooks/useScrollLock.js';
 import {Layer} from '../Layer/index.js';
 
+const scrimEnter = stylex.keyframes({
+  from: {opacity: 0},
+  to: {opacity: 1},
+});
+
 const styles = stylex.create({
   scrim: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorOverlayActive,
+    animationDuration: semanticTokens.durationFast,
+    animationName: {
+      default: scrimEnter,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingEmphasized,
+    backgroundColor: semanticTokens.colorScrim,
     display: 'flex',
     inset: 0,
     justifyContent: 'center',
@@ -24,8 +35,14 @@ const styles = stylex.create({
   surface: {
     maxHeight: '100%',
     maxWidth: '100%',
-    outline: 'none',
+    outlineStyle: 'none',
     pointerEvents: 'auto',
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
 });
 

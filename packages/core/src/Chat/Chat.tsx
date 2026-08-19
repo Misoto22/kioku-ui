@@ -12,6 +12,16 @@ import {useInternationalization} from '../i18n/index.js';
 import {Button} from '../Button/index.js';
 import {Spinner} from '../Spinner/index.js';
 
+// A line of chat stops being readable long before it reaches the width of the
+// transcript, so the bubble caps itself in spacing steps.
+const bubbleMaxWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
+
+// A dot, so it is two of the smallest spacing step across rather than a size
+// of its own. Hollow: the ring says the call is still running, where a filled
+// dot would read as a status that had already settled.
+const progressDotSize = `calc(2 * ${semanticTokens.spacingXs})`;
+const progressDotRing = `inset 0 0 0 ${semanticTokens.borderWidth} ${semanticTokens.colorTextMuted}`;
+
 const styles = stylex.create({
   layout: {
     display: 'grid',
@@ -23,7 +33,7 @@ const styles = stylex.create({
   list: {
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingMd,
+    gap: semanticTokens.spacingLg,
     listStyleType: 'none',
     marginBlock: 0,
     minHeight: 0,
@@ -36,53 +46,90 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   fromReader: {alignItems: 'flex-end'},
+  // A transcript is a page of record, not a feed of balloons. Only the turns
+  // that need to be told apart from the page get a surface, and the accent
+  // stays reserved for focus, marks and links.
   bubble: {
     borderRadius: semanticTokens.radiusContainer,
+    borderStyle: 'none',
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
-    maxWidth: '42rem',
+    maxWidth: bubbleMaxWidth,
+  },
+  // The reader's own words are the interjection, so they are the ones set on a
+  // slip of darker stock and closed with a hairline. Muted, not raised: raised
+  // is the same paper as the card underneath it in this skin, and a slip you
+  // cannot see is a ring drawn for nothing.
+  bubbleReader: {
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    boxShadow: semanticTokens.elevationLow,
+    color: semanticTokens.colorText,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingMd,
   },
-  bubbleReader: {
-    backgroundColor: semanticTokens.colorAccent,
-    color: semanticTokens.colorTextOnAccent,
-  },
+  // The reply is the body of the record, so it is set bare on the page. It is
+  // already named by the eyebrow above it and already the majority of the
+  // transcript; wrapping every one of them in its own card leaves a column of
+  // rings with nothing between them.
   bubbleAssistant: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
     color: semanticTokens.colorText,
+    paddingBlock: 0,
+    paddingInline: 0,
   },
   bubbleSystem: {
     backgroundColor: 'transparent',
-    color: semanticTokens.colorTextMuted,
+    boxShadow: 'none',
+    color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    paddingBlock: 0,
     paddingInline: 0,
     textAlign: 'center',
   },
+  // An eyebrow: heading face, smallest size, opened right up, second rank.
+  // It names who is speaking without competing with what they said.
   author: {
     color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
   composer: {
     alignItems: 'flex-end',
     display: 'flex',
-    gap: semanticTokens.spacingSm,
+    gap: semanticTokens.spacingMd,
   },
   input: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     color: semanticTokens.colorText,
     flexGrow: 1,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingSm,
     paddingInline: semanticTokens.spacingSm,
     resize: 'vertical',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':disabled': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      borderColor: semanticTokens.borderDisabled,
+      color: semanticTokens.colorDisabledText,
+    },
     ':focus-visible': {
       borderColor: semanticTokens.borderInteractive,
       outlineColor: semanticTokens.colorFocus,
@@ -90,43 +137,84 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.borderInteractive,
+    },
   },
+  // A register of calls, each one a slip pressed into the reply rather than a
+  // ruled table under it. A table implies a set the reader has to read across;
+  // a call is a single line of evidence, so it takes only the width it needs
+  // and the list stops at the longest one instead of stretching to the bubble.
   toolCalls: {
-    borderColor: semanticTokens.borderDefault,
-    borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
+    alignItems: 'flex-start',
     display: 'flex',
     flexDirection: 'column',
-    fontFamily: semanticTokens.fontFamilyMono,
-    fontSize: semanticTokens.fontSizeSm,
     gap: semanticTokens.spacingXs,
     listStyleType: 'none',
     marginBlock: 0,
-    padding: semanticTokens.spacingSm,
-    paddingInlineStart: semanticTokens.spacingSm,
+    paddingInlineStart: 0,
   },
   toolCall: {
     alignItems: 'center',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderRadius: semanticTokens.radiusElement,
     color: semanticTokens.colorTextSecondary,
-    display: 'flex',
+    display: 'inline-flex',
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeXs,
+    // Every figure in this register — row counts, durations, sizes — has to
+    // line up against the one above it.
+    fontVariantNumeric: 'tabular-nums',
     gap: semanticTokens.spacingSm,
-    justifyContent: 'space-between',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
+    paddingBlock: semanticTokens.spacingXs,
+    paddingInline: semanticTokens.spacingSm,
   },
-  metadata: {
+  toolCallProgress: {
+    backgroundColor: 'transparent',
+    borderRadius: semanticTokens.radiusFull,
+    boxShadow: progressDotRing,
+    flexShrink: 0,
+    height: progressDotSize,
+    width: progressDotSize,
+  },
+  // The name is what was called; the outcome beside it is context.
+  toolCallOutcome: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyMono,
+  },
+  // The row carries no type of its own: every fact inside it is set by the
+  // pair below, so a size here would have to be overridden twice.
+  metadata: {
     display: 'flex',
     flexWrap: 'wrap',
-    fontSize: semanticTokens.fontSizeXs,
     gap: semanticTokens.spacingSm,
     lineHeight: semanticTokens.lineHeightBody,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
   },
+  // The label names the fact and the figure states it, so the two are set
+  // apart: an eyebrow in the heading face against a mono, tabular figure.
+  metadataLabel: {
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+  },
+  metadataValue: {
+    color: semanticTokens.colorText,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+  },
   systemMessage: {
-    color: semanticTokens.colorTextMuted,
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     textAlign: 'center',
@@ -135,6 +223,12 @@ const styles = stylex.create({
 
 /** Who produced a chat message. */
 export type ChatAuthor = 'assistant' | 'reader' | 'system';
+
+const bubbleAuthors = {
+  assistant: styles.bubbleAssistant,
+  reader: styles.bubbleReader,
+  system: styles.bubbleSystem,
+} satisfies Record<ChatAuthor, (typeof styles)[keyof typeof styles]>;
 
 /** Props for the message-and-composer frame. */
 export interface ChatLayoutProps extends Omit<
@@ -157,14 +251,16 @@ export function ChatLayout({children, composer, ...props}: ChatLayoutProps) {
 /** Props for the scrolling transcript. */
 export interface ChatMessageListProps extends Omit<
   HTMLAttributes<HTMLUListElement>,
-  'className'
+  'aria-atomic' | 'aria-label' | 'aria-live' | 'aria-relevant' | 'className'
 > {
   readonly label: string;
 }
 
 /**
- * Holds the transcript. New messages are announced politely, so a screen
- * reader hears a reply arrive without losing the reader's place.
+ * Holds the transcript. A message is announced politely as it lands: the
+ * region is not atomic, so a reply arriving does not replay the conversation,
+ * and only additions are relevant, so a reply that streams in is announced
+ * once rather than re-read on every token.
  */
 export function ChatMessageList({
   children,
@@ -174,8 +270,10 @@ export function ChatMessageList({
   return (
     <ul
       {...props}
+      aria-atomic="false"
       aria-label={label}
       aria-live="polite"
+      aria-relevant="additions"
       {...stylex.props(styles.list)}
     >
       {children}
@@ -205,12 +303,6 @@ export function ChatMessage({
   ...props
 }: ChatMessageProps) {
   const {messages} = useInternationalization();
-  const bubble =
-    author === 'reader'
-      ? styles.bubbleReader
-      : author === 'system'
-        ? styles.bubbleSystem
-        : styles.bubbleAssistant;
 
   return (
     <li
@@ -223,7 +315,7 @@ export function ChatMessage({
       {authorName === undefined ? null : (
         <span {...stylex.props(styles.author)}>{authorName}</span>
       )}
-      <div {...stylex.props(styles.bubble, bubble)}>
+      <div {...stylex.props(styles.bubble, bubbleAuthors[author])}>
         {pending ? <Spinner label={messages.chatWaitingForReply} /> : children}
       </div>
     </li>
@@ -241,7 +333,7 @@ export interface ChatToolCall {
 /** Props for the tool calls behind a reply. */
 export interface ChatToolCallsProps extends Omit<
   HTMLAttributes<HTMLUListElement>,
-  'children' | 'className'
+  'aria-label' | 'children' | 'className'
 > {
   readonly calls: readonly ChatToolCall[];
   readonly label?: string;
@@ -257,8 +349,16 @@ export function ChatToolCalls({
     <ul {...props} aria-label={label} {...stylex.props(styles.toolCalls)}>
       {calls.map((call) => (
         <li key={call.id} {...stylex.props(styles.toolCall)}>
+          {call.status === 'running' ? (
+            <span
+              aria-hidden="true"
+              {...stylex.props(styles.toolCallProgress)}
+            />
+          ) : null}
           <span>{call.name}</span>
-          <span>{call.detail ?? call.status ?? ''}</span>
+          <span {...stylex.props(styles.toolCallOutcome)}>
+            {call.detail ?? call.status ?? ''}
+          </span>
         </li>
       ))}
     </ul>
@@ -360,8 +460,10 @@ export function ChatMessageMetadata({
     <ul {...props} {...stylex.props(styles.metadata)}>
       {entries.map((entry) => (
         <li key={entry.label}>
-          <span>{`${entry.label}: `}</span>
-          {entry.value}
+          <span {...stylex.props(styles.metadataLabel)}>
+            {`${entry.label}: `}
+          </span>
+          <span {...stylex.props(styles.metadataValue)}>{entry.value}</span>
         </li>
       ))}
     </ul>

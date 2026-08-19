@@ -9,7 +9,7 @@ export const bannerDoc = {
     {name: 'tone', description: 'Selects the semantic status colour.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLDivElement> except children and className',
+    'HTMLAttributes<HTMLDivElement> except children, className, and role',
   ],
   example:
     '<Banner tone="warning">Billing details expire in three days.</Banner>',

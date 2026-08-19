@@ -4,9 +4,14 @@ import {useId, useState, type HTMLAttributes} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {DateInput} from '../DateInput/index.js';
 
+// The narrowest a date control stays legible at before the pair should stack.
+// The spacing scale has no single step that measures it.
+const boundMinimumWidth = `calc(${semanticTokens.spacing2xl} * 6)`;
+
 const styles = stylex.create({
   group: {
-    border: 0,
+    borderStyle: 'none',
+    borderWidth: 0,
     display: 'flex',
     flexWrap: 'wrap',
     fontFamily: semanticTokens.fontFamilyBody,
@@ -14,10 +19,17 @@ const styles = stylex.create({
     margin: 0,
     padding: 0,
   },
+  // The question the pair asks, set in the display face: a mincho line is how
+  // this system titles a group, and it is what keeps the legend from reading
+  // as a third field label sitting above two others.
   legend: {
     color: semanticTokens.colorText,
+    flexBasis: '100%',
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    lineHeight: semanticTokens.lineHeightBody,
     padding: 0,
   },
   bound: {
@@ -25,11 +37,17 @@ const styles = stylex.create({
     flexDirection: 'column',
     flexGrow: 1,
     gap: semanticTokens.spacingXs,
-    minWidth: '10rem',
+    minWidth: boundMinimumWidth,
   },
+  // "Start" and "End" are eyebrows, not labels. The legend already asks the
+  // question; these two only say which end of it a control holds, and set at
+  // the same size and weight as the legend they competed with it.
   label: {
     color: semanticTokens.colorTextSecondary,
-    fontSize: semanticTokens.fontSizeSm,
+    fontFamily: semanticTokens.fontFamilyDisplay,
+    fontSize: semanticTokens.fontSizeXs,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
 });
 

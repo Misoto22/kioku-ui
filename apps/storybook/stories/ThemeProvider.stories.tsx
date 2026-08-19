@@ -44,6 +44,7 @@ function hostThemeTokens(palette: HostPalette): ThemeDefinition['tokens'] {
     'color.overlayActive': 'rgb(31 41 55 / 13%)',
     'color.disabledSurface': 'light-dark(#e4e7e7, #343a3a)',
     'color.disabledText': 'light-dark(#7a8583, #929c9a)',
+    'color.scrim': 'rgb(0 0 0 / 34%)',
     'color.focus': palette.focus,
     'border.default': palette.border,
     'border.strong': 'light-dark(#aab6b4, #64706e)',

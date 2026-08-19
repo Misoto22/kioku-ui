@@ -21,23 +21,41 @@ const FieldContext = createContext<FieldContextValue | null>(null);
 
 const styles = stylex.create({
   root: {display: 'grid', gap: semanticTokens.spacingXs},
+  // An eyebrow, not a title. The label names the control; the value inside the
+  // control is the thing being read, and a label set at body size in full ink
+  // competes with it down a whole column of fields. Smallest size, opened
+  // right up, heading face, second rank of ink — the way every small label in
+  // the console is set.
   label: {
     alignItems: 'baseline',
-    color: semanticTokens.colorText,
+    color: semanticTokens.colorTextSecondary,
     display: 'flex',
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightMedium,
     gap: semanticTokens.spacingSm,
     justifyContent: 'space-between',
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
+  // An eyebrow: the smallest size, opened right up, in the heading face and the
+  // context rank of ink. "(required)" qualifies the label — it must not read as
+  // a second label, and at label size and tracking it did.
   annotation: {
     color: semanticTokens.colorTextMuted,
+    fontFamily: semanticTokens.fontFamilyHeading,
+    fontSize: semanticTokens.fontSizeXs,
     fontWeight: semanticTokens.fontWeightRegular,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
   },
+  // A description and a status are sentences, so they are set solid and lead
+  // like body copy rather than tracked out like a label.
   message: {
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
   description: {color: semanticTokens.colorTextSecondary},

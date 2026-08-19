@@ -18,9 +18,12 @@ type Story = StoryObj<typeof meta>;
 
 function AlertDialogDemo({
   label = 'Discard draft',
+  startOpen = false,
   ...alertProps
-}: {readonly label?: string} & Partial<Parameters<typeof AlertDialog>[0]>) {
-  const [open, setOpen] = useState(false);
+}: {readonly label?: string; readonly startOpen?: boolean} & Partial<
+  Parameters<typeof AlertDialog>[0]
+>) {
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -57,6 +60,7 @@ export const Default: Story = {
   ),
 };
 
+// The surface starts out: a decision that cannot be deferred is worth seeing.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -65,7 +69,7 @@ export const Composition: Story = {
           A click on the scrim is ignored, so the decision cannot be skipped by
           accident. Escape still closes it.
         </Text>
-        <AlertDialogDemo label="Discard" />
+        <AlertDialogDemo label="Discard" startOpen />
       </Stack>
     </DemoFrame>
   ),

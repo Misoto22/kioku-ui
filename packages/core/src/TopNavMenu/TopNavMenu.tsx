@@ -8,7 +8,15 @@ import {Icon} from '../Icon/index.js';
 import {Popover} from '../Popover/index.js';
 import type {Alignment, Placement} from '../hooks/useAnchoredPosition.js';
 
+// The trigger wears the same mark as the destinations beside it: two
+// hairlines at the inline-start edge, hinted on hover and claimed when open.
+const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+const hoverMarkHeight = '40%';
+const openMarkHeight = '72%';
+const panelMinWidth = `calc(8 * ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
+  anchor: {display: 'inline-flex'},
   trigger: {
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -16,27 +24,55 @@ const styles = stylex.create({
     borderStyle: 'none',
     borderWidth: 0,
     color: semanticTokens.colorTextSecondary,
+    columnGap: semanticTokens.spacingXs,
     cursor: 'pointer',
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    gap: semanticTokens.spacingXs,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    '::before': {
+      content: '',
+      insetBlockStart: '50%',
+      insetInlineStart: 0,
+      position: 'absolute',
+      transform: 'translateY(-50%)',
+      transitionDuration: `${semanticTokens.durationFast}, ${semanticTokens.durationModerate}`,
+      transitionProperty: 'background-color, height',
+      transitionTimingFunction: semanticTokens.easingStandard,
+      width: markWidth,
+    },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover': {
-      backgroundColor: semanticTokens.colorOverlayHover,
-      color: semanticTokens.colorText,
+  },
+  closed: {
+    '::before': {
+      backgroundColor: semanticTokens.borderStrong,
+      height: {default: 0, ':hover': hoverMarkHeight},
+    },
+    ':hover': {color: semanticTokens.colorText},
+  },
+  open: {
+    color: semanticTokens.colorText,
+    '::before': {
+      backgroundColor: semanticTokens.colorAccent,
+      height: openMarkHeight,
     },
   },
-  open: {color: semanticTokens.colorText},
   marker: {
-    transitionDuration: semanticTokens.durationFast,
+    alignItems: 'center',
+    display: 'inline-flex',
+    transitionDuration: semanticTokens.durationModerate,
     transitionProperty: 'transform',
     transitionTimingFunction: semanticTokens.easingStandard,
   },
@@ -44,8 +80,9 @@ const styles = stylex.create({
   panel: {
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
-    minWidth: '14rem',
+    minWidth: panelMinWidth,
+    // A run of destinations tiles one hairline apart, as it does in the rail.
+    rowGap: semanticTokens.borderWidth,
   },
 });
 
@@ -75,17 +112,20 @@ export function TopNavMenu({
 
   return (
     <>
-      <span ref={anchorRef} style={{display: 'inline-flex'}}>
+      <span ref={anchorRef} {...stylex.props(styles.anchor)}>
         <button
           aria-expanded={open}
           onClick={() => {
             setOpen((value) => !value);
           }}
+          {...stylex.props(styles.trigger, open ? styles.open : styles.closed)}
           type="button"
-          {...stylex.props(styles.trigger, open && styles.open)}
         >
           {label}
-          <span {...stylex.props(styles.marker, open && styles.markerOpen)}>
+          <span
+            aria-hidden="true"
+            {...stylex.props(styles.marker, open && styles.markerOpen)}
+          >
             <Icon size="sm">
               <path
                 d="m6 9 6 6 6-6"

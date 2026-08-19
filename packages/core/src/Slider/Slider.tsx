@@ -1,24 +1,163 @@
 import * as stylex from '@stylexjs/stylex';
-import {useState, type ChangeEvent, type InputHTMLAttributes} from 'react';
+import {
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type InputHTMLAttributes,
+} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
+import {clamp} from '../utils/index.js';
+
+/*
+ * A range control is drawn by the engine, and each engine exposes its own
+ * pseudo-elements for the parts and ignores the other's — hence the doubled
+ * declarations. `appearance: 'none'` on the input is what hands authorship
+ * over: without it WebKit keeps painting its own thumb and the one declared
+ * here is ignored outright.
+ *
+ * The filled portion is a gradient on the track rather than a native part,
+ * because only Gecko exposes one (`::-moz-range-progress`) and WebKit has no
+ * counterpart. Painting it the same way in both engines makes them agree by
+ * construction; the Gecko part is then held transparent so it cannot lay a
+ * second fill over the gradient. Styling the track at all also stops WebKit
+ * painting the `accent-color` fill it would otherwise draw, so `accentColor`
+ * has nothing left to colour and is gone.
+ *
+ * The stop position is data — the current value — so it arrives as an inline
+ * custom property, the way `ProgressBar` carries its width.
+ */
+const progressProperty = '--kioku-ui-slider-progress';
+// CSS has no logical direction keyword for a gradient, so this is physical.
+// Under `direction: rtl` the engine flips the control but not the gradient,
+// and the fill would sit on the wrong side.
+//
+// Written out twice rather than built by a helper. StyleX statically evaluates
+// every identifier a style refers to, and a function is not something it can
+// evaluate: a two-argument helper compiled fine through the CLI and failed the
+// consumer that builds this package from source, which is the build that
+// matters because it is the one a user of the library runs.
+const restFill = `linear-gradient(to right, ${semanticTokens.colorAccent} 0 var(${progressProperty}, 0%), ${semanticTokens.colorSurfaceMuted} var(${progressProperty}, 0%) 100%)`;
+const disabledFill = `linear-gradient(to right, ${semanticTokens.colorDisabledText} 0 var(${progressProperty}, 0%), ${semanticTokens.colorDisabledSurface} var(${progressProperty}, 0%) 100%)`;
+
+// The knob's size is a relationship to the rule it rides, not a token that
+// happens to look right: the track plus one spacing step of relief on each
+// side, so it always covers the rule and always overhangs it by the same
+// amount. WebKit then lays it out in flow on top of the track rather than
+// centring it, so it is pulled back by half the difference between the two.
+const trackThickness = semanticTokens.spacingSm;
+const thumbRelief = semanticTokens.spacingXs;
+const thumbSize = `calc(${trackThickness} + ${thumbRelief} * 2)`;
+const thumbCentring = `calc((${trackThickness} - ${thumbSize}) / 2)`;
 
 const styles = stylex.create({
-  track: {
-    accentColor: semanticTokens.colorAccent,
+  // The control and the figure it reports are one field, so the gap between
+  // them belongs to this container rather than to a margin on either.
+  field: {
+    alignItems: 'center',
+    display: 'flex',
+    gap: semanticTokens.spacingSm,
+  },
+  /*
+   * The value, in the mono face with tabular figures. A slider that does not
+   * say where it is stopped is a control you have to guess at, and a
+   * proportional readout re-flows the row by a hair on every step, which reads
+   * as a wobble. It is secondary ink: it reports the control, it is not the
+   * control. `aria-hidden` because the input already announces the same value
+   * through `aria-valuetext`.
+   */
+  readout: {
+    color: semanticTokens.colorTextSecondary,
+    flexShrink: 0,
+    fontFamily: semanticTokens.fontFamilyMono,
+    fontSize: semanticTokens.fontSizeSm,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
+    lineHeight: semanticTokens.lineHeightBody,
+    textAlign: 'end',
+  },
+  // Muted, not disabled-text: the track and thumb already carry the disabled
+  // paint, and a figure nobody can read is not a softer figure, it is a lost
+  // one. Disabled-text on this theme's canvas is 3.85:1.
+  readoutDisabled: {color: semanticTokens.colorTextMuted},
+  /*
+   * There is deliberately no hover state. Every visible part is drawn by the
+   * engine, so a hover would have to hand-roll a ring shadow, which rule 2
+   * forbids — depth here is a hairline, not an invented one. A native range
+   * has no hover affordance worth inventing, and `:focus-visible` plus the
+   * disabled treatment carry the state matrix in both engines.
+   */
+  control: {
+    appearance: 'none',
+    backgroundColor: 'transparent',
     blockSize: semanticTokens.sizeHitTarget,
     cursor: 'pointer',
+    flexShrink: 1,
     inlineSize: '100%',
-    ':disabled': {
-      accentColor: semanticTokens.colorDisabledText,
-      cursor: 'default',
+    marginBlock: 0,
+    marginInline: 0,
+    minInlineSize: 0,
+    '::-webkit-slider-runnable-track': {
+      backgroundColor: semanticTokens.colorSurfaceMuted,
+      backgroundImage: restFill,
+      blockSize: trackThickness,
+      borderRadius: semanticTokens.radiusFull,
+    },
+    '::-webkit-slider-thumb': {
+      appearance: 'none',
+      backgroundColor: semanticTokens.colorSurface,
+      blockSize: thumbSize,
+      borderRadius: semanticTokens.radiusFull,
+      boxShadow: semanticTokens.elevationLow,
+      inlineSize: thumbSize,
+      marginBlockStart: thumbCentring,
+    },
+    '::-moz-range-track': {
+      backgroundColor: semanticTokens.colorSurfaceMuted,
+      backgroundImage: restFill,
+      blockSize: trackThickness,
+      borderRadius: semanticTokens.radiusFull,
+    },
+    // Held transparent so Gecko's own filled part cannot paint over the
+    // gradient the track already carries.
+    '::-moz-range-progress': {backgroundColor: 'transparent'},
+    '::-moz-range-thumb': {
+      backgroundColor: semanticTokens.colorSurface,
+      blockSize: thumbSize,
+      borderRadius: semanticTokens.radiusFull,
+      borderStyle: 'none',
+      borderWidth: 0,
+      boxShadow: semanticTokens.elevationLow,
+      inlineSize: thumbSize,
     },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
+    },
+  },
+  // The engine draws every visible part, so a disabled slider has to restate
+  // them rather than tint the element. Driven from React, not from a selector.
+  // The fill stays legible: a disabled slider still reports its value.
+  disabled: {
+    cursor: 'default',
+    '::-webkit-slider-runnable-track': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      backgroundImage: disabledFill,
+    },
+    '::-webkit-slider-thumb': {
+      backgroundColor: semanticTokens.colorDisabledText,
+      boxShadow: 'none',
+    },
+    '::-moz-range-track': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      backgroundImage: disabledFill,
+    },
+    '::-moz-range-thumb': {
+      backgroundColor: semanticTokens.colorDisabledText,
+      boxShadow: 'none',
     },
   },
 });
@@ -49,23 +188,37 @@ type UncontrolledSliderProps = SharedSliderProps & {
 export type SliderProps = ControlledSliderProps | UncontrolledSliderProps;
 
 /**
- * Chooses a number along a visible range. `formatValue` supplies the spoken
- * text, so "40 percent" can be announced where the raw number would not help.
+ * Chooses a number along a visible range, and states where it is stopped in
+ * tabular figures beside the track. `formatValue` supplies both that figure and
+ * the spoken text, so "40 percent" can be read and announced where the raw
+ * number would not help.
  */
 export function Slider({
+  'aria-describedby': ariaDescribedBy,
   defaultValue,
+  disabled,
   formatValue,
   id,
   max = 100,
   min = 0,
   onValueChange,
   step = 1,
+  style,
   value,
   ...props
 }: SliderProps) {
   const field = useFieldControl();
   const [internalValue, setInternalValue] = useState(defaultValue ?? min);
   const current = value ?? internalValue;
+  const describedBy =
+    [field?.describedBy, ariaDescribedBy].filter(Boolean).join(' ') ||
+    undefined;
+
+  // Measured from the value the input itself renders, so a controlled and an
+  // uncontrolled slider fill alike, and clamped so a value outside the bounds
+  // cannot put the gradient stop past either end.
+  const span = max - min;
+  const filled = span > 0 ? ((clamp(current, min, max) - min) / span) * 100 : 0;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const next = Number(event.currentTarget.value);
@@ -76,18 +229,36 @@ export function Slider({
   }
 
   return (
-    <input
-      {...props}
-      aria-describedby={field?.describedBy}
-      {...(formatValue ? {'aria-valuetext': formatValue(current)} : {})}
-      id={field?.controlId ?? id}
-      max={max}
-      min={min}
-      onChange={handleChange}
-      step={step}
-      type="range"
-      value={current}
-      {...stylex.props(styles.track)}
-    />
+    <span {...stylex.props(styles.field)}>
+      <input
+        {...props}
+        aria-describedby={describedBy}
+        {...(formatValue ? {'aria-valuetext': formatValue(current)} : {})}
+        disabled={disabled}
+        id={field?.controlId ?? id}
+        max={max}
+        min={min}
+        onChange={handleChange}
+        step={step}
+        {...stylex.props(
+          styles.control,
+          disabled ? styles.disabled : undefined,
+        )}
+        // The stop position is data, so it stays inline — after stylex.props,
+        // which would otherwise overwrite the style attribute it is carried in.
+        style={{...style, [progressProperty]: `${filled}%`} as CSSProperties}
+        type="range"
+        value={current}
+      />
+      <span
+        aria-hidden="true"
+        {...stylex.props(
+          styles.readout,
+          disabled ? styles.readoutDisabled : undefined,
+        )}
+      >
+        {formatValue ? formatValue(current) : String(current)}
+      </span>
+    </span>
   );
 }

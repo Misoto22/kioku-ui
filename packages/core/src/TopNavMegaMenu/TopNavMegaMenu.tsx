@@ -1,5 +1,10 @@
 import * as stylex from '@stylexjs/stylex';
-import {useRef, useState, type HTMLAttributes, type ReactNode} from 'react';
+import {
+  useRef,
+  useState,
+  type AnchorHTMLAttributes,
+  type ReactNode,
+} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 import {Heading} from '../Heading/index.js';
@@ -8,7 +13,16 @@ import {Link} from '../navigation/index.js';
 import {Popover} from '../Popover/index.js';
 import {Text} from '../Text/index.js';
 
+// The trigger wears the same mark as the destinations beside it: two
+// hairlines at the inline-start edge, hinted on hover and claimed when open.
+const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
+const hoverMarkHeight = '40%';
+const openMarkHeight = '72%';
+const columnMinWidth = `calc(7 * ${semanticTokens.spacing2xl})`;
+const panelMaxWidth = `calc(30 * ${semanticTokens.spacing2xl})`;
+
 const styles = stylex.create({
+  anchor: {display: 'inline-flex'},
   trigger: {
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -16,13 +30,98 @@ const styles = stylex.create({
     borderStyle: 'none',
     borderWidth: 0,
     color: semanticTokens.colorTextSecondary,
+    columnGap: semanticTokens.spacingXs,
     cursor: 'pointer',
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    gap: semanticTokens.spacingXs,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    minHeight: semanticTokens.sizeControlMd,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    '::before': {
+      content: '',
+      insetBlockStart: '50%',
+      insetInlineStart: 0,
+      position: 'absolute',
+      transform: 'translateY(-50%)',
+      transitionDuration: `${semanticTokens.durationFast}, ${semanticTokens.durationModerate}`,
+      transitionProperty: 'background-color, height',
+      transitionTimingFunction: semanticTokens.easingStandard,
+      width: markWidth,
+    },
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
+  },
+  closed: {
+    '::before': {
+      backgroundColor: semanticTokens.borderStrong,
+      height: {default: 0, ':hover': hoverMarkHeight},
+    },
+    ':hover': {color: semanticTokens.colorText},
+  },
+  open: {
+    color: semanticTokens.colorText,
+    '::before': {
+      backgroundColor: semanticTokens.colorAccent,
+      height: openMarkHeight,
+    },
+  },
+  marker: {
+    alignItems: 'center',
+    display: 'inline-flex',
+    transitionDuration: semanticTokens.durationModerate,
+    transitionProperty: 'transform',
+    transitionTimingFunction: semanticTokens.easingStandard,
+  },
+  markerOpen: {transform: 'rotate(180deg)'},
+  panel: {
+    display: 'grid',
+    gap: semanticTokens.spacingXl,
+    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${columnMinWidth}), 1fr))`,
+    maxWidth: panelMaxWidth,
+  },
+  column: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: semanticTokens.borderWidth,
+  },
+  // The same eyebrow the rail's section headings take: smallest size, opened
+  // right up, display face, second rank of ink.
+  columnTitle: {
+    color: semanticTokens.colorTextSecondary,
+    fontFamily: semanticTokens.fontFamilyDisplay,
+    fontSize: semanticTokens.fontSizeXs,
+    fontSynthesis: 'none',
+    fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingEyebrow,
+    lineHeight: semanticTokens.lineHeightHeading,
+    margin: 0,
+    paddingBlockEnd: semanticTokens.spacingXs,
+    paddingInlineEnd: 0,
+    paddingInlineStart: semanticTokens.spacingMd,
+  },
+  // A well sunk into the panel it sits in, so it takes the inner radius and
+  // wears its hover as a wash laid over the fill rather than replacing it.
+  card: {
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderRadius: semanticTokens.radiusInner,
+    display: 'flex',
+    flexDirection: 'column',
+    padding: semanticTokens.spacingMd,
+    rowGap: semanticTokens.spacingXs,
+    textDecorationLine: 'none',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, background-image',
+    transitionTimingFunction: semanticTokens.easingStandard,
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
@@ -30,45 +129,8 @@ const styles = stylex.create({
       outlineWidth: semanticTokens.focusWidth,
     },
     ':hover': {
-      backgroundColor: semanticTokens.colorOverlayHover,
-      color: semanticTokens.colorText,
+      backgroundImage: `linear-gradient(${semanticTokens.colorOverlayHover}, ${semanticTokens.colorOverlayHover})`,
     },
-  },
-  open: {color: semanticTokens.colorText},
-  panel: {
-    display: 'grid',
-    gap: semanticTokens.spacingLg,
-    gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
-    maxWidth: '52rem',
-  },
-  column: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
-  },
-  columnTitle: {
-    color: semanticTokens.colorTextMuted,
-    fontSize: semanticTokens.fontSizeXs,
-    fontWeight: semanticTokens.fontWeightMedium,
-    letterSpacing: '0.06em',
-    margin: 0,
-    textTransform: 'uppercase',
-  },
-  card: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderRadius: semanticTokens.radiusContainer,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
-    padding: semanticTokens.spacingMd,
-    textDecorationLine: 'none',
-    ':focus-visible': {
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
-    },
-    ':hover': {backgroundColor: semanticTokens.colorOverlayHover},
   },
 });
 
@@ -100,24 +162,29 @@ export function TopNavMegaMenu({
 
   return (
     <>
-      <span ref={anchorRef} style={{display: 'inline-flex'}}>
+      <span ref={anchorRef} {...stylex.props(styles.anchor)}>
         <button
           aria-expanded={open}
           onClick={() => {
             setOpen((value) => !value);
           }}
+          {...stylex.props(styles.trigger, open ? styles.open : styles.closed)}
           type="button"
-          {...stylex.props(styles.trigger, open && styles.open)}
         >
           {label}
-          <Icon size="sm">
-            <path
-              d="m6 9 6 6 6-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-          </Icon>
+          <span
+            aria-hidden="true"
+            {...stylex.props(styles.marker, open && styles.markerOpen)}
+          >
+            <Icon size="sm">
+              <path
+                d="m6 9 6 6 6-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </Icon>
+          </span>
         </button>
       </span>
       <Popover
@@ -148,8 +215,8 @@ export function TopNavMegaMenu({
 
 /** Props for the promoted entry inside a mega menu. */
 export interface TopNavMegaMenuFeaturedCardProps extends Omit<
-  HTMLAttributes<HTMLAnchorElement>,
-  'children' | 'className' | 'title'
+  AnchorHTMLAttributes<HTMLAnchorElement>,
+  'children' | 'className' | 'href' | 'media' | 'title'
 > {
   readonly description?: ReactNode;
   readonly href: string;

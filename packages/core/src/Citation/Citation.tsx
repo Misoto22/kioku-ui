@@ -6,14 +6,20 @@ import {Link} from '../navigation/index.js';
 
 const styles = stylex.create({
   citation: {
-    color: semanticTokens.colorTextSecondary,
+    color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeSm,
     fontStyle: 'normal',
+    letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
   },
+  // The marker is a figure, not a word: mono and tabular, so a page of
+  // citations keeps its superscripts on one width.
   marker: {
+    fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeXs,
+    fontVariantNumeric: 'tabular-nums',
+    letterSpacing: semanticTokens.letterSpacingMono,
     verticalAlign: 'super',
   },
 });

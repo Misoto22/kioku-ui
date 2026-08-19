@@ -4,46 +4,82 @@ import {useId, type HTMLAttributes, type ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {Overlay} from '../Overlay/index.js';
 
+// The scale stops at 38px, so the three surface widths are named multiples of
+// it rather than the rem literals a dialog would otherwise reach for.
+const surfaceWidthSm = `calc(${semanticTokens.spacing2xl} * 10)`;
+const surfaceWidthMd = `calc(${semanticTokens.spacing2xl} * 14)`;
+const surfaceWidthLg = `calc(${semanticTokens.spacing2xl} * 20)`;
+
+const surfaceEnter = stylex.keyframes({
+  from: {opacity: 0, transform: 'translateY(4%)'},
+  to: {opacity: 1, transform: 'translateY(0)'},
+});
+
 const styles = stylex.create({
   surface: {
+    animationDuration: semanticTokens.durationModerate,
+    animationName: {
+      default: surfaceEnter,
+      '@media (prefers-reduced-motion: reduce)': 'none',
+    },
+    animationTimingFunction: semanticTokens.easingEmphasized,
     backgroundColor: semanticTokens.colorSurfaceRaised,
-    borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusContainer,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
     boxShadow: semanticTokens.elevationHigh,
     color: semanticTokens.colorText,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: semanticTokens.fontFamilyBody,
-    gap: semanticTokens.spacingMd,
     maxHeight: '100%',
-    overflowY: 'auto',
-    padding: semanticTokens.spacingLg,
+    // The sheet owns no padding of its own: the copy and the actions are two
+    // blocks divided by a rule, and a rule that stops short of the edge is a
+    // dash. Clipping here is what lets the corner radius survive both blocks.
+    overflow: 'hidden',
     width: '100%',
   },
-  sm: {maxWidth: '24rem'},
-  md: {maxWidth: '32rem'},
-  lg: {maxWidth: '48rem'},
+  sm: {maxWidth: surfaceWidthSm},
+  md: {maxWidth: surfaceWidthMd},
+  lg: {maxWidth: surfaceWidthLg},
+  body: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: semanticTokens.spacingSm,
+    minHeight: 0,
+    overflowY: 'auto',
+    padding: semanticTokens.spacingLg,
+  },
+  // The question is set in the display face at the section rank. A dialog
+  // asks one thing, and the mincho line is what separates the asking from the
+  // sentence underneath that explains what it costs.
   title: {
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyHeading,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeLg,
-    fontWeight: semanticTokens.fontWeightStrong,
+    fontWeight: semanticTokens.fontWeightMedium,
+    letterSpacing: semanticTokens.letterSpacingHeading,
     lineHeight: semanticTokens.lineHeightHeading,
     margin: 0,
   },
   description: {
     color: semanticTokens.colorTextSecondary,
-    fontSize: semanticTokens.fontSizeMd,
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     margin: 0,
   },
+  // The actions stand below the rule, on the tighter block padding a footer
+  // row takes everywhere else in the system.
   footer: {
+    borderBlockStartColor: semanticTokens.borderDefault,
+    borderBlockStartStyle: semanticTokens.borderStyle,
+    borderBlockStartWidth: semanticTokens.borderWidth,
     display: 'flex',
     flexWrap: 'wrap',
     gap: semanticTokens.spacingSm,
     justifyContent: 'flex-end',
+    paddingBlock: semanticTokens.spacingMd,
+    paddingInline: semanticTokens.spacingLg,
   },
 });
 
@@ -95,15 +131,17 @@ export function DialogSurface({
         role={role}
         {...stylex.props(styles.surface, styles[size])}
       >
-        <h2 id={titleId} {...stylex.props(styles.title)}>
-          {title}
-        </h2>
-        {description === undefined ? null : (
-          <p id={descriptionId} {...stylex.props(styles.description)}>
-            {description}
-          </p>
-        )}
-        {children}
+        <div {...stylex.props(styles.body)}>
+          <h2 id={titleId} {...stylex.props(styles.title)}>
+            {title}
+          </h2>
+          {description === undefined ? null : (
+            <p id={descriptionId} {...stylex.props(styles.description)}>
+              {description}
+            </p>
+          )}
+          {children}
+        </div>
         {footer === undefined ? null : (
           <div {...stylex.props(styles.footer)}>{footer}</div>
         )}

@@ -22,17 +22,27 @@ const styles = stylex.create({
     display: 'flex',
     gap: semanticTokens.spacingSm,
   },
+  // The glass and the query are one line of text with a well drawn round it,
+  // so they are separated by the same step that separates any icon from the
+  // word beside it — not by the hairline step used inside a token.
   field: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     display: 'flex',
     flexGrow: 1,
-    gap: semanticTokens.spacingXs,
+    gap: semanticTokens.spacingSm,
+    minHeight: semanticTokens.sizeControlMd,
+    paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    ':hover': {borderColor: semanticTokens.borderInteractive},
     ':focus-within': {borderColor: semanticTokens.borderInteractive},
   },
   input: {
@@ -43,14 +53,22 @@ const styles = stylex.create({
     flexGrow: 1,
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
-    height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
     minWidth: 0,
-    outline: 'none',
+    padding: 0,
+    '::placeholder': {color: semanticTokens.colorTextMuted},
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   filters: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: semanticTokens.spacingXs,
+    gap: semanticTokens.spacingSm,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
@@ -66,7 +84,7 @@ export interface SearchFilter {
 /** Props for a search field that carries applied filters. */
 export interface PowerSearchProps extends Omit<
   HTMLAttributes<HTMLFormElement>,
-  'children' | 'className' | 'onSubmit'
+  'children' | 'className' | 'onSubmit' | 'role'
 > {
   readonly filters?: readonly SearchFilter[];
   readonly label: string;
@@ -106,7 +124,9 @@ export function PowerSearch({
     >
       <div {...stylex.props(styles.row)}>
         <div {...stylex.props(styles.field)}>
-          <Icon tone="muted">
+          {/* Sized off the type scale rather than an inherited em, so the
+              glass keeps its proportion to the query at any density. */}
+          <Icon size="md" tone="muted">
             <path
               d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 4 4"
               fill="none"
@@ -120,9 +140,9 @@ export function PowerSearch({
               setQuery(event.currentTarget.value);
             }}
             placeholder={placeholder}
-            type="search"
             value={query}
             {...stylex.props(styles.input)}
+            type="search"
           />
         </div>
         <Button type="submit">{submitLabel}</Button>

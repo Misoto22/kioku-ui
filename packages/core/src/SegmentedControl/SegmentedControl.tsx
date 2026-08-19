@@ -10,11 +10,20 @@ import {
 import {semanticTokens} from '../authoring.stylex.js';
 
 const styles = stylex.create({
+  // A groove cut into the paper: the well colour, closed by the control's own
+  // edge at the strong rank so the channel reads as sunk rather than as a
+  // paler card. The edge is a real border, not a ring — this is a control.
   root: {
     backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     display: 'inline-flex',
-    gap: semanticTokens.spacingXs,
+    // The options are adjacent segments of one channel, so nothing separates
+    // them but the edge of the block that floats.
+    gap: 0,
     padding: semanticTokens.spacingXs,
   },
   option: {
@@ -22,13 +31,17 @@ const styles = stylex.create({
     borderRadius: semanticTokens.radiusInner,
     borderStyle: 'none',
     boxSizing: 'border-box',
-    color: semanticTokens.colorText,
+    cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
-    minHeight: semanticTokens.sizeControlMd,
+    fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingLabel,
+    minHeight: semanticTokens.sizeControlSm,
     paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
-    ':disabled': {color: semanticTokens.colorDisabledText},
+    paddingInline: semanticTokens.spacingMd,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, box-shadow, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
@@ -36,12 +49,18 @@ const styles = stylex.create({
       outlineWidth: semanticTokens.focusWidth,
     },
   },
+  // Three ranks of ink carry the choice. An option you could still take is
+  // available, not current, and saying so in secondary ink is what lets the
+  // raised block underneath the current one stay as quiet as it is.
   unselected: {
+    color: semanticTokens.colorTextSecondary,
     ':active:not(:disabled)': {
       backgroundColor: semanticTokens.colorOverlayActive,
+      color: semanticTokens.colorText,
     },
-    ':hover:not(:disabled)': {
+    ':hover:not(:disabled):not(:active)': {
       backgroundColor: semanticTokens.colorOverlayHover,
+      color: semanticTokens.colorText,
     },
   },
   selected: {

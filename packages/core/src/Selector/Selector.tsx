@@ -5,25 +5,35 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
 
 const styles = stylex.create({
+  // An input sinks below the card it sits on, and a select is an input: the
+  // muted fill and the strong hairline are what put it on the same rung as the
+  // text fields it shares a form with. Painted on `colorSurface` it read as a
+  // card among wells.
   control: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     boxSizing: 'border-box',
     color: semanticTokens.colorText,
+    cursor: 'pointer',
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
       color: semanticTokens.colorDisabledText,
+      cursor: 'default',
     },
     ':focus-visible': {
       borderColor: semanticTokens.borderInteractive,
@@ -34,7 +44,11 @@ const styles = stylex.create({
     },
     ':hover:not(:disabled)': {borderColor: semanticTokens.borderInteractive},
   },
-  invalid: {borderColor: semanticTokens.statusDangerText},
+  invalid: {
+    borderColor: semanticTokens.statusDangerText,
+    ':focus-visible': {borderColor: semanticTokens.statusDangerText},
+    ':hover:not(:disabled)': {borderColor: semanticTokens.statusDangerText},
+  },
 });
 
 /** One option in a `Selector`. */
@@ -74,6 +88,7 @@ export type SelectorProps = ControlledSelectorProps | UncontrolledSelectorProps;
 export function Selector({
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
+  disabled,
   id,
   onValueChange,
   options,
@@ -100,19 +115,23 @@ export function Selector({
       {...props}
       aria-describedby={describedBy}
       aria-invalid={resolvedInvalid}
+      disabled={disabled}
       id={field?.controlId ?? id}
       onChange={handleChange}
       required={required ?? field?.required}
-      {...stylex.props(styles.control, invalid && styles.invalid)}
+      {...stylex.props(
+        styles.control,
+        invalid && !disabled ? styles.invalid : undefined,
+      )}
     >
       {placeholder === undefined ? null : (
         <option disabled value="">
           {placeholder}
         </option>
       )}
-      {options.map(({disabled, label, value: optionValue}) => (
+      {options.map(({disabled: optionDisabled, label, value: optionValue}) => (
         <option
-          disabled={disabled ?? false}
+          disabled={optionDisabled ?? false}
           key={optionValue}
           value={optionValue}
         >

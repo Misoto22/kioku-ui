@@ -13,7 +13,6 @@ const styles = stylex.create({
     insetBlockStart: 0,
     insetInlineStart: 0,
     inlineSize: '100%',
-    objectFit: 'cover',
     position: 'absolute',
   },
 });

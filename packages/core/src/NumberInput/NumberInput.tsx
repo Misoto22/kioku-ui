@@ -5,9 +5,14 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useFieldControl} from '../Field/index.js';
 
 const styles = stylex.create({
+  // An input sinks below the card it sits on: a muted fill with a real
+  // hairline edge, never a shadow. The figures are monospaced and tabular —
+  // this field is usually one of a stacked column of them, and proportional
+  // digits put every value on its own margin. Mono is also the one type role
+  // that tightens rather than opens.
   control: {
-    backgroundColor: semanticTokens.colorSurface,
-    borderColor: semanticTokens.borderDefault,
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
@@ -15,12 +20,18 @@ const styles = stylex.create({
     color: semanticTokens.colorText,
     fontFamily: semanticTokens.fontFamilyMono,
     fontSize: semanticTokens.fontSizeMd,
+    fontVariantNumeric: 'tabular-nums',
     height: semanticTokens.sizeControlMd,
+    letterSpacing: semanticTokens.letterSpacingMono,
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
     textAlign: 'end',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
+    '::placeholder': {color: semanticTokens.colorTextMuted},
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
       borderColor: semanticTokens.borderDisabled,
@@ -33,11 +44,30 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.colorAccentActive,
+    },
     ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
       borderColor: semanticTokens.borderInteractive,
     },
   },
-  invalid: {borderColor: semanticTokens.statusDangerText},
+  // Read-only is not disabled: the figure still reads at full strength, but
+  // the control stops looking like a well you can type into.
+  readOnly: {
+    backgroundColor: semanticTokens.colorSurface,
+    borderColor: semanticTokens.borderDefault,
+    color: semanticTokens.colorText,
+  },
+  invalid: {
+    borderColor: semanticTokens.statusDangerText,
+    ':focus-visible': {borderColor: semanticTokens.statusDangerText},
+    ':active:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.statusDangerText,
+    },
+    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
+      borderColor: semanticTokens.statusDangerText,
+    },
+  },
 });
 
 type SharedNumberInputProps = Omit<
@@ -74,6 +104,7 @@ export function NumberInput(props: NumberInputProps) {
     'aria-describedby': ariaDescribedBy,
     'aria-invalid': ariaInvalid,
     defaultValue,
+    disabled,
     id,
     onValueChange,
     readOnly,
@@ -108,16 +139,21 @@ export function NumberInput(props: NumberInputProps) {
       {...rest}
       aria-describedby={describedBy}
       aria-invalid={resolvedInvalid}
+      disabled={disabled}
       id={field?.controlId ?? id}
       inputMode="decimal"
       onChange={handleChange}
       readOnly={readOnly}
       required={required ?? field?.required}
+      {...stylex.props(
+        styles.control,
+        readOnly && !disabled ? styles.readOnly : undefined,
+        invalid && !disabled ? styles.invalid : undefined,
+      )}
       type="number"
       value={
         controlled ? (value === undefined ? '' : String(value)) : internalValue
       }
-      {...stylex.props(styles.control, invalid && styles.invalid)}
     />
   );
 }

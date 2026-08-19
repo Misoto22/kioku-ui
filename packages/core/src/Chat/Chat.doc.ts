@@ -16,7 +16,9 @@ export const chatMessageListDoc = {
   name: 'ChatMessageList',
   description: 'Holds the transcript and announces new messages.',
   props: [{name: 'label', description: 'Names the transcript.'}],
-  inheritedProps: ['HTMLAttributes<HTMLUListElement> except className'],
+  inheritedProps: [
+    'HTMLAttributes<HTMLUListElement> except className and the aria-atomic, aria-label, aria-live and aria-relevant attributes it owns',
+  ],
   example: '<ChatMessageList label="Conversation">{messages}</ChatMessageList>',
   storyId: 'core-chat-message-list--default',
 } satisfies ComponentDoc;
@@ -42,7 +44,7 @@ export const chatToolCallsDoc = {
     {name: 'label', description: 'Names the list for assistive technology.'},
   ],
   inheritedProps: [
-    'HTMLAttributes<HTMLUListElement> except children and className',
+    'HTMLAttributes<HTMLUListElement> except aria-label, children, and className',
   ],
   example: '<ChatToolCalls calls={calls} />',
   storyId: 'core-chat-tool-calls--default',

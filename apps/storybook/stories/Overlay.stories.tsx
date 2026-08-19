@@ -17,9 +17,12 @@ type Story = StoryObj<typeof meta>;
 
 function OverlayDemo({
   label,
+  startOpen = false,
   ...overlayProps
-}: {readonly label: string} & Partial<Parameters<typeof Overlay>[0]>) {
-  const [open, setOpen] = useState(false);
+}: {readonly label: string; readonly startOpen?: boolean} & Partial<
+  Parameters<typeof Overlay>[0]
+>) {
+  const [open, setOpen] = useState(startOpen);
 
   return (
     <>
@@ -68,6 +71,8 @@ export const States: Story = {
   ),
 };
 
+// The surface starts out. A story that opens on a closed trigger shows the
+// button and never the thing the component is for.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -75,7 +80,7 @@ export const Composition: Story = {
         <Text tone="secondary">
           Overlay carries no role of its own. The surface it wraps names itself.
         </Text>
-        <OverlayDemo label="Open" />
+        <OverlayDemo label="Open" startOpen />
       </Stack>
     </DemoFrame>
   ),

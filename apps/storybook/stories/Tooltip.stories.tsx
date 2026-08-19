@@ -43,6 +43,8 @@ export const Variants: Story = {
   ),
 };
 
+// A tooltip only exists while it is pointed at, so the story points at it.
+// Without this the surface is never once visible in the whole catalogue.
 export const Composition: Story = {
   render: () => (
     <DemoFrame>
@@ -52,9 +54,18 @@ export const Composition: Story = {
           put essential information here alone.
         </Text>
         <Tooltip content="Publishes to every subscriber" delay={0}>
-          <Button>Publish</Button>
+          <Button data-story-target="trigger">Publish</Button>
         </Tooltip>
       </Stack>
     </DemoFrame>
   ),
+  play: async ({canvasElement, userEvent}) => {
+    const trigger = canvasElement.querySelector<HTMLElement>(
+      '[data-story-target="trigger"]',
+    );
+    if (!trigger) {
+      throw new Error('Tooltip trigger is missing');
+    }
+    await userEvent.hover(trigger);
+  },
 };
