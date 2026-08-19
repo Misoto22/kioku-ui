@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import type {CSSProperties, ReactNode} from 'react';
 
 import {
@@ -21,7 +21,7 @@ import {
 } from '@misoto22/kioku-ui';
 
 import {PageContainer} from '../layout/PageContainer.js';
-import {componentHref} from '../router.js';
+import {componentHref, routeHref, sectionSlug, useLocation} from '../router.js';
 
 import {
   allEntries,
@@ -61,39 +61,6 @@ function Eyebrow({children}: {readonly children: ReactNode}) {
   return <span style={eyebrowStyle}>{children}</span>;
 }
 
-/** Reads the in-page anchor, so the rail can mark the group asked for. */
-function useAnchor() {
-  const [anchor, setAnchor] = useState(() =>
-    typeof window === 'undefined'
-      ? ''
-      : window.location.hash.replace(/^#/u, ''),
-  );
-
-  useEffect(() => {
-    function sync() {
-      setAnchor(window.location.hash.replace(/^#/u, ''));
-    }
-
-    window.addEventListener('hashchange', sync);
-    return () => {
-      window.removeEventListener('hashchange', sync);
-    };
-  }, []);
-
-  return anchor;
-}
-
-/**
- * A group title is prose — it carries spaces and an ampersand — so it needs a
- * slug of its own rather than the one that splits a component's camel case.
- */
-function groupSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z\d]+/gu, '-')
-    .replace(/^-|-$/gu, '');
-}
-
 function findEntry(name: string): CatalogEntry | undefined {
   return allEntries.find((entry) => entry.name === name);
 }
@@ -110,11 +77,15 @@ function groupOf(name: string): string {
  * The component library. Search filters across every group at once and the
  * result count is announced, because a filter that silently empties the page
  * leaves a screen-reader user with no idea what happened.
+ *
+ * A group is a destination as well as a heading: arriving at one narrows the
+ * index to it and marks it in the rail, which is what makes the group crumb on
+ * a component's page a link rather than a word.
  */
 export function ComponentsPage() {
   const [query, setQuery] = useState('');
   const wide = useMediaQuery('(min-width: 60rem)');
-  const anchor = useAnchor();
+  const location = useLocation();
 
   // The `/` hint above the field is only honest if `/` does something.
   useHotkeys({
@@ -131,13 +102,23 @@ export function ComponentsPage() {
     },
   });
 
+  // Two filters over one list, in the order the reader applied them: the route
+  // chooses which groups are on the page, the search box chooses what is left
+  // inside them.
   const groups = useMemo(() => {
+    const chosen =
+      location.group === null
+        ? componentCatalog
+        : componentCatalog.filter(
+            (group) => sectionSlug(group.title) === location.group,
+          );
+
     const needle = query.trim().toLowerCase();
     if (needle === '') {
-      return componentCatalog;
+      return chosen;
     }
 
-    return componentCatalog
+    return chosen
       .map((group) => ({
         ...group,
         entries: group.entries.filter(
@@ -147,7 +128,7 @@ export function ComponentsPage() {
         ),
       }))
       .filter((group) => group.entries.length > 0);
-  }, [query]);
+  }, [location.group, query]);
 
   const matches = groups.reduce(
     (total, group) => total + group.entries.length,
@@ -180,10 +161,18 @@ export function ComponentsPage() {
             <Stack gap="xs">
               <Eyebrow>Component groups</Eyebrow>
               <NavMenu label="Component groups">
+                {/* The way back out, and the state the index starts in. */}
+                <NavItem
+                  current={location.group === null}
+                  href={routeHref('components')}
+                >
+                  <span style={{flex: '1 1 auto'}}>Everything</span>
+                  <Numeral>{allEntries.length}</Numeral>
+                </NavItem>
                 {componentCatalog.map((group) => (
                   <NavItem
-                    current={groupSlug(group.title) === anchor}
-                    href={`#${groupSlug(group.title)}`}
+                    current={sectionSlug(group.title) === location.group}
+                    href={routeHref('components', {group: group.title})}
                     key={group.title}
                   >
                     <span style={{flex: '1 1 auto'}}>{group.title}</span>
@@ -271,7 +260,8 @@ export function ComponentsPage() {
                 <Numeral>
                   {matches} of {allEntries.length}
                 </Numeral>{' '}
-                shown · <Numeral>{componentCatalog.length}</Numeral> groups
+                shown · <Numeral>{groups.length}</Numeral>{' '}
+                {groups.length === 1 ? 'group' : 'groups'}
               </Eyebrow>
             </HStack>
 
@@ -288,7 +278,7 @@ export function ComponentsPage() {
             </Text>
           </Stack>
 
-          {query === '' ? (
+          {query === '' && location.group === null ? (
             <Stack gap="sm">
               <Eyebrow>Start here</Eyebrow>
               <div
@@ -332,11 +322,27 @@ export function ComponentsPage() {
             <Card>
               <EmptyState
                 action={
-                  <Button onClick={() => setQuery('')} variant="secondary">
-                    Clear search
-                  </Button>
+                  location.group === null ? (
+                    <Button onClick={() => setQuery('')} variant="secondary">
+                      Clear search
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        setQuery('');
+                        window.location.hash = routeHref('components').slice(1);
+                      }}
+                      variant="secondary"
+                    >
+                      Show every group
+                    </Button>
+                  )
                 }
-                detail="Try a shorter word, or clear the search to see everything."
+                detail={
+                  location.group === null
+                    ? 'Try a shorter word, or clear the search to see everything.'
+                    : 'Nothing in this group answers to that. Try a shorter word, or widen the index to every group.'
+                }
                 title="Nothing matches that"
               />
             </Card>
@@ -371,11 +377,7 @@ export function ComponentsPage() {
                       paddingBlockEnd: 'var(--kioku-ui-spacing-xs)',
                     }}
                   >
-                    <Heading
-                      id={groupSlug(group.title)}
-                      level={2}
-                      size="subsection"
-                    >
+                    <Heading level={2} size="subsection">
                       {group.title}
                     </Heading>
                     <Numeral>{group.entries.length}</Numeral>

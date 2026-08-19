@@ -25,6 +25,7 @@ import {
   Text,
   ThemeProvider,
   useMediaQuery,
+  useTheme,
 } from '@misoto22/kioku-ui';
 import {componentDocs} from '@misoto22/kioku-ui/docs';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
@@ -33,6 +34,7 @@ import {PageContainer} from '../layout/PageContainer.js';
 import {componentHref, componentSlug, routeHref} from '../router.js';
 
 import {componentCatalog} from '../data/componentCatalog.js';
+import {specimens} from '../data/specimens.js';
 
 const storybookOrigin = 'http://localhost:6006';
 
@@ -75,138 +77,24 @@ function Figure({children}: {readonly children: ReactNode}) {
   return <span style={figureStyle}>{children}</span>;
 }
 
-/** One captioned specimen: the thing itself, and the name it answers to. */
-function Specimen({
-  caption,
-  children,
-  mono = false,
-}: {
-  readonly caption: string;
-  readonly children: ReactNode;
-  readonly mono?: boolean;
-}) {
-  return (
-    <Stack align="start" gap="sm">
-      {children}
-      {mono ? <Figure>{caption}</Figure> : <Eyebrow>{caption}</Eyebrow>}
-    </Stack>
-  );
-}
-
-/** One labelled row of specimens inside the plate. */
-function SpecimenRow({
-  children,
-  label,
-  note,
-}: {
-  readonly children: ReactNode;
-  readonly label: string;
-  readonly note: string;
-}) {
-  return (
-    <Stack gap="sm">
-      <Eyebrow>{label}</Eyebrow>
-      <HStack align="start" gap="xl" wrap>
-        {children}
-      </HStack>
-      <Text size="sm" tone="muted">
-        {note}
-      </Text>
-    </Stack>
-  );
-}
-
-/**
- * Button's own specimen, drawn with real Buttons rather than pictures of them.
- * Hover and focus are pointer and keyboard states, so they are described here
- * instead of being painted — a hand-painted hover is a claim about the
- * component rather than a reading of it.
- */
-function ButtonSpecimen() {
-  return (
-    <Stack gap="lg">
-      <SpecimenRow
-        label="Variant"
-        note="One seal per scope. Everything beside the primary is secondary or ghost, and destructive is reserved for the action that cannot be undone."
-      >
-        <Specimen caption="Primary">
-          <Button>Save changes</Button>
-        </Specimen>
-        <Specimen caption="Secondary">
-          <Button variant="secondary">Cancel</Button>
-        </Specimen>
-        <Specimen caption="Ghost">
-          <Button variant="ghost">Discard draft</Button>
-        </Specimen>
-        <Specimen caption="Destructive">
-          <Button variant="destructive">Delete entry</Button>
-        </Specimen>
-      </SpecimenRow>
-
-      <Divider />
-
-      <SpecimenRow
-        label="Size"
-        note="Each size names a fixed control height from the size scale. Only lg comes up to body size; the smaller two reach the hit target through a pseudo-element rather than by growing."
-      >
-        {/*
-          Secondary, all three: the seal is one per scope and the variant row
-          above already spent it. A row of three ink buttons would claim three.
-        */}
-        <Specimen caption="sm" mono>
-          <Button size="sm" variant="secondary">
-            Save
-          </Button>
-        </Specimen>
-        <Specimen caption="md" mono>
-          <Button size="md" variant="secondary">
-            Save
-          </Button>
-        </Specimen>
-        <Specimen caption="lg" mono>
-          <Button size="lg" variant="secondary">
-            Save
-          </Button>
-        </Specimen>
-      </SpecimenRow>
-
-      <Divider />
-
-      <SpecimenRow
-        label="State"
-        note="Hover is a wash and focus is a thin accent ring held off the edge; both belong to the pointer and the keyboard, so they are named here rather than drawn. Loading sets aria-busy and disables activation."
-      >
-        <Specimen caption="Rest">
-          <Button variant="secondary">Save</Button>
-        </Specimen>
-        <Specimen caption="Disabled">
-          <Button disabled variant="secondary">
-            Save
-          </Button>
-        </Specimen>
-        <Specimen caption="Loading">
-          <Button loading variant="secondary">
-            Saving
-          </Button>
-        </Specimen>
-      </SpecimenRow>
-    </Stack>
-  );
-}
-
 /**
  * The plate every component gets. The theme tabs re-skin only what is inside
  * it, so a reader can check one component against all three without losing
- * the theme they chose for the site.
+ * the theme they chose for the site; colour mode and density come from the
+ * site, because those are the reader's settings rather than the plate's.
  */
 function SpecimenPlate({
   name,
+  slug,
   storyId,
 }: {
   readonly name: string;
+  readonly slug: string;
   readonly storyId: string | null;
 }) {
+  const {density, mode} = useTheme();
   const [themeId, setThemeId] = useState('washi');
+  const Specimen = specimens[slug];
 
   return (
     <div
@@ -243,6 +131,8 @@ function SpecimenPlate({
       </HStack>
 
       <ThemeProvider
+        defaultDensity={density}
+        defaultMode={mode}
         defaultThemeId={themeId}
         key={themeId}
         themes={kiokuThemes}
@@ -253,14 +143,11 @@ function SpecimenPlate({
             padding: 'var(--kioku-ui-spacing-lg)',
           }}
         >
-          {name === 'Button' ? (
-            <ButtonSpecimen />
-          ) : (
+          {Specimen === undefined ? (
             /*
-              The catalog records what a component is and its sidecar records
-              what it takes; neither records the matrix of variants, sizes and
-              states a plate would draw. Rather than invent one, the plate says
-              so and hands the reader the story that does have it.
+              Every component in the catalog has an entry in the registry, so
+              this is the shape of a component added to the catalog before its
+              specimen was written rather than a state a reader should meet.
             */
             <EmptyState
               action={
@@ -279,10 +166,12 @@ function SpecimenPlate({
                   </Button>
                 )
               }
-              detail={`The catalog records no variant, size or state matrix for ${name}. Its story draws every state it has, audited with axe across all three themes in both colour modes.`}
+              detail={`No specimen is registered for ${name} yet. Its story draws every state it has, audited with axe across all three themes in both colour modes.`}
               size="compact"
-              title="No specimen matrix in the catalog"
+              title="No specimen registered"
             />
+          ) : (
+            <Specimen />
           )}
         </div>
       </ThemeProvider>
@@ -409,7 +298,10 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
           <Breadcrumbs
             items={[
               {href: routeHref('components'), label: 'Components'},
-              {label: group.title},
+              {
+                href: routeHref('components', {group: group.title}),
+                label: group.title,
+              },
               {label: entry.name},
             ]}
           />
@@ -467,7 +359,11 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
             />
           </Stack>
 
-          <SpecimenPlate name={entry.name} storyId={doc?.storyId ?? null} />
+          <SpecimenPlate
+            name={entry.name}
+            slug={slug}
+            storyId={doc?.storyId ?? null}
+          />
 
           <Card elevation="low">
             <Stack gap="md">

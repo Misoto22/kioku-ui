@@ -22,6 +22,27 @@ import {
 import {PageContainer} from '../layout/PageContainer.js';
 import {componentHref, routeHref, templateHref} from '../router.js';
 
+// The templates as components rather than as text. The CLI's assets are the
+// only copy of a template that exists, so a preview built from them cannot
+// disagree with the source printed further down the same page — and importing
+// them brings them under this app's typecheck as well.
+import {BlankPage} from '../../../../packages/cli/assets/templates/pages/blank/BlankPage';
+import {ContactFormPage} from '../../../../packages/cli/assets/templates/pages/contact-form/ContactFormPage';
+import {DashboardPage} from '../../../../packages/cli/assets/templates/pages/dashboard/DashboardPage';
+import {TwoColumnFormPage} from '../../../../packages/cli/assets/templates/pages/form-two-column/TwoColumnFormPage';
+import {LoginPage} from '../../../../packages/cli/assets/templates/pages/login/LoginPage';
+import {LoginCardPage} from '../../../../packages/cli/assets/templates/pages/login-card/LoginCardPage';
+import {LoginSplitPage} from '../../../../packages/cli/assets/templates/pages/login-split/LoginSplitPage';
+import {LoginSsoPage} from '../../../../packages/cli/assets/templates/pages/login-sso/LoginSsoPage';
+import {MessagingShell} from '../../../../packages/cli/assets/templates/pages/messaging-shell/MessagingShell';
+import {PaymentFormPage} from '../../../../packages/cli/assets/templates/pages/payment-form/PaymentFormPage';
+import {SettingsPage} from '../../../../packages/cli/assets/templates/pages/settings/SettingsPage';
+import {SettingsDialogPage} from '../../../../packages/cli/assets/templates/pages/settings-dialog/SettingsDialogPage';
+import {SettingsSidebarPage} from '../../../../packages/cli/assets/templates/pages/settings-sidebar/SettingsSidebarPage';
+import {NavShell} from '../../../../packages/cli/assets/templates/pages/shell-nav/NavShell';
+import {SideNavShell} from '../../../../packages/cli/assets/templates/pages/shell-side-nav/SideNavShell';
+import {TopNavShell} from '../../../../packages/cli/assets/templates/pages/shell-top-nav/TopNavShell';
+
 import {allEntries} from '../data/componentCatalog.js';
 import {
   templateCatalog,
@@ -46,6 +67,39 @@ const sourceHeight = `calc(14 * ${measure})`;
 // proportion against. This is the gallery's own column floor: the drawing then
 // reads at the same shape on both pages rather than stretching to a letterbox.
 const sketchWidth = `calc(9 * ${measure})`;
+
+// A template is a whole page, so the preview is a window onto one rather than a
+// figure sized to the card. The page inside is laid out against a viewport and
+// the whole of it is then stood back from, which is the only way a page whose
+// body centres itself in the viewport lands where it means to. The factor is a
+// ratio rather than a dimension, so it is a named number and every length here
+// is derived from it.
+const previewScale = 0.5;
+const previewViewport = '100vh';
+const previewHeight = `calc(${previewScale} * ${previewViewport})`;
+
+const previewFrameStyle: CSSProperties = {
+  backgroundColor: 'var(--kioku-ui-color-canvas)',
+  blockSize: previewHeight,
+  borderColor: 'var(--kioku-ui-border-default)',
+  borderRadius: 'var(--kioku-ui-radius-inner)',
+  borderStyle: 'var(--kioku-ui-border-style)',
+  borderWidth: 'var(--kioku-ui-border-width)',
+  // The frame is the whole of the preview: a page is taller and wider than the
+  // window it is shown through, and nothing may escape into the doc's layout.
+  overflow: 'hidden',
+};
+
+const previewPageStyle: CSSProperties = {
+  blockSize: previewViewport,
+  inlineSize: `calc(100% / ${previewScale})`,
+  // A picture answers to nothing. `inert` takes the page out of the tab order
+  // and off the accessibility tree; refusing pointer events on top of it keeps
+  // a pane inside the picture from taking the wheel off the document.
+  pointerEvents: 'none',
+  transform: `scale(${previewScale})`,
+  transformOrigin: 'top left',
+};
 
 /**
  * Every template's source, read at build time. The CLI's assets are the only
@@ -160,9 +214,9 @@ function categoriesInUse(): readonly Exclude<TemplateCategory, 'All'>[] {
 
 /**
  * The rail: this template's own category first, then the rest of the
- * catalogue. A category has no page of its own, so each row leads to the first
- * template in it — and that template's rail is the category. The destination
- * is the category either way.
+ * catalogue. A category is a destination in its own right now — the gallery
+ * showing that slice — so the other rows lead there rather than guessing at
+ * which template in it the reader wanted.
  */
 function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
   const siblings = templateCatalog.filter(
@@ -216,7 +270,7 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
             ).length;
 
             return first === undefined ? null : (
-              <NavItem href={templateHref(first.id)} key={category}>
+              <NavItem href={routeHref('templates', {category})} key={category}>
                 <span style={{flex: '1 1 auto'}}>{category}</span>
                 <Figure>{count}</Figure>
               </NavItem>
@@ -225,6 +279,88 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
         </NavMenu>
       </Stack>
     </Stack>
+  );
+}
+
+/** The shells frame a page rather than being one, so they need a body. */
+function ShellBody() {
+  return (
+    <Stack gap="md">
+      <Heading level={1} size="section">
+        Release 12
+      </Heading>
+      <Card>
+        <Text>
+          Your own page goes here. The shell owns the navigation and the skip
+          link; everything inside this card is the main region.
+        </Text>
+      </Card>
+    </Stack>
+  );
+}
+
+/**
+ * Every template that can be shown as itself. A shell is given a body because
+ * it is a frame rather than a page, and what it frames is the reader's.
+ */
+const previews: Readonly<Record<string, () => ReactNode>> = {
+  blank: () => <BlankPage />,
+  'contact-form': () => <ContactFormPage />,
+  dashboard: () => <DashboardPage />,
+  'form-two-column': () => <TwoColumnFormPage />,
+  login: () => <LoginPage />,
+  'login-card': () => <LoginCardPage />,
+  'login-split': () => <LoginSplitPage />,
+  'login-sso': () => <LoginSsoPage />,
+  'messaging-shell': () => <MessagingShell />,
+  'payment-form': () => <PaymentFormPage />,
+  settings: () => <SettingsPage />,
+  'settings-dialog': () => <SettingsDialogPage />,
+  'settings-sidebar': () => <SettingsSidebarPage />,
+  'shell-nav': () => (
+    <NavShell>
+      <ShellBody />
+    </NavShell>
+  ),
+  'shell-side-nav': () => (
+    <SideNavShell>
+      <ShellBody />
+    </SideNavShell>
+  ),
+  'shell-top-nav': () => (
+    <TopNavShell>
+      <ShellBody />
+    </TopNavShell>
+  ),
+};
+
+/**
+ * The template, running. This is the one thing the page could not say in words
+ * and the drawing it replaces could only gesture at: what the reader is about
+ * to copy, dressed by the theme they are reading it in.
+ */
+function Preview({render}: {readonly render: () => ReactNode}) {
+  return (
+    <Card elevation="low">
+      <Stack gap="sm">
+        <HStack align="baseline" gap="lg" justify="between">
+          <Eyebrow>Preview</Eyebrow>
+          <Figure>{Math.round(previewScale * 100)}% · not interactive</Figure>
+        </HStack>
+        <div style={previewFrameStyle}>
+          <div inert style={previewPageStyle}>
+            {render()}
+          </div>
+        </div>
+        <Text size="sm" tone="muted">
+          The template itself, rendered from the same file the source below
+          prints — not a picture of it, and not a second copy that could drift.
+          It is a preview rather than a demonstration: nothing inside answers to
+          the pointer or the keyboard, and it takes neither the page's focus nor
+          its scroll.
+        </Text>
+      </Stack>
+    </Card>
   );
 }
 
@@ -358,6 +494,7 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
 
   const source = sources.get(entry.id);
   const sketch = sketches[entry.id];
+  const render = previews[entry.id];
 
   return (
     <PageContainer>
@@ -377,7 +514,10 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
           <Breadcrumbs
             items={[
               {href: routeHref('templates'), label: 'Templates'},
-              {label: entry.category},
+              {
+                href: routeHref('templates', {category: entry.category}),
+                label: entry.category,
+              },
               {label: entry.title},
             ]}
           />
@@ -445,27 +585,29 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
             </Card>
           ) : (
             <>
-              {sketch === undefined ? null : (
-                <div
-                  style={{
-                    backgroundColor: 'var(--kioku-ui-color-surface)',
-                    borderRadius: 'var(--kioku-ui-radius-container)',
-                    boxShadow: 'var(--kioku-ui-elevation-low)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 'var(--kioku-ui-spacing-sm)',
-                    padding: 'var(--kioku-ui-spacing-lg)',
-                  }}
-                >
-                  <Eyebrow>Shape</Eyebrow>
-                  <div style={{maxInlineSize: sketchWidth}}>
-                    <TemplateThumbnail sketch={sketch} />
-                  </div>
-                  <Text size="sm" tone="muted">
-                    The regions the page is divided into, and what fills the
-                    main one. The same drawing the gallery card carries.
-                  </Text>
-                </div>
+              {/*
+                A written template renders. The drawing is what is left for one
+                that cannot — every template in the catalogue can today, so this
+                branch is a fallback rather than a second way of saying it.
+              */}
+              {render === undefined ? (
+                sketch === undefined ? null : (
+                  <Card elevation="low">
+                    <Stack gap="sm">
+                      <Eyebrow>Shape</Eyebrow>
+                      <div style={{maxInlineSize: sketchWidth}}>
+                        <TemplateThumbnail sketch={sketch} />
+                      </div>
+                      <Text size="sm" tone="muted">
+                        The regions the page is divided into, and what fills the
+                        main one. This template cannot be rendered inline, so
+                        the drawing the gallery card carries stands in for it.
+                      </Text>
+                    </Stack>
+                  </Card>
+                )
+              ) : (
+                <Preview render={render} />
               )}
 
               <Composition source={source.source} title={entry.title} />

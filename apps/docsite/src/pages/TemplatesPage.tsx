@@ -16,7 +16,7 @@ import {
 } from '@misoto22/kioku-ui';
 
 import {PageContainer} from '../layout/PageContainer.js';
-import {templateHref} from '../router.js';
+import {routeHref, sectionSlug, templateHref, useLocation} from '../router.js';
 
 import {
   templateCatalog,
@@ -66,9 +66,9 @@ export interface TemplateSketch {
 }
 
 /**
- * Exported so a template's own page can redraw the card the reader clicked.
- * The gallery and the detail page then say the same thing about a template's
- * shape, because they are reading the same sketch.
+ * Exported so a template's own page can fall back to the drawing when the
+ * template cannot be rendered inline. The gallery and the detail page then say
+ * the same thing about its shape, because they are reading the same sketch.
  */
 export const sketches: Readonly<Record<string, TemplateSketch>> = {
   blank: {chrome: 'rail', content: 'blank'},
@@ -888,10 +888,30 @@ function PlannedRow({entry}: {readonly entry: TemplateEntry}) {
  * The template gallery. Categories are a tab strip rather than a row of
  * buttons: they choose which slice of one list is on show, and the current one
  * is marked with an underline in ink rather than a filled chip.
+ *
+ * The chosen slice lives in the route rather than in this component, so a
+ * category is somewhere a reader can be sent — by the crumb on a template's
+ * page, by the rail beside it, or by a pasted link — and the back button
+ * walks the choices the way it walks everything else.
  */
 export function TemplatesPage() {
-  const [category, setCategory] = useState<TemplateCategory>('All');
+  const location = useLocation();
   const resultsId = useId();
+
+  const category: TemplateCategory =
+    templateCategories.find(
+      (candidate) => sectionSlug(candidate) === location.category,
+    ) ?? 'All';
+
+  function show(next: TemplateCategory) {
+    // `All` is the gallery entire, so it is the plain route rather than a
+    // category named `all` that the catalogue does not have.
+    const href =
+      next === 'All'
+        ? routeHref('templates')
+        : routeHref('templates', {category: next});
+    window.location.hash = href.slice(1);
+  }
 
   const shown = useMemo(
     () =>
@@ -932,7 +952,7 @@ export function TemplatesPage() {
         <HStack align="end" gap="lg" justify="between" wrap>
           <TabList
             label="Template category"
-            onSelect={(id) => setCategory(id as TemplateCategory)}
+            onSelect={(id) => show(id as TemplateCategory)}
             selectedId={category}
             style={{flex: 1}}
             tabs={templateCategories.map((entry) => ({
