@@ -1,0 +1,5 @@
+{
+  "title": "Appearance settings",
+  "description": "Two settings blocks that behave differently: one applies as it is changed and says so, the other is an ordinary form.",
+  "files": ["AppearanceSettingsPage.tsx"]
+}

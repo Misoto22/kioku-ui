@@ -34,6 +34,9 @@ import {componentHref, routeHref, templateHref} from '../router.js';
 import {BlankPage} from '../../../../packages/cli/assets/templates/pages/blank/BlankPage';
 import {ContactFormPage} from '../../../../packages/cli/assets/templates/pages/contact-form/ContactFormPage';
 import {DashboardPage} from '../../../../packages/cli/assets/templates/pages/dashboard/DashboardPage';
+import {ConsoleHomePage} from '../../../../packages/cli/assets/templates/pages/console-home/ConsoleHomePage';
+import {RecordsTablePage} from '../../../../packages/cli/assets/templates/pages/records-table/RecordsTablePage';
+import {AppearanceSettingsPage} from '../../../../packages/cli/assets/templates/pages/appearance-settings/AppearanceSettingsPage';
 import {TwoColumnFormPage} from '../../../../packages/cli/assets/templates/pages/form-two-column/TwoColumnFormPage';
 import {LoginPage} from '../../../../packages/cli/assets/templates/pages/login/LoginPage';
 import {LoginCardPage} from '../../../../packages/cli/assets/templates/pages/login-card/LoginCardPage';
@@ -300,6 +303,9 @@ const previews: Readonly<Record<string, () => ReactNode>> = {
   blank: () => <BlankPage />,
   'contact-form': () => <ContactFormPage />,
   dashboard: () => <DashboardPage />,
+  'console-home': () => <ConsoleHomePage />,
+  'records-table': () => <RecordsTablePage />,
+  'appearance-settings': () => <AppearanceSettingsPage />,
   'form-two-column': () => <TwoColumnFormPage />,
   login: () => <LoginPage />,
   'login-card': () => <LoginCardPage />,

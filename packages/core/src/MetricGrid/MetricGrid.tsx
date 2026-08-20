@@ -39,14 +39,20 @@ const styles = stylex.create({
   },
   // A metric is a figure: mono and tabular, so a row of tiles lines its
   // numbers up on the same stems instead of drifting by digit.
+  // A metric's headline figure is one number on its own card, not a column of
+  // them: nothing beneath it has to line up, so the mono face buys nothing and
+  // costs the page its voice — 27px of monospace reads as output, not as a
+  // figure of record. It takes the display face, like every other title here,
+  // and the tighter leading a large figure wants; a heading's 1.25 leaves a
+  // single line sitting low in its own box. No added weight either: this
+  // system's display face states a figure by its size.
   value: {
     color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyMono,
+    fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeXl,
     fontVariantNumeric: 'tabular-nums',
-    letterSpacing: semanticTokens.letterSpacingMono,
-    fontWeight: semanticTokens.fontWeightStrong,
-    lineHeight: semanticTokens.lineHeightHeading,
+    letterSpacing: semanticTokens.letterSpacingTitle,
+    lineHeight: 1.15,
     margin: 0,
   },
   detail: {

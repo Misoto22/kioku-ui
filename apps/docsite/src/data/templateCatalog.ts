@@ -44,6 +44,30 @@ export const templateCatalog: readonly TemplateEntry[] = [
     title: 'Dashboard',
   },
   {
+    category: 'Shell',
+    description:
+      "A console's first screen: a grouped rail, a hanging chapter head, three figures, a feed, and a queue.",
+    id: 'console-home',
+    status: 'ready',
+    title: 'Console home',
+  },
+  {
+    category: 'Table',
+    description:
+      'Records under their own narrowing: a query showing applied filters, a period switch, and paging.',
+    id: 'records-table',
+    status: 'ready',
+    title: 'Records table',
+  },
+  {
+    category: 'Form',
+    description:
+      'Two settings blocks that behave differently: one applies as it changes, the other is a form.',
+    id: 'appearance-settings',
+    status: 'ready',
+    title: 'Appearance settings',
+  },
+  {
     category: 'Login',
     description: 'A plain centred sign-in form with an error summary.',
     id: 'login',

@@ -916,24 +916,17 @@ process.stdout.write(JSON.stringify({
       segmentedRoot,
       `border-radius:var(${variable('--kioku-ui-radius-element')})`,
     );
-    // The current segment is marked, not filled: full-strength ink on the
-    // label and an ink rail along its edge. The raised fill it used to carry
-    // measures 1.03:1 against this groove in every dark skin.
+    // The block that floated back to the surface, which is the one documented
+    // exception to the no-fill rule.
     expectRenderedRule(
-      packageCss,
-      selectedSegment,
-      `color:var(${variable('--kioku-ui-color-text')})`,
-    );
-    expectRenderedRule(
-      packageCss,
-      selectedSegment,
-      `background-color:var(${variable('--kioku-ui-color-text')})`,
-      '::after',
-    );
-    expectNoRenderedDeclaration(
       packageCss,
       selectedSegment,
       `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
+    );
+    expectRenderedRule(
+      packageCss,
+      selectedSegment,
+      `box-shadow:var(${variable('--kioku-ui-elevation-low')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1553,10 +1546,13 @@ process.stdout.write(JSON.stringify({
       metricLabel,
       `color:var(${variable('--kioku-ui-color-text-secondary')})`,
     );
+    // A metric's headline figure takes the display face, not the mono one:
+    // nothing beneath it has to line up, and 27px of monospace reads as
+    // output rather than as a figure of record.
     expectRenderedRule(
       packageCss,
       metricValue,
-      `font-family:var(${variable('--kioku-ui-typography-font-family-mono')})`,
+      `font-family:var(${variable('--kioku-ui-typography-font-family-display')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -1568,7 +1564,8 @@ process.stdout.write(JSON.stringify({
       metricValue,
       `color:var(${variable('--kioku-ui-color-text')})`,
     );
-    expectRenderedRule(
+    // And no added weight: the display face states a figure by its size.
+    expectNoRenderedDeclaration(
       packageCss,
       metricValue,
       `font-weight:var(${variable('--kioku-ui-typography-font-weight-strong')})`,

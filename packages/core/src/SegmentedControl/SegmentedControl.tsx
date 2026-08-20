@@ -39,7 +39,7 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingMd,
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, color',
+    transitionProperty: 'background-color, box-shadow, color',
     transitionTimingFunction: semanticTokens.easingStandard,
     ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
     ':focus-visible': {
@@ -63,35 +63,20 @@ const styles = stylex.create({
       color: semanticTokens.colorText,
     },
   },
-  // A choice is a mark, not a fill. The raised rank that used to carry it has
-  // nowhere left to go once the paper is already dark: raised measures 1.03:1
-  // against this groove in every dark skin, and the ring meant to close it
-  // 1.06:1. A rail is the one solid ink mark the system allows, and it reads
-  // at the same strength on either paper.
+  // The one documented exception to the no-fill rule, and the reason is the
+  // metaphor: this control is a groove cut in the paper, and the option in
+  // force is the block that has floated back up to the surface. A rail beside
+  // it would say "chosen"; the paper says "this is the one you are on".
+  //
+  // It was briefly a rail, because in dark skins the raised rank measured
+  // 1.03:1 against this groove — but that was the palette inverting, not the
+  // design failing: `surfaceRaised` sat BELOW `surfaceMuted` in all three dark
+  // skins, so the thing that floats was darker than the well it floats out of.
+  // The palette is fixed; the design is the one the canvas drew.
   selected: {
+    backgroundColor: semanticTokens.colorSurfaceRaised,
+    boxShadow: semanticTokens.elevationLow,
     color: semanticTokens.colorText,
-    position: 'relative',
-    '::after': {
-      backgroundColor: semanticTokens.colorText,
-      blockSize: semanticTokens.focusWidth,
-      content: '""',
-      insetBlockEnd: 0,
-      insetInlineEnd: semanticTokens.spacingSm,
-      insetInlineStart: semanticTokens.spacingSm,
-      position: 'absolute',
-    },
-  },
-  // Stacked, the rail runs down the leading edge: a line under each row would
-  // read as a divider between rows rather than as a mark on one of them.
-  selectedVertical: {
-    '::after': {
-      blockSize: 'auto',
-      inlineSize: semanticTokens.focusWidth,
-      insetBlockEnd: semanticTokens.spacingXs,
-      insetBlockStart: semanticTokens.spacingXs,
-      insetInlineEnd: 'auto',
-      insetInlineStart: 0,
-    },
   },
   vertical: {flexDirection: 'column'},
 });
@@ -270,9 +255,6 @@ export function SegmentedControl<Value extends string = string>({
             {...stylex.props(
               styles.option,
               isSelected ? styles.selected : styles.unselected,
-              isSelected && orientation === 'vertical'
-                ? styles.selectedVertical
-                : undefined,
             )}
             type="button"
           >

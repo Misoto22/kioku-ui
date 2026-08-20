@@ -1,0 +1,5 @@
+{
+  "title": "Console home",
+  "description": "A console's first screen: a grouped rail, a hanging chapter head, three figures, a feed, and a queue waiting on the reader.",
+  "files": ["ConsoleHomePage.tsx"]
+}
