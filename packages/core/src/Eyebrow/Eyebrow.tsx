@@ -11,6 +11,12 @@ const styles = stylex.create({
   base: {
     fontFamily: semanticTokens.fontFamilyHeading,
     fontSize: semanticTokens.fontSizeXs,
+    // Regular, and stated rather than inherited. Left open, an eyebrow took
+    // the weight of whatever it was dropped into; every hand-rolled copy of
+    // this recipe pinned one, and they did not agree with each other. The
+    // tracking is what does the work at 11px — weight on top of it turns a
+    // quiet label into a second heading.
+    fontWeight: semanticTokens.fontWeightRegular,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightHeading,
   },

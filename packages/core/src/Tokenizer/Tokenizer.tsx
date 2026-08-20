@@ -25,7 +25,16 @@ const styles = stylex.create({
     transitionDuration: semanticTokens.durationFast,
     transitionProperty: 'border-color',
     transitionTimingFunction: semanticTokens.easingStandard,
-    ':focus-within': {borderColor: semanticTokens.borderInteractive},
+    // The ring belongs to the well, not to the field inside it. On the field
+    // it sat 4px out — 2px of offset plus 2px of stroke — inside a well with
+    // 3px of padding, so the well clipped a quarter of its own focus ring.
+    ':focus-within': {
+      borderColor: semanticTokens.borderInteractive,
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
     ':hover': {borderColor: semanticTokens.borderInteractive},
   },
   // A well that is wrong says so on its own edge, the way every other well in
@@ -47,15 +56,13 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     minWidth: draftWidth,
-    paddingBlock: semanticTokens.spacingXs,
+    // No block padding of its own: the well already spends a step on each
+    // side, and a second one inside it made an empty Tokenizer 34px tall
+    // where every other control in the row is 28px.
+    paddingBlock: 0,
     paddingInline: semanticTokens.spacingXs,
     '::placeholder': {color: semanticTokens.colorTextMuted},
-    ':focus-visible': {
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
-    },
+    ':focus-visible': {outlineStyle: 'none'},
   },
 });
 

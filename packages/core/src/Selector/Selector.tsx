@@ -9,40 +9,89 @@ const styles = stylex.create({
   // muted fill and the strong hairline are what put it on the same rung as the
   // text fields it shares a form with. Painted on `colorSurface` it read as a
   // card among wells.
-  control: {
+  // The well is the frame, because the mark that says "this opens" is ours
+  // now. Left native, a select wore whichever arrow the platform draws — a
+  // blue chevron on one, a grey triangle on another — in the corner of a
+  // field this system had otherwise drawn to the hairline.
+  frame: {
+    alignItems: 'stretch',
     backgroundColor: semanticTokens.colorSurfaceMuted,
     borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
     borderStyle: semanticTokens.borderStyle,
     borderWidth: semanticTokens.borderWidth,
     boxSizing: 'border-box',
-    color: semanticTokens.colorText,
-    cursor: 'pointer',
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
+    display: 'flex',
     height: semanticTokens.sizeControlMd,
-    letterSpacing: semanticTokens.letterSpacingBody,
-    lineHeight: semanticTokens.lineHeightBody,
-    paddingBlock: semanticTokens.spacingXs,
-    paddingInline: semanticTokens.spacingSm,
+    overflow: 'hidden',
+    position: 'relative',
     transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, border-color, color',
+    transitionProperty: 'background-color, border-color',
     transitionTimingFunction: semanticTokens.easingStandard,
     width: '100%',
-    ':disabled': {
-      backgroundColor: semanticTokens.colorDisabledSurface,
-      borderColor: semanticTokens.borderDisabled,
-      color: semanticTokens.colorDisabledText,
-      cursor: 'default',
-    },
-    ':focus-visible': {
+    ':focus-within': {
       borderColor: semanticTokens.borderInteractive,
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
-    ':hover:not(:disabled)': {borderColor: semanticTokens.borderInteractive},
+    ':hover': {borderColor: semanticTokens.borderInteractive},
+  },
+  frameDisabled: {
+    backgroundColor: semanticTokens.colorDisabledSurface,
+    borderColor: semanticTokens.borderDisabled,
+    ':hover': {borderColor: semanticTokens.borderDisabled},
+  },
+  frameInvalid: {
+    borderColor: semanticTokens.statusDangerText,
+    ':focus-within': {borderColor: semanticTokens.statusDangerText},
+    ':hover': {borderColor: semanticTokens.statusDangerText},
+  },
+  // The chevron: two edges of an empty square stood on a corner, the same way
+  // the checkbox draws its tick and the number field its steps. It takes its
+  // colour from the palette, which is the whole point of not letting the
+  // engine draw it. `aria-hidden`, because the select already announces that
+  // it is a select.
+  chevron: {
+    borderBlockEndColor: semanticTokens.colorTextSecondary,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
+    borderInlineEndColor: semanticTokens.colorTextSecondary,
+    borderInlineEndStyle: semanticTokens.borderStyle,
+    borderInlineEndWidth: semanticTokens.borderWidth,
+    blockSize: semanticTokens.spacingSm,
+    inlineSize: semanticTokens.spacingSm,
+    insetBlockStart: '50%',
+    insetInlineEnd: semanticTokens.spacingSm,
+    pointerEvents: 'none',
+    position: 'absolute',
+    transform: 'translateY(-70%) rotate(45deg)',
+  },
+  chevronDisabled: {
+    borderBlockEndColor: semanticTokens.colorDisabledText,
+    borderInlineEndColor: semanticTokens.colorDisabledText,
+  },
+  control: {
+    appearance: 'none',
+    backgroundColor: 'transparent',
+    borderStyle: 'none',
+    borderWidth: 0,
+    boxSizing: 'border-box',
+    color: semanticTokens.colorText,
+    cursor: 'pointer',
+    fontFamily: semanticTokens.fontFamilyBody,
+    fontSize: semanticTokens.fontSizeMd,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    paddingBlock: semanticTokens.spacingXs,
+    // Trailing room for the chevron: without it the longest option ran under
+    // the mark that says the field opens.
+    paddingInlineEnd: `calc(${semanticTokens.spacingSm} + ${semanticTokens.spacingLg})`,
+    paddingInlineStart: semanticTokens.spacingSm,
+    width: '100%',
+    ':disabled': {color: semanticTokens.colorDisabledText, cursor: 'default'},
+    ':focus-visible': {outlineStyle: 'none'},
   },
   invalid: {
     borderColor: semanticTokens.statusDangerText,
@@ -111,33 +160,47 @@ export function Selector({
   }
 
   return (
-    <select
-      {...props}
-      aria-describedby={describedBy}
-      aria-invalid={resolvedInvalid}
-      disabled={disabled}
-      id={field?.controlId ?? id}
-      onChange={handleChange}
-      required={required ?? field?.required}
+    <span
       {...stylex.props(
-        styles.control,
-        invalid && !disabled ? styles.invalid : undefined,
+        styles.frame,
+        invalid && !disabled ? styles.frameInvalid : undefined,
+        disabled ? styles.frameDisabled : undefined,
       )}
     >
-      {placeholder === undefined ? null : (
-        <option disabled value="">
-          {placeholder}
-        </option>
-      )}
-      {options.map(({disabled: optionDisabled, label, value: optionValue}) => (
-        <option
-          disabled={optionDisabled ?? false}
-          key={optionValue}
-          value={optionValue}
-        >
-          {label}
-        </option>
-      ))}
-    </select>
+      <select
+        {...props}
+        aria-describedby={describedBy}
+        aria-invalid={resolvedInvalid}
+        disabled={disabled}
+        id={field?.controlId ?? id}
+        onChange={handleChange}
+        required={required ?? field?.required}
+        {...stylex.props(styles.control)}
+      >
+        {placeholder === undefined ? null : (
+          <option disabled value="">
+            {placeholder}
+          </option>
+        )}
+        {options.map(
+          ({disabled: optionDisabled, label, value: optionValue}) => (
+            <option
+              disabled={optionDisabled ?? false}
+              key={optionValue}
+              value={optionValue}
+            >
+              {label}
+            </option>
+          ),
+        )}
+      </select>
+      <span
+        aria-hidden="true"
+        {...stylex.props(
+          styles.chevron,
+          disabled ? styles.chevronDisabled : undefined,
+        )}
+      />
+    </span>
   );
 }
