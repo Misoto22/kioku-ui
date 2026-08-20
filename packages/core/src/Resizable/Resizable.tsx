@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {ResizeHandle} from '../ResizeHandle/index.js';
 
 const styles = stylex.create({
@@ -93,7 +94,10 @@ export function Resizable({
 
   return (
     <div {...props} ref={frameRef} {...stylex.props(styles.frame)}>
-      <div {...stylex.props(styles.panel)} style={{width: `${current}px`}}>
+      <div
+        {...stylex.props(styles.panel, scrolling.region)}
+        style={{width: `${current}px`}}
+      >
         {panel}
       </div>
       <ResizeHandle
@@ -108,7 +112,7 @@ export function Resizable({
         step={step}
         value={current}
       />
-      <div {...stylex.props(styles.rest)}>{children}</div>
+      <div {...stylex.props(styles.rest, scrolling.region)}>{children}</div>
     </div>
   );
 }

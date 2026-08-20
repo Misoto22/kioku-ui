@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {useInternationalization} from '../i18n/index.js';
 import {Button} from '../Button/index.js';
 import {Eyebrow} from '../Eyebrow/index.js';
@@ -273,7 +274,7 @@ export function ChatMessageList({
       aria-label={label}
       aria-live="polite"
       aria-relevant="additions"
-      {...stylex.props(styles.list)}
+      {...stylex.props(styles.list, scrolling.region)}
     >
       {Children.count(children) === 0 ? (
         <li {...stylex.props(styles.listEmpty)}>

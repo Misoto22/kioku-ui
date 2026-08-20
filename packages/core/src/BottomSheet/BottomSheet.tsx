@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import {useId, type HTMLAttributes, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {Overlay} from '../Overlay/index.js';
 
 const sheetEnter = stylex.keyframes({
@@ -109,7 +110,9 @@ export function BottomSheet({
         <h2 id={titleId} {...stylex.props(styles.title)}>
           {title}
         </h2>
-        <div {...stylex.props(styles.content)}>{children}</div>
+        <div {...stylex.props(styles.content, scrolling.region)}>
+          {children}
+        </div>
       </div>
     </Overlay>
   );

@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import {useId, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {useInternationalization} from '../i18n/index.js';
 import {Icon} from '../Icon/index.js';
 import {IconButton} from '../IconButton/index.js';
@@ -106,7 +107,7 @@ export function Lightbox({
             </Icon>
           </IconButton>
         </div>
-        <div {...stylex.props(styles.media)}>{children}</div>
+        <div {...stylex.props(styles.media, scrolling.region)}>{children}</div>
       </div>
     </Overlay>
   );

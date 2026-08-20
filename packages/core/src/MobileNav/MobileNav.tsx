@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import {useId, useState, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {useFocusTrap} from '../hooks/useFocusTrap.js';
 import {useScrollLock} from '../hooks/useScrollLock.js';
 import {Icon} from '../Icon/index.js';
@@ -134,7 +135,7 @@ export function MobileNav({
               }}
               ref={setDrawer}
               role="dialog"
-              {...stylex.props(styles.drawer)}
+              {...stylex.props(styles.drawer, scrolling.region)}
               tabIndex={-1}
             >
               <div {...stylex.props(styles.header)}>

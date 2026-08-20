@@ -8,6 +8,7 @@ import {
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {Icon} from '../Icon/index.js';
 import {useInternationalization} from '../i18n/index.js';
 import {Overlay} from '../Overlay/index.js';
@@ -276,7 +277,11 @@ export function CommandPalette({
             type="text"
           />
         </div>
-        <ul id={listboxId} role="listbox" {...stylex.props(styles.list)}>
+        <ul
+          id={listboxId}
+          role="listbox"
+          {...stylex.props(styles.list, scrolling.region)}
+        >
           {matches.map((command, index) => {
             const showGroup =
               command.group !== undefined && command.group !== lastGroup;
