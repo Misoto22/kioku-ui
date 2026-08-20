@@ -87,10 +87,15 @@ const styles = stylex.create({
       color: semanticTokens.colorText,
     },
   },
+  // No weight change. This is a list a reader moves through with the arrow
+  // keys, and the label is proportional type: a heavier row is a WIDER row, so
+  // every press reflowed the line under the cursor. `NavItem` settled the same
+  // question the same way — ink alone is enough to find, and it leaves the
+  // column still. Weight remains a legal mark elsewhere (design-language §5);
+  // it is this case, a moving cursor over proportional text, that it fails.
   selected: {
     boxShadow: selectionMark,
     color: semanticTokens.colorText,
-    fontWeight: semanticTokens.fontWeightMedium,
   },
   // The marker holds its column whether or not the row has one, so every label
   // in the tree starts on the same stem. Its ink is the third rank: it is

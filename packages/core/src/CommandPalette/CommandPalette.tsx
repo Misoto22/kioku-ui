@@ -16,9 +16,6 @@ import {Overlay} from '../Overlay/index.js';
 // About twenty spacing steps wide: long command names read on one line.
 const surfaceWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
 
-// The bookmark the sidebar draws beside the reader's page, drawn again beside
-// the row the keys are pointing at: two hairlines wide, short of the row so
-// it reads as a stroke laid on the row rather than a rule dividing it.
 const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
 const markHeight = '64%';
 
@@ -137,7 +134,6 @@ const styles = stylex.create({
     fontSize: semanticTokens.fontSizeMd,
     letterSpacing: semanticTokens.letterSpacingLabel,
   },
-  activeLabel: {fontWeight: semanticTokens.fontWeightMedium},
   // A keyboard hint is a figure, and a key cap is a well in the paper: mono
   // and tabular so a column of them lines up down the list, on the sunken
   // fill so it reads as something to press rather than as more prose.
@@ -306,14 +302,7 @@ export function CommandPalette({
                     index === activeIndex ? styles.active : styles.idle,
                   )}
                 >
-                  <span
-                    {...stylex.props(
-                      styles.label,
-                      index === activeIndex ? styles.activeLabel : undefined,
-                    )}
-                  >
-                    {command.label}
-                  </span>
+                  <span {...stylex.props(styles.label)}>{command.label}</span>
                   {command.shortcut === undefined ? null : (
                     <kbd {...stylex.props(styles.shortcut)}>
                       {command.shortcut}

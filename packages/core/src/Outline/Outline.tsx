@@ -8,7 +8,11 @@ const styles = stylex.create({
   list: {
     display: 'flex',
     flexDirection: 'column',
-    gap: semanticTokens.spacingXs,
+    // A hairline apart, so a run of entries reads as one ruled column rather
+    // than as separate rows — `SideNav` and `NavMenu` tile theirs the same
+    // way. At a full spacing step the rules beside each entry stopped being a
+    // continuous edge and became a dashed one.
+    gap: semanticTokens.borderWidth,
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
@@ -44,10 +48,15 @@ const styles = stylex.create({
       color: semanticTokens.colorText,
     },
   },
+  // No weight change. This is a list a reader moves through with the arrow
+  // keys, and the label is proportional type: a heavier row is a WIDER row, so
+  // every press reflowed the line under the cursor. `NavItem` settled the same
+  // question the same way — ink alone is enough to find, and it leaves the
+  // column still. Weight remains a legal mark elsewhere (design-language §5);
+  // it is this case, a moving cursor over proportional text, that it fails.
   current: {
     borderInlineStartColor: semanticTokens.colorAccent,
     color: semanticTokens.colorText,
-    fontWeight: semanticTokens.fontWeightMedium,
   },
   depth1: {paddingInlineStart: semanticTokens.spacingMd},
   depth2: {paddingInlineStart: semanticTokens.spacingXl},
