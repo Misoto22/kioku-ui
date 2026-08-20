@@ -40,6 +40,11 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     fontSize: semanticTokens.fontSizeMd,
     letterSpacing: semanticTokens.letterSpacingBody,
+    // Nothing above a table sets a line-height to inherit — not the theme, not
+    // the provider — so without this the rows were spaced by whatever the
+    // browser's default happened to be while `List` and `Item` beside them
+    // were on the system's own leading.
+    lineHeight: semanticTokens.lineHeightBody,
     width: '100%',
   },
   // The caption is the page's title, so it is set as one: the heading face at
@@ -95,9 +100,11 @@ const styles = stylex.create({
   // A column of figures only reads as a column when the digits are the same
   // width and the last one is flush. Mono, tabular and end-aligned; the header
   // above it takes the alignment alone so it stays an eyebrow.
+  // No size of its own: `Numeral`, which is where this recipe lives, declares
+  // only the face, the figures and the tracking. A step down put the column of
+  // figures a rank below the words it belongs to.
   numericCell: {
     fontFamily: semanticTokens.fontFamilyMono,
-    fontSize: semanticTokens.fontSizeSm,
     fontVariantNumeric: 'tabular-nums',
     letterSpacing: semanticTokens.letterSpacingMono,
     textAlign: 'end',

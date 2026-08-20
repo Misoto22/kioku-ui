@@ -175,9 +175,17 @@ describe('ChatMessageMetadata', () => {
       />,
     );
 
-    // "1.2s" alone would tell a screen-reader user nothing.
-    expect(screen.getByText('Latency:')).toBeVisible();
-    expect(screen.getByText('1.2s')).toBeVisible();
+    // "1.2s" alone would tell a screen-reader user nothing, so the pairing has
+    // to survive without the layout — it is `dt`/`dd`, not a colon typed into
+    // a text node that no translation can move.
+    const latency = screen.getByText('Latency');
+    expect(latency.closest('dt')).not.toBeNull();
+    expect(latency.closest('div')?.querySelector('dd')).toHaveTextContent(
+      '1.2s',
+    );
+    expect(screen.getByText('Model').closest('div')).not.toBe(
+      latency.closest('div'),
+    );
   });
 });
 

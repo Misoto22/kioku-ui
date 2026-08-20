@@ -5,6 +5,10 @@ export interface Messages {
   readonly calendarPreviousMonth: string;
   readonly carouselNext: string;
   readonly carouselPrevious: string;
+  readonly chatToolCallDone: string;
+  readonly chatToolCallFailed: string;
+  readonly chatToolCallRunning: string;
+  readonly chatTranscriptEmpty: string;
   readonly chatWaitingForReply: string;
   readonly close: string;
   readonly commandPaletteEmpty: string;
@@ -29,6 +33,10 @@ export const defaultMessages: Messages = Object.freeze({
   calendarPreviousMonth: 'Previous month',
   carouselNext: 'Next',
   carouselPrevious: 'Previous',
+  chatToolCallDone: 'Done',
+  chatToolCallFailed: 'Failed',
+  chatToolCallRunning: 'Running',
+  chatTranscriptEmpty: 'No messages yet',
   chatWaitingForReply: 'Waiting for a reply',
   close: 'Close',
   commandPaletteEmpty: 'No commands match',

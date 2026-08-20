@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex';
 import {
+  Children,
   useState,
   type FormEvent,
   type HTMLAttributes,
@@ -10,20 +11,29 @@ import {
 import {semanticTokens} from '../authoring.stylex.js';
 import {useInternationalization} from '../i18n/index.js';
 import {Button} from '../Button/index.js';
+import {Eyebrow} from '../Eyebrow/index.js';
+import {Numeral} from '../Numeral/index.js';
 import {Spinner} from '../Spinner/index.js';
+import {TextArea} from '../TextArea/index.js';
 
 // A line of chat stops being readable long before it reaches the width of the
-// transcript, so the bubble caps itself in spacing steps.
-const bubbleMaxWidth = `calc(20 * ${semanticTokens.spacing2xl})`;
+// transcript, and where it stops is a fact about the TYPE rather than about
+// the spacing scale. Built from `spacing2xl` this measure grew 36% at the
+// standard density while the type inside it stayed at 13.5px — a longer line
+// for the reader who asked for more air, which is backwards.
+const bubbleMaxWidth = `calc(34 * ${semanticTokens.fontSizeMd})`;
 
 // A dot, so it is two of the smallest spacing step across rather than a size
-// of its own. Hollow: the ring says the call is still running, where a filled
-// dot would read as a status that had already settled.
+// of its own.
 const progressDotSize = `calc(2 * ${semanticTokens.spacingXs})`;
-const progressDotRing = `inset 0 0 0 ${semanticTokens.borderWidth} ${semanticTokens.colorTextMuted}`;
 
 const styles = stylex.create({
   layout: {
+    // The frame fills what it is given: a transcript that scrolls above a
+    // fixed composer has to know where its bottom is, and `1fr auto` divides
+    // a height rather than supplying one. Every story had to wrap this in a
+    // sized box to see it behave.
+    blockSize: '100%',
     display: 'grid',
     fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingMd,
@@ -46,6 +56,20 @@ const styles = stylex.create({
     gap: semanticTokens.spacingXs,
   },
   fromReader: {alignItems: 'flex-end'},
+  // The eyebrow names the turn beneath it, so it stands on the same edge as
+  // the words it names. The reader's slip is inset by a step; without matching
+  // it the name and the sentence under it sat on two different margins.
+  authorInset: {paddingInline: semanticTokens.spacingMd},
+  // A transcript that has not started yet is still a transcript. Without this
+  // the region was empty markup, which reads as a component that failed.
+  listEmpty: {
+    color: semanticTokens.colorTextMuted,
+    fontSize: semanticTokens.fontSizeSm,
+    letterSpacing: semanticTokens.letterSpacingBody,
+    lineHeight: semanticTokens.lineHeightBody,
+    paddingBlock: semanticTokens.spacingMd,
+    textAlign: 'center',
+  },
   // A transcript is a page of record, not a feed of balloons. Only the turns
   // that need to be told apart from the page get a surface, and the accent
   // stays reserved for focus, marks and links.
@@ -109,47 +133,25 @@ const styles = stylex.create({
     display: 'flex',
     gap: semanticTokens.spacingMd,
   },
-  input: {
-    backgroundColor: semanticTokens.colorSurfaceMuted,
-    borderColor: semanticTokens.borderStrong,
-    borderRadius: semanticTokens.radiusElement,
-    borderStyle: semanticTokens.borderStyle,
-    borderWidth: semanticTokens.borderWidth,
-    boxSizing: 'border-box',
-    color: semanticTokens.colorText,
-    flexGrow: 1,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeMd,
-    letterSpacing: semanticTokens.letterSpacingBody,
-    lineHeight: semanticTokens.lineHeightBody,
-    minHeight: semanticTokens.sizeControlMd,
-    paddingBlock: semanticTokens.spacingSm,
-    paddingInline: semanticTokens.spacingSm,
-    resize: 'vertical',
-    transitionDuration: semanticTokens.durationFast,
-    transitionProperty: 'background-color, border-color',
-    transitionTimingFunction: semanticTokens.easingStandard,
-    '::placeholder': {color: semanticTokens.colorTextMuted},
-    ':disabled': {
-      backgroundColor: semanticTokens.colorDisabledSurface,
-      borderColor: semanticTokens.borderDisabled,
-      color: semanticTokens.colorDisabledText,
-    },
-    ':focus-visible': {
-      borderColor: semanticTokens.borderInteractive,
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
-    },
-    ':hover:not(:disabled):not(:read-only):not(:focus-visible)': {
-      borderColor: semanticTokens.borderInteractive,
-    },
-  },
+  // The composer's field is a `TextArea`; all this row asks of it is that it
+  // take the space the send control does not.
+  entry: {flexGrow: 1},
   // A register of calls, each one a slip pressed into the reply rather than a
   // ruled table under it. A table implies a set the reader has to read across;
   // a call is a single line of evidence, so it takes only the width it needs
   // and the list stops at the longest one instead of stretching to the bubble.
+  // The label names the fact and the figure states it, and the pairing is
+  // carried by `dt`/`dd` rather than by a colon baked into a text node — a
+  // separator written into the markup is one no translation can move. The two
+  // ranks come from `Eyebrow` and `Numeral`, which is where those recipes
+  // live; this file used to declare a copy of each.
+  metadataPair: {
+    alignItems: 'baseline',
+    display: 'flex',
+    gap: semanticTokens.spacingXs,
+  },
+  metadataTerm: {marginBlock: 0, marginInline: 0},
+  metadataDetail: {marginBlock: 0, marginInline: 0},
   toolCalls: {
     alignItems: 'flex-start',
     display: 'flex',
@@ -176,19 +178,33 @@ const styles = stylex.create({
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
   },
-  toolCallProgress: {
-    backgroundColor: 'transparent',
+  // The slot is always there so every row in the register starts on one edge;
+  // only the two statuses that want the reader's attention draw into it. A
+  // hollow ring says the call is still running, where a filled dot would read
+  // as a status that had already settled.
+  toolCallMark: {
+    borderColor: 'transparent',
     borderRadius: semanticTokens.radiusFull,
-    boxShadow: progressDotRing,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     flexShrink: 0,
     height: progressDotSize,
     width: progressDotSize,
+  },
+  toolCallMarkRunning: {borderColor: semanticTokens.colorTextMuted},
+  toolCallMarkFailed: {
+    backgroundColor: semanticTokens.statusDangerText,
+    borderColor: semanticTokens.statusDangerText,
   },
   // The name is what was called; the outcome beside it is context.
   toolCallOutcome: {
     color: semanticTokens.colorTextMuted,
     fontFamily: semanticTokens.fontFamilyMono,
   },
+  // A call that failed is the one line in the register a reader must not skim
+  // past, so it is the one that takes colour.
+  toolCallOutcomeFailed: {color: semanticTokens.statusDangerText},
   // The row carries no type of its own: every fact inside it is set by the
   // pair below, so a size here would have to be overridden twice.
   metadata: {
@@ -199,30 +215,6 @@ const styles = stylex.create({
     listStyleType: 'none',
     marginBlock: 0,
     paddingInlineStart: 0,
-  },
-  // The label names the fact and the figure states it, so the two are set
-  // apart: an eyebrow in the heading face against a mono, tabular figure.
-  metadataLabel: {
-    color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyHeading,
-    fontSize: semanticTokens.fontSizeXs,
-    letterSpacing: semanticTokens.letterSpacingEyebrow,
-  },
-  metadataValue: {
-    color: semanticTokens.colorText,
-    fontFamily: semanticTokens.fontFamilyMono,
-    fontSize: semanticTokens.fontSizeXs,
-    fontVariantNumeric: 'tabular-nums',
-    letterSpacing: semanticTokens.letterSpacingMono,
-  },
-  systemMessage: {
-    color: semanticTokens.colorTextSecondary,
-    fontFamily: semanticTokens.fontFamilyBody,
-    fontSize: semanticTokens.fontSizeSm,
-    letterSpacing: semanticTokens.letterSpacingBody,
-    lineHeight: semanticTokens.lineHeightBody,
-    paddingBlock: semanticTokens.spacingXs,
-    textAlign: 'center',
   },
 });
 
@@ -272,6 +264,8 @@ export function ChatMessageList({
   label,
   ...props
 }: ChatMessageListProps) {
+  const {messages} = useInternationalization();
+
   return (
     <ul
       {...props}
@@ -281,7 +275,13 @@ export function ChatMessageList({
       aria-relevant="additions"
       {...stylex.props(styles.list)}
     >
-      {children}
+      {Children.count(children) === 0 ? (
+        <li {...stylex.props(styles.listEmpty)}>
+          {messages.chatTranscriptEmpty}
+        </li>
+      ) : (
+        children
+      )}
     </ul>
   );
 }
@@ -318,7 +318,14 @@ export function ChatMessage({
       )}
     >
       {authorName === undefined ? null : (
-        <span {...stylex.props(styles.author)}>{authorName}</span>
+        <span
+          {...stylex.props(
+            styles.author,
+            author === 'reader' && styles.authorInset,
+          )}
+        >
+          {authorName}
+        </span>
       )}
       <div {...stylex.props(styles.bubble, bubbleAuthors[author])}>
         {pending ? <Spinner label={messages.chatWaitingForReply} /> : children}
@@ -350,19 +357,36 @@ export function ChatToolCalls({
   label = 'Tool calls',
   ...props
 }: ChatToolCallsProps) {
+  const {messages} = useInternationalization();
+  // `status` is an enum, not a sentence. Printed straight it put the English
+  // words "running" and "failed" into a transcript in any language, and only
+  // one of the three ever reached the page at all.
+  const outcomes = {
+    done: messages.chatToolCallDone,
+    failed: messages.chatToolCallFailed,
+    running: messages.chatToolCallRunning,
+  };
+
   return (
     <ul {...props} aria-label={label} {...stylex.props(styles.toolCalls)}>
       {calls.map((call) => (
         <li key={call.id} {...stylex.props(styles.toolCall)}>
-          {call.status === 'running' ? (
-            <span
-              aria-hidden="true"
-              {...stylex.props(styles.toolCallProgress)}
-            />
-          ) : null}
+          <span
+            aria-hidden="true"
+            {...stylex.props(
+              styles.toolCallMark,
+              call.status === 'running' && styles.toolCallMarkRunning,
+              call.status === 'failed' && styles.toolCallMarkFailed,
+            )}
+          />
           <span>{call.name}</span>
-          <span {...stylex.props(styles.toolCallOutcome)}>
-            {call.detail ?? call.status ?? ''}
+          <span
+            {...stylex.props(
+              styles.toolCallOutcome,
+              call.status === 'failed' && styles.toolCallOutcomeFailed,
+            )}
+          >
+            {call.detail ?? (call.status ? outcomes[call.status] : '')}
           </span>
         </li>
       ))}
@@ -419,17 +443,20 @@ export function ChatComposer({
 
   return (
     <form {...props} onSubmit={handleSubmit} {...stylex.props(styles.composer)}>
-      <textarea
+      {/*
+        `TextArea`, not a private copy of it. The copy had drifted: a step more
+        padding, a min-height of one control rather than four lines, and none
+        of the active, read-only or invalid states the real one carries.
+      */}
+      <TextArea
         aria-label={label}
         disabled={disabled}
-        onChange={(event) => {
-          setDraft(event.currentTarget.value);
-        }}
         onKeyDown={handleKeyDown}
+        onValueChange={setDraft}
         placeholder={placeholder}
         rows={2}
         value={draft}
-        {...stylex.props(styles.input)}
+        {...stylex.props(styles.entry)}
       />
       <Button disabled={disabled || draft.trim() === ''} type="submit">
         {sendLabel}
@@ -446,7 +473,7 @@ export interface ChatMetadataEntry {
 
 /** Props for the provenance line under a message. */
 export interface ChatMessageMetadataProps extends Omit<
-  HTMLAttributes<HTMLUListElement>,
+  HTMLAttributes<HTMLDListElement>,
   'children' | 'className'
 > {
   readonly entries: readonly ChatMetadataEntry[];
@@ -462,16 +489,18 @@ export function ChatMessageMetadata({
   ...props
 }: ChatMessageMetadataProps) {
   return (
-    <ul {...props} {...stylex.props(styles.metadata)}>
+    <dl {...props} {...stylex.props(styles.metadata)}>
       {entries.map((entry) => (
-        <li key={entry.label}>
-          <span {...stylex.props(styles.metadataLabel)}>
-            {`${entry.label}: `}
-          </span>
-          <span {...stylex.props(styles.metadataValue)}>{entry.value}</span>
-        </li>
+        <div key={entry.label} {...stylex.props(styles.metadataPair)}>
+          <dt {...stylex.props(styles.metadataTerm)}>
+            <Eyebrow>{entry.label}</Eyebrow>
+          </dt>
+          <dd {...stylex.props(styles.metadataDetail)}>
+            <Numeral>{entry.value}</Numeral>
+          </dd>
+        </div>
       ))}
-    </ul>
+    </dl>
   );
 }
 
@@ -492,9 +521,13 @@ export function ChatSystemMessage({
   children,
   ...props
 }: ChatSystemMessageProps) {
+  // The same note `ChatMessage author="system"` draws. Two renderings of one
+  // thing is two places to change it, and they had already drifted: this one
+  // had no bubble box, so a system note sat on a different rhythm from every
+  // other row in the transcript.
   return (
-    <li {...props} {...stylex.props(styles.systemMessage)}>
+    <ChatMessage author="system" {...props}>
       {children}
-    </li>
+    </ChatMessage>
   );
 }
