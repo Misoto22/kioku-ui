@@ -26,8 +26,8 @@ function DatePickerDemo(
 
   return (
     <DatePicker
-      label="Release date"
       {...props}
+      label="Release date"
       onValueChange={setValue}
       value={value}
     />
