@@ -130,6 +130,18 @@ function TableExample({density, dividers, focus, states}: TableExampleProps) {
                   </TableCellComponent>
                   <TableCellComponent numeric>412</TableCellComponent>
                 </TableRowComponent>
+                <TableRowComponent data-story-state="selected" selected>
+                  <TableCellComponent>
+                    Selected — East region
+                  </TableCellComponent>
+                  <TableCellComponent>
+                    <Badge tone="info">Scheduled</Badge>
+                  </TableCellComponent>
+                  <TableCellComponent>
+                    <Link href="/owners/east">East team</Link>
+                  </TableCellComponent>
+                  <TableCellComponent numeric>883</TableCellComponent>
+                </TableRowComponent>
               </>
             ) : null}
           </TableBodyComponent>

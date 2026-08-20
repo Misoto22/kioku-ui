@@ -47,13 +47,20 @@ its own block: glass needs the lift, and it spends a real drop shadow on
 ### 3. Cards rise, inputs sink
 
 The surface ladder is `colorCanvas` (the page) → `colorSurface` (a card) →
-`colorSurfaceMuted` (an input fill, a track, a table header, a well). It is a
+`colorSurfaceMuted` (an input fill, a track, a well). It is a
 ladder of **relationships**, not of values: paper is always a step brighter
 than the page it lies on and a well is always a step deeper than the paper —
 in dark skins as much as in light ones. Reach for `canvas` because it happens
 to be darker than `surface` today and the dark skins will hand back a slab:
 there, `canvas` is the deepest step of all. A component that paints an input
 the same colour as the card it sits on has flattened the ladder.
+
+A table header is **not** on this list, though it reads like it belongs there.
+`Table` sets its header row as an eyebrow — smallest size, opened right up, one
+rank of ink below the rows it names — and lets the rule beneath it do the
+separating, drawn in the strong border while the row rules stay in the default
+one. A filled strip would say the header is a surface the data sits on. It is a
+legend beside the data, and the rule is what parts them.
 
 ### 4. The primary action is ink, not brand
 
