@@ -69,33 +69,3 @@ function Site() {
     </>
   );
 }
-
-function Site() {
-  const [location, navigate] = useRoute();
-
-  return (
-    <>
-      <AppShell
-        contentPadding={false}
-        footer={<SiteFooter onNavigate={navigate} />}
-        header={<SiteHeader current={location.route} onNavigate={navigate} />}
-      >
-        {location.route === 'home' ? <HomePage onNavigate={navigate} /> : null}
-        {location.route === 'components' && location.component === null ? (
-          <ComponentsPage />
-        ) : null}
-        {location.route === 'components' && location.component !== null ? (
-          <ComponentDetailPage slug={location.component} />
-        ) : null}
-        {location.route === 'templates' && location.template === null ? (
-          <TemplatesPage />
-        ) : null}
-        {location.route === 'templates' && location.template !== null ? (
-          <TemplateDetailPage id={location.template} />
-        ) : null}
-        {location.route === 'themes' ? <ThemesPage /> : null}
-        {location.route === 'docs' ? <DocsPage onNavigate={navigate} /> : null}
-      </AppShell>
-    </>
-  );
-}

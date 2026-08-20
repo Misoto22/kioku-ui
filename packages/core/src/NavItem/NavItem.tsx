@@ -13,14 +13,6 @@ const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
 // length, so a denser theme keeps the proportion.
 const hoverMarkHeight = '40%';
 
-// The mark is two hairlines thick: one weight above the rules that separate
-// regions, so it reads as a deliberate stroke rather than another divider.
-const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
-
-// A hovered row is hinted at. A fraction of the row rather than an absolute
-// length, so a denser theme keeps the proportion.
-const hoverMarkHeight = '40%';
-
 const styles = stylex.create({
   item: {
     alignItems: 'center',
