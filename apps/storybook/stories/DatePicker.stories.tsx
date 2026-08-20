@@ -9,6 +9,7 @@ const meta = {
   id: 'core-date-picker',
   title: 'Core/DatePicker',
   component: DatePicker,
+  args: {label: ''},
   parameters: {layout: 'padded'},
 } satisfies Meta<typeof DatePicker>;
 
@@ -46,9 +47,9 @@ export const States: Story = {
     <DemoFrame>
       <StateGrid
         items={[
-          {label: 'Rest', node: <DatePickerDemo />},
-          {label: 'Read-only', node: <DatePickerDemo readOnly />},
-          {label: 'Disabled', node: <DatePickerDemo disabled />},
+          {content: <DatePickerDemo />, label: 'Rest'},
+          {content: <DatePickerDemo readOnly />, label: 'Read-only'},
+          {content: <DatePickerDemo disabled />, label: 'Disabled'},
         ]}
       />
     </DemoFrame>
@@ -59,7 +60,7 @@ export const Composition: Story = {
   render: () => (
     <DemoFrame>
       <Field
-        hint="The grid is this system's own, so a bound can be shown inside it."
+        description="The grid is this system's own, so a bound can be shown inside it."
         label="Release date"
       >
         <DatePickerDemo />
