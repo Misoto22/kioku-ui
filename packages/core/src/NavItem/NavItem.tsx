@@ -5,12 +5,17 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {Link} from '../navigation/index.js';
 import {useNavMenuOrientation} from '../NavMenu/orientation.js';
 
-// The mark is two hairlines thick: one weight above the rules that separate
-// regions, so it reads as a deliberate stroke rather than another divider.
+// Two hairlines wide: one weight above the rules that separate regions, so the
+// mark reads as a deliberate stroke rather than as another divider. Written as
+// a calc over the border token so a theme that draws heavier lines gets a
+// heavier mark with it.
+//
+// Seven components declare this same pair, and it cannot be shared: StyleX
+// statically evaluates every identifier a style refers to, and it cannot
+// follow one across a module boundary — `stylex.create` throws on the import.
+// A shared module works for a whole compiled style (see `../scrolling`), not
+// for a raw value another file's `stylex.create` reads.
 const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
-
-// A hovered row is hinted at. A fraction of the row rather than an absolute
-// length, so a denser theme keeps the proportion.
 const hoverMarkHeight = '40%';
 
 const styles = stylex.create({

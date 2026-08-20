@@ -4,9 +4,6 @@ import type {LiHTMLAttributes, ReactNode} from 'react';
 import {semanticTokens} from '../authoring.stylex.js';
 import {Item} from '../Item/index.js';
 
-// The same bookmark the sidebar draws beside the reader's page: two hairlines
-// wide, short of the row so it reads as a stroke laid on the row rather than
-// as a rule dividing it.
 const markWidth = `calc(2 * ${semanticTokens.borderWidth})`;
 const markHeight = '64%';
 
@@ -36,10 +33,15 @@ const styles = stylex.create({
   // Focus stays in the combobox, so the row it points at carries the whole
   // signal itself: the wash, the first rank of ink, and the bookmark at the
   // inline-start edge — never a filled bar.
+  // No weight change. This is a list a reader moves through with the arrow
+  // keys, and the label is proportional type: a heavier row is a WIDER row, so
+  // every press reflowed the line under the cursor. `NavItem` settled the same
+  // question the same way — ink alone is enough to find, and it leaves the
+  // column still. Weight remains a legal mark elsewhere (design-language §5);
+  // it is this case, a moving cursor over proportional text, that it fails.
   active: {
     backgroundColor: semanticTokens.colorOverlayHover,
     color: semanticTokens.colorText,
-    fontWeight: semanticTokens.fontWeightMedium,
     '::before': {
       backgroundColor: semanticTokens.colorAccent,
       content: '',
