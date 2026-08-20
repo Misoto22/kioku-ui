@@ -200,7 +200,7 @@
 [data-theme='washi'] {
   --kioku-theme-color-canvas: light-dark(#efebe0, #191713);
   --kioku-theme-color-surface: light-dark(#f6f3e9, #211e19);
-  --kioku-theme-color-surface-raised: light-dark(#f6f3e9, #282419);
+  --kioku-theme-color-surface-raised: light-dark(#f6f3e9, #38342e);
   --kioku-theme-color-surface-muted: light-dark(#e7e2d3, #2a2620);
   --kioku-theme-color-text: light-dark(#26221c, #ece6d9);
   --kioku-theme-color-text-secondary: light-dark(#5d574c, #a49c8c);
@@ -257,7 +257,7 @@
 [data-theme='muji'] {
   --kioku-theme-color-canvas: light-dark(#f2f2ef, #1a1c19);
   --kioku-theme-color-surface: light-dark(#f9f9f7, #222420);
-  --kioku-theme-color-surface-raised: light-dark(#f9f9f7, #292c27);
+  --kioku-theme-color-surface-raised: light-dark(#f9f9f7, #393b35);
   --kioku-theme-color-surface-muted: light-dark(#eae4d8, #2b2d27);
   --kioku-theme-color-text: light-dark(#2f322c, #e7e8e2);
   --kioku-theme-color-text-secondary: light-dark(#64675d, #9b9e95);
@@ -310,7 +310,7 @@
 [data-theme='sumi'] {
   --kioku-theme-color-canvas: light-dark(#f5f5f3, #0f0f0e);
   --kioku-theme-color-surface: light-dark(#ffffff, #191918);
-  --kioku-theme-color-surface-raised: light-dark(#ffffff, #212120);
+  --kioku-theme-color-surface-raised: light-dark(#ffffff, #30302e);
   --kioku-theme-color-surface-muted: light-dark(#edede9, #222220);
   --kioku-theme-color-text: light-dark(#131311, #f2f2ee);
   --kioku-theme-color-text-secondary: light-dark(#4a4a46, #a8a8a2);
@@ -1162,4 +1162,14 @@
 [data-theme='sumi']:lang(zh),
 [data-theme='kasumi']:lang(zh) {
   --kioku-theme-line-height-body: 1.8;
+
+  /* And more air between the characters, at both ranks. A han character is a
+     square that already fills its em; set solid, a run of them closes into a
+     grey block with no word boundaries for the eye to catch, because there are
+     no spaces and no ascenders to break the line. Latin body text is set at 0
+     for the same reason it does not need it — its own letterforms do the
+     spacing. An 11px eyebrow needs the most of all: at that size the strokes
+     of a dense character merge before the characters do. */
+  --kioku-theme-letter-spacing-body: 0.03em;
+  --kioku-theme-letter-spacing-eyebrow: 0.14em;
 }

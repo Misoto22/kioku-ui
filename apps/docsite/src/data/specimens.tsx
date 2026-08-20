@@ -836,7 +836,7 @@ function SegmentedControlSpecimen() {
   return (
     <Row
       label="State"
-      note="The current option is marked, not filled: full-strength ink on the label and an ink rail along its edge — beneath it when the options run across, down its leading edge when they stack. The raised fill this used to carry measured 1.03:1 against the groove in every dark skin."
+      note="The one documented exception to the no-fill rule: the groove is cut into the paper and the option in force is the block that has floated back up to the surface. It holds in the dark skins too, now that `surfaceRaised` sits above `surfaceMuted` there rather than below it."
     >
       <Piece caption="Horizontal">
         <SegmentedControl

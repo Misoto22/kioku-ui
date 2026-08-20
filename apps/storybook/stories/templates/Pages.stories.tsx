@@ -7,6 +7,9 @@ import {Card, Heading, Stack, Text} from '@misoto22/kioku-ui';
 // also brings the templates under a typecheck, which nothing else covered.
 import {BlankPage} from '../../../../packages/cli/assets/templates/pages/blank/BlankPage';
 import {DashboardPage} from '../../../../packages/cli/assets/templates/pages/dashboard/DashboardPage';
+import {ConsoleHomePage} from '../../../../packages/cli/assets/templates/pages/console-home/ConsoleHomePage';
+import {RecordsTablePage} from '../../../../packages/cli/assets/templates/pages/records-table/RecordsTablePage';
+import {AppearanceSettingsPage} from '../../../../packages/cli/assets/templates/pages/appearance-settings/AppearanceSettingsPage';
 import {LoginPage} from '../../../../packages/cli/assets/templates/pages/login/LoginPage';
 import {LoginCardPage} from '../../../../packages/cli/assets/templates/pages/login-card/LoginCardPage';
 import {LoginSplitPage} from '../../../../packages/cli/assets/templates/pages/login-split/LoginSplitPage';
@@ -33,6 +36,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Blank: Story = {render: () => <BlankPage />};
 export const Dashboard: Story = {render: () => <DashboardPage />};
+export const ConsoleHome: Story = {render: () => <ConsoleHomePage />};
+export const RecordsTable: Story = {render: () => <RecordsTablePage />};
+export const AppearanceSettings: Story = {
+  render: () => <AppearanceSettingsPage />,
+};
 export const Login: Story = {render: () => <LoginPage />};
 export const LoginCard: Story = {render: () => <LoginCardPage />};
 export const LoginSplit: Story = {render: () => <LoginSplitPage />};

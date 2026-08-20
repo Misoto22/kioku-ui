@@ -1,0 +1,5 @@
+{
+  "title": "Records table",
+  "description": "A table of records under its own narrowing: a query that shows the filters already applied, a period switch, and paging beneath.",
+  "files": ["RecordsTablePage.tsx"]
+}

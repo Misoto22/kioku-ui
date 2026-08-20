@@ -79,6 +79,7 @@ type SketchContent =
   | 'provider-form'
   | 'sso'
   | 'switches'
+  | 'table'
   | 'tiles'
   | 'transcript';
 
@@ -97,6 +98,9 @@ export const sketches: Readonly<Record<string, TemplateSketch>> = {
   blank: {chrome: 'rail', content: 'blank'},
   'contact-form': {chrome: 'none', content: 'notice-form'},
   dashboard: {chrome: 'rail', content: 'tiles'},
+  'console-home': {chrome: 'rail', content: 'tiles'},
+  'records-table': {chrome: 'none', content: 'table'},
+  'appearance-settings': {chrome: 'none', content: 'form'},
   'form-two-column': {chrome: 'none', content: 'columns'},
   login: {chrome: 'none', content: 'form'},
   'login-card': {chrome: 'card', content: 'form'},
@@ -298,6 +302,33 @@ function SketchBody({content}: {readonly content: SketchContent}) {
           }}
         >
           <CopyLines />
+        </div>
+      );
+    }
+
+    // A page of records reads as its narrowing over a ruled grid, which is
+    // what tells it apart from the tiles a dashboard shows.
+    case 'table': {
+      return (
+        <div style={{...stack, flex: 1}}>
+          <div style={{...row, blockSize: 'var(--kioku-ui-spacing-md)'}}>
+            <span style={{...paper, flex: 3}} />
+            <span style={{...paper, flex: 1}} />
+          </div>
+          <div
+            style={{
+              ...paper,
+              ...stack,
+              flex: 1,
+              gap: 'var(--kioku-ui-border-width)',
+              padding: 'var(--kioku-ui-spacing-xs)',
+            }}
+          >
+            <Mark tone="strong" width="100%" />
+            <Mark width="100%" />
+            <Mark width="100%" />
+            <Mark width="100%" />
+          </div>
         </div>
       );
     }

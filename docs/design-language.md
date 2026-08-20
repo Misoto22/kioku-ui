@@ -90,19 +90,17 @@ is why `NavItem` draws no bar and adds no weight; `aria-current` carries the
 fact for anyone who cannot see the ink. Keep the bar for a mark that has to
 survive beside longer content — a menu row, a selected table row.
 
-`SegmentedControl` used to be listed here as the one documented exception —
-its selected option took `colorSurfaceRaised` + `elevationLow`, on the argument
-that the control's whole metaphor is a physical switch. It is no longer an
-exception, because the exception did not survive the dark skins: raised
-measures **1.03:1** against the groove it sits in (washi `#282419` on
-`#2a2620`, and the same in muji and sumi), and the `elevationLow` ring meant to
-close it measures 1.06:1. The rank the system reserves for "raised" has nowhere
-to go once the paper is already dark. The selected option now takes the second
-form above — a 2px `colorText` rail, beneath the option when the group runs
-across and down its leading edge when it stacks — which reads at the same
-strength on either paper.
+`SegmentedControl` is the one documented exception to the no-fill rule: its
+selected option gets `colorSurfaceRaised` + `elevationLow`, because the
+control's whole metaphor is a groove cut in the paper and the option in force
+is the block that has floated back up to the surface.
 
-There is no exception to this rule.
+The exception is only sound while the ladder holds. It was briefly removed
+after the selected option measured **1.03:1** against its own groove in every
+dark skin — but the fault was the palette, not the design: `surfaceRaised` had
+been set BELOW `surfaceMuted` in all three dark skins, so the rank that floats
+was darker than the well it floats out of. Read §3 again: the ladder is a
+ladder of relationships. Fixing the values restored the exception.
 
 ### 6. Tracking runs inverse to size
 
