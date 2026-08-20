@@ -51,17 +51,72 @@ const styles = stylex.create({
     color: semanticTokens.colorDisabledText,
     cursor: 'default',
   },
+  // Drawn here, like `CheckboxInput` and `RadioList`. Left native this took
+  // the engine's white fill and grey edge, and it was a step smaller than the
+  // box `CheckboxInput` draws — two controls asking the same question in the
+  // same form at two different sizes.
   control: {
-    accentColor: semanticTokens.colorAccent,
-    blockSize: semanticTokens.spacingMd,
+    appearance: 'none',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
+    blockSize: semanticTokens.spacingLg,
+    borderColor: semanticTokens.borderStrong,
+    borderRadius: semanticTokens.radiusElement,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
+    display: 'inline-block',
     flexShrink: 0,
-    inlineSize: semanticTokens.spacingMd,
+    inlineSize: semanticTokens.spacingLg,
     marginBlockStart: semanticTokens.spacingXs,
+    position: 'relative',
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
+    },
+  },
+  // One of several is a round well with a filled centre; any number of several
+  // is a square well with a tick. Both marks are ink, never a fill behind the
+  // whole control.
+  controlSingle: {borderRadius: semanticTokens.radiusFull},
+  controlCheckedSingle: {
+    '::before': {
+      backgroundColor: semanticTokens.colorText,
+      blockSize: '50%',
+      borderRadius: semanticTokens.radiusFull,
+      content: '',
+      inlineSize: '50%',
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -50%)',
+    },
+  },
+  controlCheckedMultiple: {
+    '::before': {
+      blockSize: '58%',
+      borderBlockEndColor: semanticTokens.colorText,
+      borderBlockEndStyle: semanticTokens.borderStyle,
+      borderBlockEndWidth: `calc(2 * ${semanticTokens.borderWidth})`,
+      borderInlineEndColor: semanticTokens.colorText,
+      borderInlineEndStyle: semanticTokens.borderStyle,
+      borderInlineEndWidth: `calc(2 * ${semanticTokens.borderWidth})`,
+      content: '',
+      inlineSize: '30%',
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -58%) rotate(45deg)',
+    },
+  },
+  controlDisabled: {
+    backgroundColor: semanticTokens.colorDisabledSurface,
+    borderColor: semanticTokens.borderDisabled,
+    '::before': {
+      backgroundColor: semanticTokens.colorDisabledText,
+      borderBlockEndColor: semanticTokens.colorDisabledText,
+      borderInlineEndColor: semanticTokens.colorDisabledText,
     },
   },
   content: {
@@ -160,7 +215,15 @@ export function SelectableCard({
         checked={isChecked}
         disabled={disabled}
         onChange={handleChange}
-        {...stylex.props(styles.control)}
+        {...stylex.props(
+          styles.control,
+          !multiple && styles.controlSingle,
+          isChecked &&
+            (multiple
+              ? styles.controlCheckedMultiple
+              : styles.controlCheckedSingle),
+          disabled && styles.controlDisabled,
+        )}
         type={multiple ? 'checkbox' : 'radio'}
       />
       <span {...stylex.props(styles.content)}>

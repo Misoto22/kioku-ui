@@ -8,6 +8,7 @@ import {
 } from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {useInternationalization} from '../i18n/index.js';
 import {useFieldControl} from '../Field/index.js';
 
@@ -274,7 +275,7 @@ export function Typeahead({
         type="text"
       />
       {!expanded ? null : (
-        <div {...stylex.props(styles.panel)}>
+        <div {...stylex.props(styles.panel, scrolling.region)}>
           <ul id={listboxId} role="listbox" {...stylex.props(styles.listbox)}>
             {options.map((option, index) => (
               <li

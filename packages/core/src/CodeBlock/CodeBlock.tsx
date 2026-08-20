@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import type {HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {useClipboard} from '../hooks/useClipboard.js';
 import {Button} from '../Button/index.js';
 
@@ -97,7 +98,7 @@ export function CodeBlock({
 
   return (
     <div {...props} {...stylex.props(styles.frame)}>
-      <pre {...stylex.props(styles.pre, wrap && styles.wrap)}>
+      <pre {...stylex.props(styles.pre, scrolling.region, wrap && styles.wrap)}>
         <code
           {...(language === undefined ? {} : {'data-language': language})}
           {...stylex.props(styles.code)}

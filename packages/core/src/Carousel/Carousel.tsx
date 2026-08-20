@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import {Children, useRef, type HTMLAttributes, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {useInternationalization} from '../i18n/index.js';
 import {Icon} from '../Icon/index.js';
 import {IconButton} from '../IconButton/index.js';
@@ -91,7 +92,11 @@ export function Carousel({
       role="group"
       {...stylex.props(styles.region)}
     >
-      <div ref={viewportRef} tabIndex={0} {...stylex.props(styles.viewport)}>
+      <div
+        ref={viewportRef}
+        tabIndex={0}
+        {...stylex.props(styles.viewport, scrolling.region)}
+      >
         {Children.map(children, (child, index) => (
           <div key={index} {...stylex.props(styles.slide)}>
             {child}

@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import {useId, type HTMLAttributes, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {scrolling} from '../scrolling/index.js';
 import {Overlay} from '../Overlay/index.js';
 
 // The scale stops at 38px, so the three surface widths are named multiples of
@@ -131,7 +132,7 @@ export function DialogSurface({
         role={role}
         {...stylex.props(styles.surface, styles[size])}
       >
-        <div {...stylex.props(styles.body)}>
+        <div {...stylex.props(styles.body, scrolling.region)}>
           <h2 id={titleId} {...stylex.props(styles.title)}>
             {title}
           </h2>
