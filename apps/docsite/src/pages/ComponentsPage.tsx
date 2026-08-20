@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 
 import {
   Button,

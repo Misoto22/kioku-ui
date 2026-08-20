@@ -8,6 +8,10 @@ import {DatePicker} from '../DatePicker/index.js';
 // The spacing scale has no single step that measures it.
 const boundMinimumWidth = `calc(${semanticTokens.spacing2xl} * 6)`;
 
+// The narrowest a date control stays legible at before the pair should stack.
+// The spacing scale has no single step that measures it.
+const boundMinimumWidth = `calc(${semanticTokens.spacing2xl} * 6)`;
+
 const styles = stylex.create({
   group: {
     borderStyle: 'none',

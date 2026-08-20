@@ -770,8 +770,6 @@ export function ThemesPage() {
           </Stack>
         </HStack>
 
-        <Divider />
-
         <Stack gap="md">
           <SectionRule
             label={copy.skins.label}
