@@ -23,8 +23,18 @@ const controlStyles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightBody,
     minHeight: minimumHeight,
+    // Vertical only. The UA default lets a reader drag the field wider than
+    // the column it sits in, taking the form's layout with it; height is the
+    // axis they actually want.
+    resize: 'vertical',
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    // The three longhands every other well in the system declares, so an edge
+    // that changes on hover or focus moves at the same speed as the ones
+    // beside it instead of snapping.
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     '::placeholder': {color: semanticTokens.colorTextMuted},
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,

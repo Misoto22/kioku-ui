@@ -44,14 +44,56 @@ const styles = stylex.create({
     display: 'flex',
     gap: semanticTokens.spacingSm,
   },
+  // One answer out of several, so the mark is a filled centre rather than the
+  // tick a checkbox draws. Sized as a fraction of the well so it follows a
+  // density change with it.
+  dotChosen: {
+    '::before': {
+      backgroundColor: semanticTokens.colorText,
+      blockSize: '50%',
+      borderRadius: semanticTokens.radiusFull,
+      content: '',
+      inlineSize: '50%',
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -50%)',
+    },
+  },
+  dotChosenDisabled: {
+    '::before': {backgroundColor: semanticTokens.colorDisabledText},
+  },
+  // Drawn here, not by the engine — the same move `CheckboxInput` makes, and
+  // for the same reason: left native this contributed `accent-color` and took
+  // the white fill, the grey edge and every disabled tone from the browser,
+  // none of which are in this system. It is still a real radio: the click
+  // target, the group behaviour, the arrow keys and the form value stay.
   dot: {
-    accentColor: semanticTokens.colorAccent,
+    appearance: 'none',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     blockSize: dotSize,
+    borderColor: semanticTokens.borderStrong,
+    borderRadius: semanticTokens.radiusFull,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     cursor: 'pointer',
+    display: 'inline-block',
     flexShrink: 0,
     inlineSize: dotSize,
+    marginBlockEnd: 0,
     marginBlockStart: dotFirstLineOffset,
-    ':disabled': {cursor: 'default'},
+    marginInline: 0,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    ':disabled': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      borderColor: semanticTokens.borderDisabled,
+      cursor: 'default',
+    },
+    ':hover:not(:disabled)': {borderColor: semanticTokens.borderInteractive},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
@@ -163,7 +205,11 @@ export function RadioList({
                 onValueChange?.(optionValue);
               }}
               value={optionValue}
-              {...stylex.props(styles.dot)}
+              {...stylex.props(
+                styles.dot,
+                isChosen && styles.dotChosen,
+                isChosen && disabled && styles.dotChosenDisabled,
+              )}
               type="radio"
             />
             <span {...stylex.props(styles.text)}>

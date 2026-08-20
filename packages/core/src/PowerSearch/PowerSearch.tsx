@@ -43,7 +43,15 @@ const styles = stylex.create({
     transitionProperty: 'border-color',
     transitionTimingFunction: semanticTokens.easingStandard,
     ':hover': {borderColor: semanticTokens.borderInteractive},
-    ':focus-within': {borderColor: semanticTokens.borderInteractive},
+    // Same reason as `Tokenizer`: the well spends 3px of block padding and the
+    // ring needs 4px, so drawn on the field inside it the well clipped it.
+    ':focus-within': {
+      borderColor: semanticTokens.borderInteractive,
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
   },
   input: {
     backgroundColor: 'transparent',
@@ -63,12 +71,7 @@ const styles = stylex.create({
     // is the only mark on this component nobody chose.
     '::-webkit-search-cancel-button': {appearance: 'none'},
     '::placeholder': {color: semanticTokens.colorTextMuted},
-    ':focus-visible': {
-      outlineColor: semanticTokens.colorFocus,
-      outlineOffset: semanticTokens.focusOffset,
-      outlineStyle: semanticTokens.borderStyle,
-      outlineWidth: semanticTokens.focusWidth,
-    },
+    ':focus-visible': {outlineStyle: 'none'},
   },
   // The same recipe `Token` uses for its remove control, because it is the
   // same gesture one line higher up: a visual box that tracks the type and a

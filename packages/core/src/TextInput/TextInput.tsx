@@ -20,6 +20,12 @@ const controlStyles = stylex.create({
     lineHeight: semanticTokens.lineHeightBody,
     paddingBlock: semanticTokens.spacingXs,
     paddingInline: semanticTokens.spacingSm,
+    // The three longhands every other well in the system declares, so an edge
+    // that changes on hover or focus moves at the same speed as the ones
+    // beside it instead of snapping.
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color, color',
+    transitionTimingFunction: semanticTokens.easingStandard,
     '::placeholder': {color: semanticTokens.colorTextMuted},
     ':disabled': {
       backgroundColor: semanticTokens.colorDisabledSurface,
