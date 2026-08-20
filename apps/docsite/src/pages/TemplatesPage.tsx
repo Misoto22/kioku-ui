@@ -8,13 +8,17 @@ import {
 
 import {
   CodeBlock,
+  Eyebrow,
   HStack,
   Heading,
+  Numeral,
   Stack,
   TabList,
   Text,
 } from '@misoto22/kioku-ui';
 
+import {useCopy, useLocale} from '../i18n/index.js';
+import {templates as templatesCopy} from '../i18n/templates.js';
 import {PageContainer} from '../layout/PageContainer.js';
 import {routeHref, sectionSlug, templateHref, useLocation} from '../router.js';
 
@@ -28,7 +32,26 @@ import {
 // A width is the one dimension the token contract has no role for, so both
 // grids take their column floor from the spacing scale instead of a literal.
 const minimumReadyWidth = 'calc(9 * var(--kioku-ui-spacing-2xl))';
+
+// The command block needs a floor of its own: it holds one unbreakable line
+// plus its copy control, and a flex item with neither a basis nor a minimum
+// gives that line up to the paragraph beside it and clips it under the button.
+const commandMeasure = 'calc(12 * var(--kioku-ui-spacing-2xl))';
 const minimumPlannedWidth = 'calc(10 * var(--kioku-ui-spacing-2xl))';
+
+/**
+ * How far a paragraph may run. A measure used to be written here in `ch`, and
+ * `ch` is the width of the Latin zero — it has nothing to do with the CJK em,
+ * so the same number reads as a comfortable English line and as a Chinese line
+ * twice too long. A measure is therefore a length like every other dimension
+ * on these pages: built out of the spacing scale, and picked per script.
+ */
+const proseMeasure = {
+  // Roughly 75 Latin characters at body size.
+  latin: 'calc(24 * var(--kioku-ui-spacing-2xl))',
+  // Roughly 45 hanzi, which is where a CJK line stops being walkable.
+  han: 'calc(22 * var(--kioku-ui-spacing-2xl))',
+} as const;
 
 // ---------------------------------------------------------------------------
 // The layout sketch
@@ -692,40 +715,6 @@ export function TemplateThumbnail({sketch}: {readonly sketch: TemplateSketch}) {
 
 // ---------------------------------------------------------------------------
 
-/** A figure is set in the mono face and tabular, so a row of them lines up. */
-function Figure({children}: {readonly children: ReactNode}) {
-  return (
-    <span
-      style={{
-        color: 'var(--kioku-ui-color-text)',
-        fontFamily: 'var(--kioku-ui-typography-font-family-mono)',
-        fontSize: 'var(--kioku-ui-typography-font-size-sm)',
-        fontVariantNumeric: 'tabular-nums',
-        letterSpacing: 'var(--kioku-ui-typography-letter-spacing-mono)',
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-/** The label of last resort: it names a thing without competing with it. */
-function Eyebrow({children}: {readonly children: ReactNode}) {
-  return (
-    <span
-      style={{
-        color: 'var(--kioku-ui-color-text-secondary)',
-        fontFamily: 'var(--kioku-ui-typography-font-family-heading)',
-        fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-        letterSpacing: 'var(--kioku-ui-typography-letter-spacing-eyebrow)',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 /** The hairline that keeps two figures from reading as one number. */
 function Slash() {
   return (
@@ -747,8 +736,10 @@ function SectionRule({
 }) {
   return (
     <HStack align="center" gap="md">
-      <Eyebrow>{label}</Eyebrow>
-      <Figure>{count}</Figure>
+      <Eyebrow style={{whiteSpace: 'nowrap'}}>{label}</Eyebrow>
+      <Text size="sm">
+        <Numeral>{count}</Numeral>
+      </Text>
       <Text size="sm" tone="muted">
         {note}
       </Text>
@@ -836,16 +827,13 @@ function ReadyCard({entry}: {readonly entry: TemplateEntry}) {
           <Heading level={3} size="subsection">
             {entry.title}
           </Heading>
-          <span
-            style={{
-              color: 'var(--kioku-ui-color-text-muted)',
-              fontFamily: 'var(--kioku-ui-typography-font-family-mono)',
-              fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-              letterSpacing: 'var(--kioku-ui-typography-letter-spacing-mono)',
-            }}
-          >
-            {entry.id}
-          </span>
+          {/*
+            The id is what the CLI answers to, so it is set in the mono face
+            and stays Latin in either language.
+          */}
+          <Eyebrow tone="muted">
+            <Numeral>{entry.id}</Numeral>
+          </Eyebrow>
         </HStack>
         <Text size="sm" tone="secondary">
           {entry.description}
@@ -855,7 +843,13 @@ function ReadyCard({entry}: {readonly entry: TemplateEntry}) {
   );
 }
 
-function PlannedRow({entry}: {readonly entry: TemplateEntry}) {
+function PlannedRow({
+  category,
+  entry,
+}: {
+  readonly category: string;
+  readonly entry: TemplateEntry;
+}) {
   return (
     <LinkSurface
       hovered={{borderColor: 'var(--kioku-ui-border-interactive)'}}
@@ -879,7 +873,7 @@ function PlannedRow({entry}: {readonly entry: TemplateEntry}) {
       <Text size="sm" tone="secondary">
         {entry.title}
       </Text>
-      <Eyebrow>{entry.category.toLocaleUpperCase('en')}</Eyebrow>
+      <Eyebrow>{category}</Eyebrow>
     </LinkSurface>
   );
 }
@@ -897,6 +891,11 @@ function PlannedRow({entry}: {readonly entry: TemplateEntry}) {
 export function TemplatesPage() {
   const location = useLocation();
   const resultsId = useId();
+  const copy = useCopy(templatesCopy);
+  const {locale} = useLocale();
+  // The measure follows the script: a Chinese line the eye can walk back from
+  // is about half the characters an English one is.
+  const prose = locale === 'zh' ? proseMeasure.han : proseMeasure.latin;
 
   const category: TemplateCategory =
     templateCategories.find(
@@ -928,37 +927,37 @@ export function TemplatesPage() {
     <PageContainer>
       <Stack gap="xl">
         <HStack align="end" gap="2xl" justify="between" wrap>
-          <Stack gap="sm">
-            <Eyebrow>TEMPLATE GALLERY</Eyebrow>
+          <Stack gap="sm" style={{flex: '1 1 auto'}}>
+            <Eyebrow>{copy.eyebrow}</Eyebrow>
             <Heading level={1} size="page">
-              Templates
+              {copy.title}
             </Heading>
-            <Text style={{maxWidth: '68ch'}} tone="secondary">
-              Whole pages, copied into your repository as source you own.
-              Nothing here is a black box you import.
+            <Text style={{maxWidth: prose}} tone="secondary">
+              {copy.intro}
             </Text>
           </Stack>
 
-          <Stack gap="sm">
-            <Eyebrow>COPY ONE IN</Eyebrow>
-            <CodeBlock
-              wrap
-              code="kioku-ui add pages dashboard"
-              language="bash"
-            />
+          <Stack gap="sm" style={{flex: `0 1 ${commandMeasure}`}}>
+            {/*
+              The gallery is every template, so the line it offers names none of
+              them: an id that happened to be `dashboard` read as the command
+              for whichever card the eye had just landed on.
+            */}
+            <Eyebrow>{copy.copyOneIn}</Eyebrow>
+            <CodeBlock wrap code={copy.command} language="bash" />
           </Stack>
         </HStack>
 
         <HStack align="end" gap="lg" justify="between" wrap>
           <TabList
-            label="Template category"
+            label={copy.categoryLabel}
             onSelect={(id) => show(id as TemplateCategory)}
             selectedId={category}
             style={{flex: 1}}
             tabs={templateCategories.map((entry) => ({
               controls: resultsId,
               id: entry,
-              label: entry,
+              label: copy.categories[entry],
             }))}
           />
           <HStack
@@ -973,14 +972,14 @@ export function TemplatesPage() {
               paddingBlockEnd: 'var(--kioku-ui-spacing-md)',
             }}
           >
-            <Figure>{ready.length}</Figure>
-            <span>ready</span>
+            <Numeral>{ready.length}</Numeral>
+            <span>{copy.counts.ready}</span>
             <Slash />
-            <Figure>{planned.length}</Figure>
-            <span>planned</span>
+            <Numeral>{planned.length}</Numeral>
+            <span>{copy.counts.planned}</span>
             <Slash />
-            <Figure>{shown.length}</Figure>
-            <span>in the catalogue</span>
+            <Numeral>{shown.length}</Numeral>
+            <span>{copy.counts.inCatalogue}</span>
           </HStack>
         </HStack>
 
@@ -988,8 +987,8 @@ export function TemplatesPage() {
           <Stack gap="md">
             <SectionRule
               count={ready.length}
-              label="READY"
-              note="written into your repository today"
+              label={copy.ready.label}
+              note={copy.ready.note}
             />
             <div
               style={{
@@ -1008,8 +1007,8 @@ export function TemplatesPage() {
             <Stack gap="md">
               <SectionRule
                 count={planned.length}
-                label="PLANNED"
-                note="ids reserved, page not written yet — listed because hiding them would understate the catalogue"
+                label={copy.planned.label}
+                note={copy.planned.note}
               />
               <div
                 style={{
@@ -1019,7 +1018,11 @@ export function TemplatesPage() {
                 }}
               >
                 {planned.map((entry) => (
-                  <PlannedRow entry={entry} key={entry.id} />
+                  <PlannedRow
+                    category={copy.categories[entry.category]}
+                    entry={entry}
+                    key={entry.id}
+                  />
                 ))}
               </div>
             </Stack>

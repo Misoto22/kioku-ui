@@ -75,6 +75,7 @@ import {checkboxInputDoc} from '../CheckboxInput/CheckboxInput.doc.js';
 import {checkboxListDoc} from '../CheckboxList/CheckboxList.doc.js';
 import {complexSelectorDoc} from '../ComplexSelector/ComplexSelector.doc.js';
 import {dateInputDoc} from '../DateInput/DateInput.doc.js';
+import {datePickerDoc} from '../DatePicker/DatePicker.doc.js';
 import {dateRangeInputDoc} from '../DateRangeInput/DateRangeInput.doc.js';
 import {dateTimeInputDoc} from '../DateTimeInput/DateTimeInput.doc.js';
 import {fieldStatusDoc} from '../FieldStatus/FieldStatus.doc.js';
@@ -217,6 +218,7 @@ export {
   checkboxListDoc,
   complexSelectorDoc,
   dateInputDoc,
+  datePickerDoc,
   dateRangeInputDoc,
   dateTimeInputDoc,
   fieldStatusDoc,
@@ -327,6 +329,7 @@ export const componentDocs: readonly ComponentDoc[] = Object.freeze([
   fileInputDoc,
   sliderDoc,
   dateInputDoc,
+  datePickerDoc,
   timeInputDoc,
   dateTimeInputDoc,
   dateRangeInputDoc,

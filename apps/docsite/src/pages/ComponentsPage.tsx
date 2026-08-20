@@ -1,5 +1,4 @@
 import {useMemo, useState} from 'react';
-import type {CSSProperties, ReactNode} from 'react';
 
 import {
   Button,
@@ -7,6 +6,7 @@ import {
   Code,
   Divider,
   EmptyState,
+  Eyebrow,
   Heading,
   HStack,
   Kbd,
@@ -19,8 +19,12 @@ import {
   useHotkeys,
   useMediaQuery,
 } from '@misoto22/kioku-ui';
+import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 
+import {components} from '../i18n/components.js';
+import {useCopy, useLocale} from '../i18n/index.js';
 import {PageContainer} from '../layout/PageContainer.js';
+import {railOffset, railScroll} from '../layout/sticky.js';
 import {componentHref, routeHref, sectionSlug, useLocation} from '../router.js';
 
 import {
@@ -46,20 +50,19 @@ const startHere = ['Button', 'Stack', 'Table', 'ThemeProvider'];
 // custom property, so those stay literal.
 const measure = 'var(--kioku-ui-spacing-2xl)';
 
-const eyebrowStyle: CSSProperties = {
-  color: 'var(--kioku-ui-color-text-secondary)',
-  fontFamily: 'var(--kioku-ui-typography-font-family-display)',
-  fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-  fontWeight: 'var(--kioku-ui-typography-font-weight-medium)',
-  letterSpacing: 'var(--kioku-ui-typography-letter-spacing-eyebrow)',
-  lineHeight: 'var(--kioku-ui-typography-line-height-heading)',
-  textTransform: 'uppercase',
-};
-
-/** The label of last resort: it names a thing without competing with it. */
-function Eyebrow({children}: {readonly children: ReactNode}) {
-  return <span style={eyebrowStyle}>{children}</span>;
-}
+/**
+ * How far a paragraph may run. A measure used to be written here in `ch`, and
+ * `ch` is the width of the Latin zero — it has nothing to do with the CJK em,
+ * so the same number reads as a comfortable English line and as a Chinese line
+ * twice too long. A measure is therefore a length like every other dimension
+ * on these pages: built out of the spacing scale, and picked per script.
+ */
+const proseMeasure = {
+  // Roughly 75 Latin characters at body size.
+  latin: `calc(24 * ${measure})`,
+  // Roughly 45 hanzi, which is where a CJK line stops being walkable.
+  han: `calc(22 * ${measure})`,
+} as const;
 
 function findEntry(name: string): CatalogEntry | undefined {
   return allEntries.find((entry) => entry.name === name);
@@ -86,6 +89,17 @@ export function ComponentsPage() {
   const [query, setQuery] = useState('');
   const wide = useMediaQuery('(min-width: 60rem)');
   const location = useLocation();
+  const copy = useCopy(components);
+  const {locale} = useLocale();
+  // The measure follows the script, not the page: Chinese sets no word space
+  // and its glyphs are square, so the line that is comfortable in one is half
+  // as many characters in the other.
+  const prose = locale === 'zh' ? proseMeasure.han : proseMeasure.latin;
+
+  /** A group's own name in the language the page is being read in. */
+  function groupName(title: string): string {
+    return copy.groups[title] ?? title;
+  }
 
   // The `/` hint above the field is only honest if `/` does something.
   useHotkeys({
@@ -105,6 +119,8 @@ export function ComponentsPage() {
   // Two filters over one list, in the order the reader applied them: the route
   // chooses which groups are on the page, the search box chooses what is left
   // inside them.
+  // One group on screen is a chosen group, whether it was chosen from the rail
+  // or narrowed to by the search field.
   const groups = useMemo(() => {
     const chosen =
       location.group === null
@@ -130,6 +146,7 @@ export function ComponentsPage() {
       .filter((group) => group.entries.length > 0);
   }, [location.group, query]);
 
+  const roster = groups.length === 1;
   const matches = groups.reduce(
     (total, group) => total + group.entries.length,
     0,
@@ -152,21 +169,21 @@ export function ComponentsPage() {
             gap="lg"
             style={{
               alignSelf: 'start',
-              insetBlockStart: 'var(--kioku-ui-spacing-2xl)',
+              insetBlockStart: railOffset,
               maxHeight: `calc(100vh - 5 * ${measure})`,
-              overflowY: 'auto',
+              ...railScroll,
               position: 'sticky',
             }}
           >
             <Stack gap="xs">
-              <Eyebrow>Component groups</Eyebrow>
-              <NavMenu label="Component groups">
+              <Eyebrow>{copy.groupsLabel}</Eyebrow>
+              <NavMenu label={copy.groupsLabel}>
                 {/* The way back out, and the state the index starts in. */}
                 <NavItem
                   current={location.group === null}
                   href={routeHref('components')}
                 >
-                  <span style={{flex: '1 1 auto'}}>Everything</span>
+                  <span style={{flex: '1 1 auto'}}>{copy.everything}</span>
                   <Numeral>{allEntries.length}</Numeral>
                 </NavItem>
                 {componentCatalog.map((group) => (
@@ -175,7 +192,9 @@ export function ComponentsPage() {
                     href={routeHref('components', {group: group.title})}
                     key={group.title}
                   >
-                    <span style={{flex: '1 1 auto'}}>{group.title}</span>
+                    <span style={{flex: '1 1 auto'}}>
+                      {groupName(group.title)}
+                    </span>
                     <Numeral>{group.entries.length}</Numeral>
                   </NavItem>
                 ))}
@@ -185,32 +204,26 @@ export function ComponentsPage() {
             <Divider />
 
             <Stack gap="xs">
-              <Eyebrow>In the library</Eyebrow>
+              <Eyebrow>{copy.inLibrary.label}</Eyebrow>
               <Heading family="display" level={2} size="section">
-                <span
-                  style={{
-                    fontFamily: 'var(--kioku-ui-typography-font-family-mono)',
-                    fontVariantNumeric: 'tabular-nums',
-                    letterSpacing:
-                      'var(--kioku-ui-typography-letter-spacing-mono)',
-                  }}
-                >
-                  {allEntries.length}
-                </span>
+                <Numeral>{allEntries.length}</Numeral>
               </Heading>
               <Text size="sm" tone="muted">
-                components, none planned and none stubbed. Every one carries its
-                own documentation, tests, and a Storybook story.
+                {copy.inLibrary.note}
               </Text>
             </Stack>
 
             <Divider />
 
             <Stack gap="xs">
-              <Eyebrow>Accessibility</Eyebrow>
+              <Eyebrow>{copy.accessibility.label}</Eyebrow>
+              {/*
+                The skin count is read off the pack rather than written into the
+                sentence, so a theme added or dropped cannot leave this page
+                claiming a number the audit no longer runs.
+              */}
               <Text size="sm" tone="muted">
-                Every story is audited with axe across all three themes in both
-                colour modes, fingerprinted against a committed baseline.
+                {copy.accessibility.audit(kiokuThemes.length)}
               </Text>
               <span style={{alignSelf: 'start'}}>
                 <Code>pnpm a11y:audit</Code>
@@ -223,7 +236,7 @@ export function ComponentsPage() {
           <Stack gap="md">
             <HStack align="end" gap="lg" justify="between" wrap>
               <Heading family="display" level={1} size="page">
-                Browse the library
+                {copy.title}
               </Heading>
               {/* The one seal on this page. */}
               <Button
@@ -231,37 +244,41 @@ export function ComponentsPage() {
                   window.open(storybookOrigin, '_blank', 'noopener');
                 }}
               >
-                Open Storybook
+                {copy.openStorybook}
               </Button>
             </HStack>
 
-            <Text size="lg" style={{maxWidth: '96ch'}} tone="secondary">
-              Grouped the way a reader looks for things rather than the way the
-              source is laid out — the group names and their order mirror the
-              reference system this library is aligned with, so anyone moving
-              between the two finds the same component in the same place.
+            <Text size="lg" style={{maxWidth: prose}} tone="secondary">
+              {copy.intro}
             </Text>
 
             <HStack align="center" gap="lg" wrap>
               <HStack align="center" gap="sm">
                 <div style={{width: `calc(11 * ${measure})`}}>
                   <TextInput
-                    aria-label="Search components"
+                    aria-label={copy.search}
                     id={searchId}
                     onValueChange={setQuery}
-                    placeholder="Search components"
+                    placeholder={copy.search}
                     type="search"
                     value={query}
                   />
                 </div>
                 <Kbd>/</Kbd>
               </HStack>
+              {/*
+                The catalogue holds the particles, the page sets the figures:
+                only the digits take the mono face, which is what rule 44 asks
+                for and what a sentence in either language wants.
+              */}
               <Eyebrow>
-                <Numeral>
-                  {matches} of {allEntries.length}
-                </Numeral>{' '}
-                shown · <Numeral>{groups.length}</Numeral>{' '}
-                {groups.length === 1 ? 'group' : 'groups'}
+                {copy.shown.lead}
+                <Numeral>{matches}</Numeral>
+                {copy.shown.ofTotal}
+                <Numeral>{allEntries.length}</Numeral>
+                {copy.shown.thenGroups}
+                <Numeral>{groups.length}</Numeral>
+                {copy.shown.tail(groups.length)}
               </Eyebrow>
             </HStack>
 
@@ -272,15 +289,13 @@ export function ComponentsPage() {
               the heading only invites the reader to reconcile two numbers.
             */}
             <Text aria-live="polite" size="sm" tone="muted">
-              {query === ''
-                ? ''
-                : `${matches} ${matches === 1 ? 'match' : 'matches'} for “${query}”`}
+              {query === '' ? '' : copy.matches(matches, query)}
             </Text>
           </Stack>
 
           {query === '' && location.group === null ? (
             <Stack gap="sm">
-              <Eyebrow>Start here</Eyebrow>
+              <Eyebrow>{copy.startHere}</Eyebrow>
               <div
                 style={{
                   display: 'grid',
@@ -293,7 +308,7 @@ export function ComponentsPage() {
                   return entry === undefined ? null : (
                     <Card elevation="low" key={name}>
                       <Stack gap="xs">
-                        <Eyebrow>{groupOf(name)}</Eyebrow>
+                        <Eyebrow>{groupName(groupOf(name))}</Eyebrow>
                         <a
                           href={componentHref(name)}
                           style={{
@@ -324,7 +339,7 @@ export function ComponentsPage() {
                 action={
                   location.group === null ? (
                     <Button onClick={() => setQuery('')} variant="secondary">
-                      Clear search
+                      {copy.empty.clearSearch}
                     </Button>
                   ) : (
                     <Button
@@ -334,30 +349,40 @@ export function ComponentsPage() {
                       }}
                       variant="secondary"
                     >
-                      Show every group
+                      {copy.empty.showEveryGroup}
                     </Button>
                   )
                 }
                 detail={
                   location.group === null
-                    ? 'Try a shorter word, or clear the search to see everything.'
-                    : 'Nothing in this group answers to that. Try a shorter word, or widen the index to every group.'
+                    ? copy.empty.detailOverall
+                    : copy.empty.detailInGroup
                 }
-                title="Nothing matches that"
+                title={copy.empty.title}
               />
             </Card>
           ) : (
             /*
-              One index in four columns rather than four hand-packed columns:
-              the groups flow, so adding a component cannot leave a column
-              short. Each group is kept whole so a heading never ends a column
-              with its list starting in the next one.
+              Two jobs, two layouts. Browsing every group is a four-column
+              index: the groups flow, so adding a component cannot leave a
+              column short, and each group is kept whole so a heading never
+              ends a column with its list starting in the next one.
+
+              Reading ONE group is not that job. A single group fills one of
+              the four columns and leaves the other three empty — about 700px
+              of the content region — so it gets a roster instead: rows across
+              the full measure, each carrying what the component is, which is
+              the question a reader who has already chosen a group is asking.
             */
             <div
-              style={{
-                columnGap: 'var(--kioku-ui-spacing-2xl)',
-                columnWidth: `calc(7 * ${measure})`,
-              }}
+              style={
+                roster
+                  ? undefined
+                  : {
+                      columnGap: 'var(--kioku-ui-spacing-2xl)',
+                      columnWidth: `calc(7 * ${measure})`,
+                    }
+              }
             >
               {groups.map((group) => (
                 <div
@@ -378,17 +403,40 @@ export function ComponentsPage() {
                     }}
                   >
                     <Heading level={2} size="subsection">
-                      {group.title}
+                      {groupName(group.title)}
                     </Heading>
                     <Numeral>{group.entries.length}</Numeral>
                   </HStack>
-                  <NavMenu label={`${group.title} components`}>
+                  <NavMenu label={copy.groupMenu(groupName(group.title))}>
                     {group.entries.map((entry) => (
                       <NavItem
                         href={componentHref(entry.name)}
                         key={entry.name}
                       >
-                        {entry.name}
+                        <span
+                          style={
+                            roster
+                              ? {flex: 'none', minWidth: `calc(6 * ${measure})`}
+                              : undefined
+                          }
+                        >
+                          {entry.name}
+                        </span>
+                        {roster ? (
+                          <span
+                            style={{
+                              color: 'var(--kioku-ui-color-text-muted)',
+                              fontSize:
+                                'var(--kioku-ui-typography-font-size-sm)',
+                              minWidth: 0,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {entry.description}
+                          </span>
+                        ) : null}
                       </NavItem>
                     ))}
                   </NavMenu>

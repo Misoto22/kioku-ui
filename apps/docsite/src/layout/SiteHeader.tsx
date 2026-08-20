@@ -16,25 +16,37 @@ import {
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 
 import {pageMeasure} from './PageContainer.js';
+import {chrome} from '../i18n/chrome.js';
+import {localeNames, locales, useCopy, useLocale} from '../i18n/index.js';
 import {routeHref, type Route} from '../router.js';
 
-const destinations: readonly {label: string; route: Route}[] = [
-  {label: 'Docs', route: 'docs'},
-  {label: 'Components', route: 'components'},
-  {label: 'Templates', route: 'templates'},
-  {label: 'Themes', route: 'themes'},
-];
+const destinations = [
+  'docs',
+  'components',
+  'templates',
+  'themes',
+] as const satisfies readonly Exclude<Route, 'home'>[];
 
 const repository = 'https://github.com/Misoto22/kioku-ui';
 
 // Three appearances, not two. `system` is a state of its own — it omits
 // `color-scheme` so the reader's own setting decides — and a control with two
 // positions cannot say it, which is why this is a menu rather than a switch.
-const appearances: readonly {id: ColorMode; label: string}[] = [
-  {id: 'light', label: 'Light'},
-  {id: 'dark', label: 'Dark'},
-  {id: 'system', label: 'System'},
-];
+const appearances = [
+  'light',
+  'dark',
+  'system',
+] as const satisfies readonly ColorMode[];
+
+/**
+ * How much of a trigger survives at this width.
+ *
+ * The value goes first, because it is the part the glyph already stands for.
+ * The chevron goes second, and only where the control has folded to a single
+ * square — at that size the glyph alone is the whole affordance and a chevron
+ * beside it would take a third of the button to say what the tap already says.
+ */
+type Density = 'compact' | 'full' | 'glyph';
 
 function ExternalGlyph() {
   return (
@@ -71,6 +83,59 @@ function CheckGlyph() {
     <Icon viewBox="0 0 16 16">
       <path
         d="m3.5 8.5 3 3 6-6.5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </Icon>
+  );
+}
+
+/** Two sheets, one laid over the other: a skin is a sheet swapped for another. */
+function SkinGlyph() {
+  return (
+    <Icon viewBox="0 0 16 16">
+      <rect
+        fill="none"
+        height="7.4"
+        rx="1.2"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+        width="7.4"
+        x="2.2"
+        y="4.4"
+      />
+      <path
+        d="M6.4 4.4V3.2a1 1 0 0 1 1-1h5.4a1 1 0 0 1 1 1v5.4a1 1 0 0 1-1 1h-1.2"
+        fill="none"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </Icon>
+  );
+}
+
+/**
+ * A globe with a meridian: the one glyph in the cluster that has to be read by
+ * someone who cannot read the page it sits on, so it says nothing in words.
+ */
+function LanguageGlyph() {
+  return (
+    <Icon viewBox="0 0 16 16">
+      <circle
+        cx="8"
+        cy="8"
+        fill="none"
+        r="5.9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M2.1 8h11.8M8 2.1c1.7 1.6 2.6 3.7 2.6 5.9S9.7 12.3 8 13.9M8 2.1C6.3 3.7 5.4 5.8 5.4 8s.9 4.3 2.6 5.9"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -137,28 +202,34 @@ function AppearanceGlyph({mode}: {readonly mode: ColorMode}) {
 /**
  * One control in the banner's trailing cluster: a ghost trigger that shows
  * what is in use, and the list of what else there is with the one in use
- * marked. Both settings up there are the same instrument, so they are the
- * same component rather than two spellings of it.
+ * marked. All three settings up there are the same instrument, so they are the
+ * same component rather than three spellings of it — and the trigger is
+ * composed here rather than by each caller, which is what keeps them identical
+ * as the bar narrows.
  *
- * The trigger names the setting as well as its value — "Skin: Washi", not
- * "Washi" — because a word alone in a banner is a value with no question
- * attached to it. The visible word stays inside that name rather than being
- * replaced by it.
+ * The accessible name always carries the setting as well as its value — "Skin:
+ * Washi", not "Washi" — at every density. A word alone in a banner is a value
+ * with no question attached to it, and at the narrowest width there is no
+ * visible word at all.
  */
 function ClusterMenu<Id extends string>({
+  density,
+  glyph,
   items,
   label,
   onSelect,
   selected,
-  trigger,
   triggerLabel,
+  value,
 }: {
+  readonly density: Density;
+  readonly glyph: ReactNode;
   readonly items: readonly {readonly id: Id; readonly label: string}[];
   readonly label: string;
   readonly onSelect: (id: Id) => void;
   readonly selected: Id;
-  readonly trigger: ReactNode;
   readonly triggerLabel: string;
+  readonly value: string;
 }) {
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
@@ -171,11 +242,13 @@ function ClusterMenu<Id extends string>({
           aria-haspopup="menu"
           aria-label={triggerLabel}
           onClick={() => {
-            setOpen((value) => !value);
+            setOpen((current) => !current);
           }}
           variant="ghost"
         >
-          {trigger}
+          {glyph}
+          {density === 'full' ? value : null}
+          {density === 'glyph' ? null : <ChevronGlyph />}
         </Button>
       </span>
       <DropdownMenu
@@ -209,6 +282,41 @@ function ClusterMenu<Id extends string>({
   );
 }
 
+/**
+ * The link out to the source, drawn in two places: in the bar while there is
+ * room for it, and inside the sheet once there is not. In the sheet it always
+ * keeps its word — a sheet is a column of names, and a lone glyph among them
+ * reads as a row that failed to load.
+ */
+function RepositoryLink({
+  label,
+  labelled,
+}: {
+  readonly label: string;
+  readonly labelled: boolean;
+}) {
+  return (
+    <NavItem
+      {...(labelled ? {} : {'aria-label': label})}
+      href={repository}
+      rel="noreferrer"
+      style={{
+        // The banner's own label size and weight, so the link reads as a
+        // member of the cluster rather than as a sentence that wandered in.
+        // Everything else — height, ink ranks, the mark under the pointer — is
+        // what `NavItem` already draws for the destinations on the other side
+        // of the bar.
+        fontSize: 'var(--kioku-ui-typography-font-size-sm)',
+        fontWeight: 'var(--kioku-ui-typography-font-weight-medium)',
+      }}
+      target="_blank"
+    >
+      {labelled ? label : null}
+      <ExternalGlyph />
+    </NavItem>
+  );
+}
+
 interface SiteHeaderProps {
   readonly current: Route;
   readonly onNavigate: (route: Route) => void;
@@ -227,28 +335,55 @@ interface SiteHeaderProps {
  * on every page of this site that one belongs to the page, not the banner.
  *
  * The trailing cluster is one instrument rather than three souvenirs. Skin,
- * appearance and source are all `sizeControlMd` tall, all centred on the same
+ * appearance and language are all `sizeControlMd` tall, all centred on the same
  * line, all ghost weight in the second rank of ink, and they are parted by
- * `spacingXs` — the same gap the destinations on the other side are parted by
- * — instead of by whatever each one happened to bring with it. Appearance and
- * skin are also the same control twice, because they are the same kind of
- * choice: one setting in use, a short list of alternatives, no emphasis.
+ * `spacingXs` — the same gap the destinations on the other side are parted by.
+ * They are also literally the same control three times, because they are the
+ * same kind of choice: one setting in use, a short list of alternatives, no
+ * emphasis.
+ *
+ * It gives way in a fixed order as the bar narrows. First the values go, since
+ * a glyph and a chevron still say there is a choice here. Then skin and the
+ * repository link fold into the sheet. Language never folds: a reader who
+ * cannot read this page has to be able to leave it from the bar, and a setting
+ * buried behind a hamburger labelled in a language they do not read is not a
+ * way out.
  */
 export function SiteHeader({current, onNavigate}: SiteHeaderProps) {
-  const wide = useMediaQuery('(min-width: 56rem)');
+  // Two thresholds, not one. Between them the bar keeps its destinations and
+  // its whole cluster and spends nothing on the values.
+  const spacious = useMediaQuery('(min-width: 64rem)');
+  const wide = useMediaQuery('(min-width: 55rem)');
   const {mode, setMode, setThemeId, theme} = useTheme();
-  const appearance = appearances.find(({id}) => id === mode)?.label ?? mode;
+  const {locale, setLocale} = useLocale();
+  const copy = useCopy(chrome);
 
-  const links: ReactNode[] = destinations.map((destination) => (
+  const density: Density = spacious ? 'full' : wide ? 'compact' : 'glyph';
+  const appearance = copy.appearance.options[mode];
+
+  const links: ReactNode[] = destinations.map((route) => (
     <NavItem
-      current={destination.route === current}
-      href={routeHref(destination.route)}
-      key={destination.route}
-      onClick={() => onNavigate(destination.route)}
+      current={route === current}
+      href={routeHref(route)}
+      key={route}
+      onClick={() => onNavigate(route)}
     >
-      {destination.label}
+      {copy.destinations[route]}
     </NavItem>
   ));
+
+  const skinMenu = (
+    <ClusterMenu
+      density={wide ? density : 'full'}
+      glyph={<SkinGlyph />}
+      items={kiokuThemes.map(({id, label}) => ({id, label}))}
+      label={copy.skin.label}
+      onSelect={setThemeId}
+      selected={theme.id}
+      triggerLabel={copy.skin.trigger(theme.label)}
+      value={theme.label}
+    />
+  );
 
   return (
     <header
@@ -273,6 +408,10 @@ export function SiteHeader({current, onNavigate}: SiteHeaderProps) {
         }}
       >
         <HStack gap="xl">
+          {/*
+            記憶 does not localise. It is a mark, and it keeps its mincho forms
+            whichever language the page is being read in.
+          */}
           <a
             href={routeHref('home')}
             onClick={() => onNavigate('home')}
@@ -308,57 +447,47 @@ export function SiteHeader({current, onNavigate}: SiteHeaderProps) {
             </span>
           </a>
           {wide ? (
-            <NavMenu label="Primary" orientation="horizontal">
+            <NavMenu label={copy.navigation.primary} orientation="horizontal">
               {links}
             </NavMenu>
           ) : null}
         </HStack>
 
         <HStack gap="xs">
-          {wide ? (
-            <ClusterMenu
-              items={kiokuThemes.map(({id, label}) => ({id, label}))}
-              label="Skin"
-              onSelect={setThemeId}
-              selected={theme.id}
-              trigger={
-                <>
-                  {theme.label}
-                  <ChevronGlyph />
-                </>
-              }
-              triggerLabel={`Skin: ${theme.label}`}
-            />
-          ) : null}
+          {wide ? skinMenu : null}
           <ClusterMenu
-            items={appearances}
-            label="Appearance"
+            density={density}
+            glyph={<AppearanceGlyph mode={mode} />}
+            items={appearances.map((id) => ({
+              id,
+              label: copy.appearance.options[id],
+            }))}
+            label={copy.appearance.label}
             onSelect={setMode}
             selected={mode}
-            trigger={<AppearanceGlyph mode={mode} />}
-            triggerLabel={`Appearance: ${appearance}`}
+            triggerLabel={copy.appearance.trigger(appearance)}
+            value={appearance}
+          />
+          <ClusterMenu
+            density={density}
+            glyph={<LanguageGlyph />}
+            items={locales.map((id) => ({id, label: localeNames[id]}))}
+            label={copy.language.label}
+            onSelect={setLocale}
+            selected={locale}
+            triggerLabel={copy.language.trigger(localeNames[locale])}
+            value={localeNames[locale]}
           />
           {wide ? (
-            <NavItem
-              href={repository}
-              rel="noreferrer"
-              style={{
-                // The banner's own label size and weight, so the link reads as
-                // a member of the cluster rather than as a sentence that
-                // wandered in. Everything else — height, ink ranks, the mark
-                // under the pointer — is what `NavItem` already draws for the
-                // destinations on the other side of the bar.
-                fontSize: 'var(--kioku-ui-typography-font-size-sm)',
-                fontWeight: 'var(--kioku-ui-typography-font-weight-medium)',
-              }}
-              target="_blank"
-            >
-              GitHub
-              <ExternalGlyph />
-            </NavItem>
+            <RepositoryLink
+              label={copy.repository}
+              labelled={density === 'full'}
+            />
           ) : (
-            <MobileNav label="Open navigation" title="Kioku UI">
-              <NavMenu label="Primary">{links}</NavMenu>
+            <MobileNav label={copy.navigation.open} title="Kioku UI">
+              <NavMenu label={copy.navigation.primary}>{links}</NavMenu>
+              {skinMenu}
+              <RepositoryLink label={copy.repository} labelled />
             </MobileNav>
           )}
         </HStack>

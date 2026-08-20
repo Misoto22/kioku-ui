@@ -3,6 +3,7 @@ import type {AnchorHTMLAttributes, ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
 import {Link} from '../navigation/index.js';
+import {useNavMenuOrientation} from '../NavMenu/orientation.js';
 
 // The mark is two hairlines thick: one weight above the rules that separate
 // regions, so it reads as a deliberate stroke rather than another divider.
@@ -69,6 +70,31 @@ const styles = stylex.create({
   // find, and it leaves the rail quiet. `aria-current` still carries the fact
   // for anyone who cannot see the difference.
   current: {color: semanticTokens.colorText},
+  // The icon gutter is reserved whether or not this row carries a glyph, so a
+  // menu mixing marked and unmarked rows keeps one text edge for both.
+  // `NavIcon` has promised exactly this in its own doc comment all along;
+  // nothing kept the promise, and two adjacent labels sat 22px apart.
+  gutter: {
+    blockSize: semanticTokens.fontSizeLg,
+    flexShrink: 0,
+    inlineSize: semanticTokens.fontSizeLg,
+  },
+  // Laid across, the mark moves to the block edge. A bar at the inline start
+  // of a row in a horizontal menu stands between that row and the one before
+  // it, so it reads as a divider rather than as a mark on either — and the
+  // row's own leading padding puts it nowhere near the word it marks.
+  interactiveAcross: {
+    '::before': {
+      height: markWidth,
+      insetBlockStart: 'auto',
+      insetBlockEnd: 0,
+      insetInline: semanticTokens.spacingSm,
+      transform: 'none',
+      transitionProperty: 'background-color, opacity',
+      width: 'auto',
+      opacity: {default: 0, ':hover': 1},
+    },
+  },
 });
 
 /** Props for one destination inside a navigation menu. */
@@ -93,6 +119,8 @@ export function NavItem({
   leading,
   ...props
 }: NavItemProps) {
+  const orientation = useNavMenuOrientation();
+
   return (
     <Link
       {...props}
@@ -101,9 +129,12 @@ export function NavItem({
       {...stylex.props(
         styles.item,
         current ? styles.current : styles.interactive,
+        current || orientation === 'vertical'
+          ? undefined
+          : styles.interactiveAcross,
       )}
     >
-      {leading}
+      {leading ?? <span aria-hidden="true" {...stylex.props(styles.gutter)} />}
       {children}
     </Link>
   );

@@ -80,12 +80,17 @@ const styles = stylex.create({
     paddingBlock: 0,
     paddingInline: 0,
   },
+  // A note from the transcript itself, centred across the column. It overrides
+  // the bubble measure as well as the fill: a line told to centre inside a
+  // 560px box that is itself flush left is not centred on anything the reader
+  // can see.
   bubbleSystem: {
     backgroundColor: 'transparent',
     boxShadow: 'none',
     color: semanticTokens.colorTextSecondary,
     fontSize: semanticTokens.fontSizeSm,
     letterSpacing: semanticTokens.letterSpacingBody,
+    maxWidth: 'none',
     paddingBlock: 0,
     paddingInline: 0,
     textAlign: 'center',

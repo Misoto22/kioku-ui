@@ -57,6 +57,11 @@ const styles = stylex.create({
     lineHeight: semanticTokens.lineHeightBody,
     minWidth: 0,
     padding: 0,
+    // WebKit grows its own cancel cross inside a search field. The filters
+    // directly beneath this row are drawn by `Token`, down to the hit target
+    // on their remove control — one engine-drawn cross in the middle of them
+    // is the only mark on this component nobody chose.
+    '::-webkit-search-cancel-button': {appearance: 'none'},
     '::placeholder': {color: semanticTokens.colorTextMuted},
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
@@ -64,6 +69,41 @@ const styles = stylex.create({
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+  },
+  // The same recipe `Token` uses for its remove control, because it is the
+  // same gesture one line higher up: a visual box that tracks the type and a
+  // reachable box that stays a full target.
+  clear: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: semanticTokens.radiusInner,
+    borderStyle: 'none',
+    borderWidth: 0,
+    color: semanticTokens.colorTextSecondary,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    flexShrink: 0,
+    padding: 0,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    '::before': {
+      content: '',
+      height: semanticTokens.sizeHitTarget,
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -50%)',
+      width: semanticTokens.sizeHitTarget,
+    },
+    ':focus-visible': {
+      outlineColor: semanticTokens.colorFocus,
+      outlineOffset: semanticTokens.focusOffset,
+      outlineStyle: semanticTokens.borderStyle,
+      outlineWidth: semanticTokens.focusWidth,
+    },
+    ':hover:not(:disabled)': {color: semanticTokens.colorText},
   },
   filters: {
     display: 'flex',
@@ -90,6 +130,7 @@ export interface PowerSearchProps extends Omit<
   readonly label: string;
   readonly onFiltersChange?: (filters: readonly SearchFilter[]) => void;
   readonly onSearch: (query: string) => void;
+  readonly clearLabel?: string;
   readonly placeholder?: string;
   readonly submitLabel?: ReactNode;
 }
@@ -100,6 +141,7 @@ export interface PowerSearchProps extends Omit<
  * set looks short.
  */
 export function PowerSearch({
+  clearLabel = 'Clear search',
   filters = [],
   label,
   onFiltersChange,
@@ -144,6 +186,26 @@ export function PowerSearch({
             {...stylex.props(styles.input)}
             type="search"
           />
+          {query === '' ? null : (
+            <button
+              aria-label={clearLabel}
+              onClick={() => {
+                setQuery('');
+              }}
+              type="button"
+              {...stylex.props(styles.clear)}
+            >
+              <Icon size="sm" tone="inherit">
+                <path
+                  d="M6 6 18 18M18 6 6 18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeWidth="2"
+                />
+              </Icon>
+            </button>
+          )}
         </div>
         <Button type="submit">{submitLabel}</Button>
       </div>

@@ -13,8 +13,12 @@ import {Layer} from '../Layer/index.js';
 const drawerMaxWidth = `calc(11 * ${semanticTokens.spacing2xl})`;
 
 const styles = stylex.create({
+  // The scrim is the one token that says "the page behind this is out of
+  // reach". `overlayActive` says something else entirely — it is the wash a
+  // row wears while a finger is down on it, 7% ink, which leaves the page
+  // fully legible and fully clickable-looking behind an open drawer.
   scrim: {
-    backgroundColor: semanticTokens.colorOverlayActive,
+    backgroundColor: semanticTokens.colorScrim,
     display: 'flex',
     inset: 0,
     position: 'fixed',

@@ -10,15 +10,20 @@ import {
   CodeBlock,
   Divider,
   EmptyState,
+  Eyebrow,
   HStack,
   Heading,
   NavItem,
   NavMenu,
+  Numeral,
   Stack,
   Text,
   useMediaQuery,
 } from '@misoto22/kioku-ui';
 
+import {Emphasis, useCopy} from '../i18n/index.js';
+import {templateDetail} from '../i18n/templateDetail.js';
+import {templates as templatesCopy} from '../i18n/templates.js';
 import {PageContainer} from '../layout/PageContainer.js';
 import {componentHref, routeHref, templateHref} from '../router.js';
 
@@ -51,6 +56,7 @@ import {
   type TemplateEntry,
 } from '../data/templateCatalog.js';
 import {sketches, TemplateThumbnail} from './TemplatesPage.js';
+import {railOffset, railScroll} from '../layout/sticky.js';
 
 // Every dimension the token contract has no role for is built from the spacing
 // scale rather than written as a length, so the pages grow with the density the
@@ -175,33 +181,10 @@ function composedFrom(source: string): readonly string[] {
 
 const indexed = new Set(allEntries.map((entry) => entry.name));
 
-const eyebrowStyle: CSSProperties = {
-  color: 'var(--kioku-ui-color-text-secondary)',
-  fontFamily: 'var(--kioku-ui-typography-font-family-display)',
-  fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-  fontWeight: 'var(--kioku-ui-typography-font-weight-medium)',
-  letterSpacing: 'var(--kioku-ui-typography-letter-spacing-eyebrow)',
-  lineHeight: 'var(--kioku-ui-typography-line-height-heading)',
-  textTransform: 'uppercase',
-};
-
-const figureStyle: CSSProperties = {
-  color: 'var(--kioku-ui-color-text-muted)',
-  fontFamily: 'var(--kioku-ui-typography-font-family-mono)',
-  fontSize: 'var(--kioku-ui-typography-font-size-xs)',
-  fontVariantNumeric: 'tabular-nums',
-  letterSpacing: 'var(--kioku-ui-typography-letter-spacing-mono)',
-};
-
-/** The label of last resort: it names a thing without competing with it. */
-function Eyebrow({children}: {readonly children: ReactNode}) {
-  return <span style={eyebrowStyle}>{children}</span>;
-}
-
-/** A count or a ratio, set in the mono face so columns line up. */
-function Figure({children}: {readonly children: ReactNode}) {
-  return <span style={figureStyle}>{children}</span>;
-}
+// The command sits beside the title rather than under the description, which
+// is where a reader looking for the one line they came to copy expects to find
+// it. It is held to a measure so the title block does not become two halves.
+const commandMeasure = `calc(13 * ${measure})`;
 
 /** The categories that hold at least one template, in the gallery's order. */
 function categoriesInUse(): readonly Exclude<TemplateCategory, 'All'>[] {
@@ -219,6 +202,8 @@ function categoriesInUse(): readonly Exclude<TemplateCategory, 'All'>[] {
  * which template in it the reader wanted.
  */
 function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
+  const copy = useCopy(templateDetail);
+  const gallery = useCopy(templatesCopy);
   const siblings = templateCatalog.filter(
     (candidate) => candidate.category === entry.category,
   );
@@ -231,18 +216,20 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
       gap="lg"
       style={{
         alignSelf: 'start',
-        insetBlockStart: 'var(--kioku-ui-spacing-2xl)',
+        insetBlockStart: railOffset,
         maxHeight: `calc(100vh - 5 * ${measure})`,
-        overflowY: 'auto',
+        ...railScroll,
         position: 'sticky',
       }}
     >
       <Stack gap="xs">
         <HStack align="baseline" justify="between">
-          <Eyebrow>{entry.category}</Eyebrow>
-          <Figure>{siblings.length}</Figure>
+          <Eyebrow>{gallery.categories[entry.category]}</Eyebrow>
+          <Eyebrow tone="muted">
+            <Numeral>{siblings.length}</Numeral>
+          </Eyebrow>
         </HStack>
-        <NavMenu label={`${entry.category} templates`}>
+        <NavMenu label={gallery.categories[entry.category]}>
           {siblings.map((sibling) => (
             <NavItem
               current={sibling.id === entry.id}
@@ -250,7 +237,9 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
               key={sibling.id}
             >
               <span style={{flex: '1 1 auto'}}>{sibling.title}</span>
-              {sibling.status === 'ready' ? null : <Figure>planned</Figure>}
+              {sibling.status === 'ready' ? null : (
+                <Eyebrow tone="muted">{copy.planned}</Eyebrow>
+              )}
             </NavItem>
           ))}
         </NavMenu>
@@ -259,8 +248,8 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
       <Divider />
 
       <Stack gap="xs">
-        <Eyebrow>Other categories</Eyebrow>
-        <NavMenu label="Other template categories">
+        <Eyebrow>{copy.otherCategories.label}</Eyebrow>
+        <NavMenu label={copy.otherCategories.menu}>
           {others.map((category) => {
             const first = templateCatalog.find(
               (candidate) => candidate.category === category,
@@ -271,8 +260,12 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
 
             return first === undefined ? null : (
               <NavItem href={routeHref('templates', {category})} key={category}>
-                <span style={{flex: '1 1 auto'}}>{category}</span>
-                <Figure>{count}</Figure>
+                <span style={{flex: '1 1 auto'}}>
+                  {gallery.categories[category]}
+                </span>
+                <Eyebrow tone="muted">
+                  <Numeral>{count}</Numeral>
+                </Eyebrow>
               </NavItem>
             );
           })}
@@ -340,12 +333,17 @@ const previews: Readonly<Record<string, () => ReactNode>> = {
  * to copy, dressed by the theme they are reading it in.
  */
 function Preview({render}: {readonly render: () => ReactNode}) {
+  const copy = useCopy(templateDetail);
+
   return (
     <Card elevation="low">
       <Stack gap="sm">
         <HStack align="baseline" gap="lg" justify="between">
-          <Eyebrow>Preview</Eyebrow>
-          <Figure>{Math.round(previewScale * 100)}% · not interactive</Figure>
+          <Eyebrow>{copy.preview.label}</Eyebrow>
+          <Eyebrow tone="muted">
+            <Numeral>{Math.round(previewScale * 100)}</Numeral>
+            {copy.preview.scale}
+          </Eyebrow>
         </HStack>
         <div style={previewFrameStyle}>
           <div inert style={previewPageStyle}>
@@ -353,11 +351,7 @@ function Preview({render}: {readonly render: () => ReactNode}) {
           </div>
         </div>
         <Text size="sm" tone="muted">
-          The template itself, rendered from the same file the source below
-          prints — not a picture of it, and not a second copy that could drift.
-          It is a preview rather than a demonstration: nothing inside answers to
-          the pointer or the keyboard, and it takes neither the page's focus nor
-          its scroll.
+          {copy.preview.note}
         </Text>
       </Stack>
     </Card>
@@ -376,6 +370,7 @@ function Composition({
   readonly source: string;
   readonly title: string;
 }) {
+  const copy = useCopy(templateDetail);
   const names = composedFrom(source);
   const linked = names.filter((name) => indexed.has(name));
   const rest = names.filter((name) => !indexed.has(name));
@@ -384,23 +379,31 @@ function Composition({
     <Card elevation="low">
       <Stack gap="md">
         <HStack align="baseline" gap="lg" justify="between">
-          <Eyebrow>Composes</Eyebrow>
-          <Figure>
-            {names.length} {names.length === 1 ? 'import' : 'imports'} from{' '}
-            @misoto22/kioku-ui
-          </Figure>
+          <Eyebrow>{copy.composes.label}</Eyebrow>
+          <Eyebrow tone="muted">
+            {copy.composes.figure.lead}
+            <Numeral>{names.length}</Numeral>
+            {copy.composes.figure.tail(names.length)}
+          </Eyebrow>
         </HStack>
 
+        {/*
+          The card's argument, and the one run of stress emphasis on the page.
+          `Emphasis` slants it in English and marks it with 着重号 in Chinese,
+          which has no italic to slant.
+        */}
         <Text size="sm" tone="secondary">
-          Read off the template's own imports rather than recorded by hand, so
-          the list cannot drift from the file below it. Everything here ships in
-          the package: the template adds arrangement, not components.
+          {copy.composes.argument.lead}
+          <Emphasis>{copy.composes.argument.emphasis}</Emphasis>
+          {copy.composes.argument.tail}
         </Text>
 
-        <NavMenu
-          label={`Components ${title} composes`}
-          orientation="horizontal"
-        >
+        {/*
+          Every import that has a page of its own is a link to it. Density is
+          the honest picture — a page that showed six of thirty-eight would be
+          describing a smaller template than the one the reader is copying.
+        */}
+        <NavMenu label={copy.composes.menu(title)} orientation="horizontal">
           {linked.map((name) => (
             <NavItem href={componentHref(name)} key={name}>
               {name}
@@ -408,9 +411,14 @@ function Composition({
           ))}
         </NavMenu>
 
+        {/*
+          And the rest, named rather than quietly dropped: they are real
+          exports the template really imports, and a list that silently held
+          only the linkable ones would not add up to the count above it.
+        */}
         {rest.length === 0 ? null : (
           <Stack gap="xs">
-            <Eyebrow>No page of their own</Eyebrow>
+            <Eyebrow>{copy.composes.unlisted.label}</Eyebrow>
             <Text size="sm" tone="muted">
               {rest.map((name, index) => (
                 <span key={name}>
@@ -418,8 +426,7 @@ function Composition({
                   <Code>{name}</Code>
                 </span>
               ))}
-              . Sub-parts, hooks and types are exported from the same package
-              but indexed under the component they belong to.
+              . {copy.composes.unlisted.tail}
             </Text>
           </Stack>
         )}
@@ -430,6 +437,7 @@ function Composition({
 
 /** The file itself, which is what the reader is about to own. */
 function Source({source}: {readonly source: TemplateSource}) {
+  const copy = useCopy(templateDetail);
   // Trimmed first: a file ends with a newline, and splitting on it would count
   // the empty string after the last line as a line of its own.
   const lines = source.source.trimEnd().split('\n').length;
@@ -438,17 +446,19 @@ function Source({source}: {readonly source: TemplateSource}) {
     <Card elevation="low">
       <Stack gap="sm">
         <HStack align="baseline" gap="lg" justify="between">
-          <Eyebrow>Source</Eyebrow>
-          <Figure>
-            {source.file} · {lines} lines
-          </Figure>
+          <Eyebrow>{copy.source.label}</Eyebrow>
+          <Eyebrow tone="muted">
+            <Numeral>{source.file}</Numeral>
+            {copy.source.between}
+            <Numeral>{lines}</Numeral>
+            {copy.source.lines(lines)}
+          </Eyebrow>
         </HStack>
         <div style={{maxBlockSize: sourceHeight, overflowY: 'auto'}}>
           <CodeBlock wrap code={source.source} language="tsx" />
         </div>
         <Text size="sm" tone="muted">
-          The whole file, as the CLI writes it. There is no build step and no
-          hidden half: what you read here is what lands in your repository.
+          {copy.source.note}
         </Text>
       </Stack>
     </Card>
@@ -466,6 +476,8 @@ interface TemplateDetailPageProps {
  */
 export function TemplateDetailPage({id}: TemplateDetailPageProps) {
   const wide = useMediaQuery('(min-width: 60rem)');
+  const copy = useCopy(templateDetail);
+  const gallery = useCopy(templatesCopy);
 
   const entry = templateCatalog.find((candidate) => candidate.id === id);
 
@@ -481,11 +493,11 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
                 }}
                 variant="secondary"
               >
-                Back to the gallery
+                {copy.notFound.action}
               </Button>
             }
-            detail="Nothing in the catalogue answers to that id. It may have been renamed, or the link may have been typed by hand."
-            title="No such template"
+            detail={copy.notFound.detail}
+            title={copy.notFound.title}
           />
         </Card>
       </PageContainer>
@@ -513,50 +525,57 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
         <Stack gap="lg">
           <Breadcrumbs
             items={[
-              {href: routeHref('templates'), label: 'Templates'},
+              {href: routeHref('templates'), label: gallery.title},
               {
                 href: routeHref('templates', {category: entry.category}),
-                label: entry.category,
+                label: gallery.categories[entry.category],
               },
               {label: entry.title},
             ]}
           />
 
-          <Stack gap="md">
-            <HStack align="baseline" gap="sm" wrap>
-              <Heading family="display" level={1} size="page">
-                {entry.title}
-              </Heading>
-              <Badge tone={entry.status === 'ready' ? 'success' : 'warning'}>
-                {entry.status === 'ready' ? 'Ready' : 'Planned'}
-              </Badge>
-              <Code>{entry.id}</Code>
-            </HStack>
+          {/*
+            The title and the command stand side by side rather than in one
+            column: the command is the one line a reader came to copy, and a
+            description above it is something to read past first.
+          */}
+          <HStack align="start" gap="2xl" justify="between" wrap>
+            <Stack gap="md" style={{flex: `1 1 calc(15 * ${measure})`}}>
+              <HStack align="baseline" gap="sm" wrap>
+                <Heading family="display" level={1} size="page">
+                  {entry.title}
+                </Heading>
+                <Badge tone={entry.status === 'ready' ? 'success' : 'warning'}>
+                  {entry.status === 'ready'
+                    ? copy.status.ready
+                    : copy.status.planned}
+                </Badge>
+                <Code>{entry.id}</Code>
+              </HStack>
 
-            <Text tone="secondary">{entry.description}</Text>
+              <Text tone="secondary">{entry.description}</Text>
+            </Stack>
 
             {source === undefined ? null : (
-              <Stack gap="xs">
-                {/*
-                  The command is the thing a reader came for, so it sits where
-                  the component page puts its import line — directly under the
-                  description, before anything else asks for attention.
-                */}
-                <Eyebrow>Copy it in</Eyebrow>
+              <Stack gap="xs" style={{flex: `0 1 ${commandMeasure}`}}>
+                <Eyebrow>{copy.copyItIn.label}</Eyebrow>
                 <CodeBlock
                   wrap
                   code={`kioku-ui add ${source.kind} ${entry.id}`}
                   language="bash"
                 />
                 <Text size="sm" tone="muted">
-                  Writes <Code>{source.file}</Code> into the working directory.
-                  Pass <Code>--dest</Code> to write it somewhere else, and{' '}
-                  <Code>--force</Code> to overwrite a file that is already
-                  there.
+                  {copy.copyItIn.lead}
+                  <Code>{source.file}</Code>
+                  {copy.copyItIn.middle}
+                  <Code>{copy.copyItIn.dest}</Code>
+                  {copy.copyItIn.between}
+                  <Code>{copy.copyItIn.force}</Code>
+                  {copy.copyItIn.tail}
                 </Text>
               </Stack>
             )}
-          </Stack>
+          </HStack>
 
           {source === undefined ? (
             <Card elevation="low">
@@ -568,19 +587,19 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
                     }}
                     variant="secondary"
                   >
-                    Back to the gallery
+                    {copy.reserved.action}
                   </Button>
                 }
                 detail={
                   <>
-                    The id <Code>{entry.id}</Code> is held so the catalogue and
-                    the CLI agree on what this template will be called, but the
-                    page has not been written. There is nothing to copy in yet:{' '}
-                    <Code>kioku-ui add pages {entry.id}</Code> would find
-                    nothing today. The gallery lists everything that is written.
+                    {copy.reserved.lead}
+                    <Code>{entry.id}</Code>
+                    {copy.reserved.middle}
+                    <Code>kioku-ui add pages {entry.id}</Code>
+                    {copy.reserved.tail}
                   </>
                 }
-                title="Reserved, not written yet"
+                title={copy.reserved.title}
               />
             </Card>
           ) : (
@@ -594,14 +613,12 @@ export function TemplateDetailPage({id}: TemplateDetailPageProps) {
                 sketch === undefined ? null : (
                   <Card elevation="low">
                     <Stack gap="sm">
-                      <Eyebrow>Shape</Eyebrow>
+                      <Eyebrow>{copy.shape.label}</Eyebrow>
                       <div style={{maxInlineSize: sketchWidth}}>
                         <TemplateThumbnail sketch={sketch} />
                       </div>
                       <Text size="sm" tone="muted">
-                        The regions the page is divided into, and what fills the
-                        main one. This template cannot be rendered inline, so
-                        the drawing the gallery card carries stands in for it.
+                        {copy.shape.note}
                       </Text>
                     </Stack>
                   </Card>

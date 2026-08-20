@@ -57,6 +57,37 @@ const supportedStyleSelectors = new Set([
   // platform file dialog. Styling it is the only way it stops being the one
   // control on the page wearing a different system's paint.
   '::file-selector-button',
+  // The same argument, made for the three controls where it costs the most.
+  //
+  // A date, a time, a number and a search field all have a well this system
+  // draws and a set of parts inside that well only the engine can reach. Left
+  // alone, those parts speak a different language in the middle of a page that
+  // has one: Chrome's grey steppers, WebKit's cancel cross, a blue calendar
+  // glyph, and separators set at the same weight as the data around them.
+  //
+  // The alternative was to stop using the native controls, and it is a worse
+  // trade than it looks. `type="date"` and friends hand a page four things for
+  // free — arrow-key and page-key editing per field, the platform's own wheel
+  // on a phone, the reader's regional order and separators, and the whole
+  // accessibility tree. Replacing the input means paying for all four in code.
+  // So the field stays native and only its paint changes; a popup this system
+  // needs to own — a date RANGE, which no engine offers — is a separate
+  // component built on top rather than a reason to give up the four.
+  //
+  // These are listed one by one, and not matched by prefix, for the same
+  // reason the slider's are: opening the door is the cost, not the CSS.
+  '::-webkit-calendar-picker-indicator',
+  '::-webkit-datetime-edit',
+  '::-webkit-datetime-edit-fields-wrapper',
+  '::-webkit-datetime-edit-text',
+  '::-webkit-datetime-edit-year-field',
+  '::-webkit-datetime-edit-month-field',
+  '::-webkit-datetime-edit-day-field',
+  '::-webkit-datetime-edit-hour-field',
+  '::-webkit-datetime-edit-minute-field',
+  '::-webkit-inner-spin-button',
+  '::-webkit-outer-spin-button',
+  '::-webkit-search-cancel-button',
 ]);
 const supportedStyleAtRules = new Set([
   '@media (prefers-reduced-motion: reduce)',

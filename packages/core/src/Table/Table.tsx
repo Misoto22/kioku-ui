@@ -53,6 +53,10 @@ const styles = stylex.create({
     letterSpacing: semanticTokens.letterSpacingHeading,
     lineHeight: semanticTokens.lineHeightHeading,
     paddingBlock: semanticTokens.spacingSm,
+    // The title sits on the same margin as the first column: a caption that
+    // starts flush with the table box and cells that start one step in read
+    // as two documents stacked on each other.
+    paddingInline: semanticTokens.spacingLg,
     textAlign: 'start',
   },
   bodyRow: {
@@ -115,6 +119,9 @@ const styles = stylex.create({
       borderBlockEndWidth: semanticTokens.borderWidth,
     },
   },
+  // This rule is not a divider between rows — it is what says the row above it
+  // is a legend and the rows below it are data. `dividers` decides whether the
+  // body is ruled; it has no say in whether the table has a head.
   headerRowDivider: {
     borderBlockEndColor: semanticTokens.borderStrong,
     borderBlockEndStyle: semanticTokens.borderStyle,
@@ -255,7 +262,7 @@ export function TableHeaderCell({
         styles.headerCell,
         headerDensities[density],
         numeric && styles.numericHeaderCell,
-        usesRowDividers(dividers) && styles.headerRowDivider,
+        styles.headerRowDivider,
         usesColumnDividers(dividers) && styles.columnDivider,
       )}
     >

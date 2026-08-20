@@ -89,6 +89,7 @@ function expectRenderedRule(
           ':active',
           ':focus-visible',
           ':disabled',
+          '::after',
           '::before',
           '::placeholder',
         ].some((candidate) => selector.includes(candidate));
@@ -117,6 +118,7 @@ function expectNoRenderedDeclaration(
         ':active',
         ':focus-visible',
         ':disabled',
+        '::after',
         '::before',
         '::placeholder',
       ].some((candidate) => selector.includes(candidate)) &&
@@ -914,15 +916,24 @@ process.stdout.write(JSON.stringify({
       segmentedRoot,
       `border-radius:var(${variable('--kioku-ui-radius-element')})`,
     );
+    // The current segment is marked, not filled: full-strength ink on the
+    // label and an ink rail along its edge. The raised fill it used to carry
+    // measures 1.03:1 against this groove in every dark skin.
     expectRenderedRule(
       packageCss,
       selectedSegment,
-      `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
+      `color:var(${variable('--kioku-ui-color-text')})`,
     );
     expectRenderedRule(
       packageCss,
       selectedSegment,
-      `box-shadow:var(${variable('--kioku-ui-elevation-low')})`,
+      `background-color:var(${variable('--kioku-ui-color-text')})`,
+      '::after',
+    );
+    expectNoRenderedDeclaration(
+      packageCss,
+      selectedSegment,
+      `background-color:var(${variable('--kioku-ui-color-surface-raised')})`,
     );
     expectRenderedRule(
       packageCss,
@@ -2250,7 +2261,8 @@ const expectedNames = [
   'CheckboxInput', 'CheckboxList', 'RadioList', 'Switch',
   'Selector', 'ComplexSelector', 'Typeahead', 'TypeaheadItem',
   'MultiSelector', 'NumberInput', 'FileInput', 'Slider',
-  'DateInput', 'TimeInput', 'DateTimeInput', 'DateRangeInput',
+  'DateInput', 'DatePicker', 'TimeInput', 'DateTimeInput',
+  'DateRangeInput',
   'Calendar', 'FieldStatus', 'InputGroup', 'FormLayout',
   'EmptyState', 'AsyncState', 'Spinner', 'Skeleton',
   'Alert', 'Avatar', 'AvatarGroup', 'Thumbnail',

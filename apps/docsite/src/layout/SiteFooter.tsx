@@ -1,27 +1,27 @@
 import {HStack, Link} from '@misoto22/kioku-ui';
 
 import {pageMeasure} from './PageContainer.js';
+import {chrome} from '../i18n/chrome.js';
+import {useCopy} from '../i18n/index.js';
 import type {Route} from '../router.js';
 
 /**
  * What the library actually runs on. Every figure here is read off the
  * workspace's own manifests rather than written from memory, so the line is a
  * statement about this build and not a slogan.
+ *
+ * It does not localise. It is a list of proper names and version numbers, and
+ * there is no Chinese for `pnpm 11.10.0`.
  */
 const platform =
   'React 19 · StyleX 0.19.0 · TypeScript 6 · Node 24+ · pnpm 11.10.0 · MIT';
 
-const links: readonly {href: string; label: string}[] = [
-  {href: 'https://github.com/Misoto22/kioku-ui', label: 'GitHub'},
-  {
-    href: 'https://github.com/Misoto22/kioku-ui/issues',
-    label: 'Report an issue',
-  },
-  {
-    href: 'https://github.com/Misoto22/kioku-ui/blob/main/docs/operations/release.md',
-    label: 'Release runbook',
-  },
-];
+const hrefs = {
+  issues: 'https://github.com/Misoto22/kioku-ui/issues',
+  release:
+    'https://github.com/Misoto22/kioku-ui/blob/main/docs/operations/release.md',
+  repository: 'https://github.com/Misoto22/kioku-ui',
+} as const;
 
 interface SiteFooterProps {
   readonly onNavigate: (route: Route) => void;
@@ -37,6 +37,14 @@ interface SiteFooterProps {
  * negates that padding exactly rather than adding a second gutter inside it.
  */
 export function SiteFooter({onNavigate}: SiteFooterProps) {
+  const copy = useCopy(chrome);
+
+  const links: readonly {href: string; label: string}[] = [
+    {href: hrefs.repository, label: copy.repository},
+    {href: hrefs.issues, label: copy.footer.issues},
+    {href: hrefs.release, label: copy.footer.release},
+  ];
+
   return (
     <div
       style={{

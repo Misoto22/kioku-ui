@@ -29,11 +29,15 @@ const styles = stylex.create({
     position: 'absolute',
     transform: 'translate(35%, -35%)',
   },
+  // The badge's ring is a gap cut in whatever sits beneath, and the dot wants
+  // it as much as the numeral does — so the dot grows to make room for it
+  // rather than dropping it. At the old 6px the ring ate 2px from each side
+  // and left 2px of colour: a ring with almost no dot in it.
   dot: {
-    height: semanticTokens.spacingSm,
-    minWidth: semanticTokens.spacingSm,
+    height: semanticTokens.spacingMd,
+    minWidth: semanticTokens.spacingMd,
     paddingInline: 0,
-    width: semanticTokens.spacingSm,
+    width: semanticTokens.spacingMd,
   },
   info: {
     backgroundColor: semanticTokens.statusInfoText,

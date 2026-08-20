@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import {useId, useState, type HTMLAttributes} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
-import {DateInput} from '../DateInput/index.js';
+import {DatePicker} from '../DatePicker/index.js';
 
 // The narrowest a date control stays legible at before the pair should stack.
 // The spacing scale has no single step that measures it.
@@ -24,12 +24,20 @@ const styles = stylex.create({
   // as a third field label sitting above two others.
   legend: {
     color: semanticTokens.colorText,
-    flexBasis: '100%',
     fontFamily: semanticTokens.fontFamilyDisplay,
     fontSize: semanticTokens.fontSizeSm,
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingLabel,
     lineHeight: semanticTokens.lineHeightBody,
+    // A legend is not a flex item: the browser lifts it out of the fieldset's
+    // formatting context and draws it in the border box, so the group's `gap`
+    // never reaches it and the first row sat flush against the question. The
+    // step has to be spent here, and it has to match the group's own gap.
+    // The `flexBasis: 100%` that used to sit here was the same mistake read
+    // the other way round: it assumed the legend was a flex item that needed
+    // forcing onto its own line. It never was one, and the two bounds sat side
+    // by side either way.
+    marginBlockEnd: semanticTokens.spacingMd,
     padding: 0,
   },
   bound: {
@@ -86,6 +94,11 @@ const emptyRange: DateRange = {end: '', start: ''};
 /**
  * Accepts a start and an end date. The end control refuses dates before the
  * start, so an impossible range cannot be entered in the first place.
+ *
+ * Each bound is a `DatePicker` rather than a `DateInput`: no engine offers a
+ * range picker, and two platform pickers side by side cannot show the reader
+ * that the second is bounded by the first. Two grids of this system's own can,
+ * because the bound is passed to them as `min` and `max`.
  */
 export function DateRangeInput({
   defaultValue,
@@ -117,8 +130,9 @@ export function DateRangeInput({
         <label htmlFor={startId} {...stylex.props(styles.label)}>
           {startLabel}
         </label>
-        <DateInput
+        <DatePicker
           id={startId}
+          label={startLabel}
           {...(range.end === '' ? {} : {max: range.end})}
           onValueChange={(start) => {
             update({...range, start});
@@ -130,8 +144,9 @@ export function DateRangeInput({
         <label htmlFor={endId} {...stylex.props(styles.label)}>
           {endLabel}
         </label>
-        <DateInput
+        <DatePicker
           id={endId}
+          label={endLabel}
           {...(range.start === '' ? {} : {min: range.start})}
           onValueChange={(end) => {
             update({...range, end});

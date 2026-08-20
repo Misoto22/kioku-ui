@@ -1,6 +1,7 @@
 import {AppShell, ThemeProvider} from '@misoto22/kioku-ui';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 
+import {LocaleProvider} from './i18n/index.js';
 import {SiteFooter} from './layout/SiteFooter.js';
 import {SiteHeader} from './layout/SiteHeader.js';
 import {ComponentDetailPage} from './pages/ComponentDetailPage.js';
@@ -17,16 +18,25 @@ import {useRoute} from './router.js';
  * on the same element that carries the tokens, which is the only element where
  * `light-dark()` can resolve. A wrapper div inside the provider — what this
  * used to be — sat below that element and changed nothing.
+ *
+ * Language sits outside the theme rather than inside it, and the order is load
+ * bearing. The theme's Chinese rules are written as `[data-theme]:lang(zh)`, so
+ * the element carrying the tokens has to already be in a Chinese document for
+ * the SC families and the wider leading to reach it. `LocaleProvider` puts the
+ * language on `<html>`, which every theme root inherits — a locale declared
+ * below the theme would arrive too late to change a single glyph.
  */
 export function App() {
   return (
-    <ThemeProvider
-      defaultMode="light"
-      defaultThemeId="washi"
-      themes={kiokuThemes}
-    >
-      <Site />
-    </ThemeProvider>
+    <LocaleProvider>
+      <ThemeProvider
+        defaultMode="light"
+        defaultThemeId="washi"
+        themes={kiokuThemes}
+      >
+        <Site />
+      </ThemeProvider>
+    </LocaleProvider>
   );
 }
 
