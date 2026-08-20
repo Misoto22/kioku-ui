@@ -55,6 +55,8 @@ export type DatePickerProps =
  * months side by side — because none of those exist in any engine's picker.
  */
 export function DatePicker({
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   defaultValue = '',
   disabled,
   id,
@@ -67,6 +69,12 @@ export function DatePicker({
   value,
   ...props
 }: DatePickerProps) {
+  // `label` names the grid, and a reader who never opens the grid would meet
+  // an unnamed field. An explicit name wins; an `id` means the caller has
+  // wired a `<label for>` of its own, which anything set here would override.
+  const fieldLabel =
+    ariaLabel ??
+    (ariaLabelledBy === undefined && id === undefined ? label : undefined);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
   const [internalValue, setInternalValue] = useState(defaultValue);
@@ -90,6 +98,10 @@ export function DatePicker({
   return (
     <span {...props} ref={anchorRef} {...stylex.props(styles.root)}>
       <DateInput
+        {...(fieldLabel === undefined ? {} : {'aria-label': fieldLabel})}
+        {...(ariaLabelledBy === undefined
+          ? {}
+          : {'aria-labelledby': ariaLabelledBy})}
         disabled={disabled}
         {...(id === undefined ? {} : {id})}
         {...(max === undefined ? {} : {max})}

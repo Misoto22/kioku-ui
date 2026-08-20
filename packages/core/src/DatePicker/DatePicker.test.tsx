@@ -65,6 +65,27 @@ describe('DatePicker', () => {
     expect(document.querySelector('input')).toHaveFocus();
   });
 
+  it('names the field, not only the grid', () => {
+    renderUi(<DatePicker label="Release date" />);
+
+    expect(screen.getByLabelText('Release date')).toHaveAttribute(
+      'type',
+      'date',
+    );
+  });
+
+  it('leaves the field to an external label when one is wired', () => {
+    renderUi(
+      <>
+        <label htmlFor="release">Release</label>
+        <DatePicker id="release" label="Release date" />
+      </>,
+    );
+
+    expect(screen.getByLabelText('Release')).toHaveAttribute('type', 'date');
+    expect(screen.queryByLabelText('Release date')).not.toBeInTheDocument();
+  });
+
   it('carries its id to the field a label points at', () => {
     renderUi(
       <>

@@ -26,6 +26,7 @@ import {
 import {docs, type DocsFact} from '../i18n/docs.js';
 import {useCopy} from '../i18n/index.js';
 import {PageContainer} from '../layout/PageContainer.js';
+import {bannerHeight, railOffset} from '../layout/sticky.js';
 import type {Route} from '../router.js';
 
 const install = `pnpm add @misoto22/kioku-ui @misoto22/kioku-ui-theme-kioku`;
@@ -36,7 +37,6 @@ import '@misoto22/kioku-ui-theme-kioku/theme.css';
 
 import {ThemeProvider} from '@misoto22/kioku-ui';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
-import {bannerHeight, railOffset} from '../layout/sticky.js';
 
 export function App({children}) {
   return (
