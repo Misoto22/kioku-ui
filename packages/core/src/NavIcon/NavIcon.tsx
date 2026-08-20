@@ -14,12 +14,16 @@ const styles = stylex.create({
     // size rather than above it. A mark drawn larger than the word it marks
     // competes with it, and there is one down the left edge of every row.
     fontSize: semanticTokens.fontSizeMd,
-    height: semanticTokens.fontSizeMd,
+    // The box is a fixed square, one step above the glyph inside it. It has to
+    // be fixed: sized from the label's own `fontSizeMd` the gutter moved
+    // whenever the type did, and `NavItem` could not reserve a matching one
+    // for a row that carries no glyph.
+    height: semanticTokens.fontSizeLg,
     justifyContent: 'center',
     // One glyph, so it is set solid: tracking has nothing to open here.
     letterSpacing: semanticTokens.letterSpacingBody,
     lineHeight: semanticTokens.lineHeightHeading,
-    width: semanticTokens.fontSizeMd,
+    width: semanticTokens.fontSizeLg,
   },
 });
 

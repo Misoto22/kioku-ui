@@ -25,6 +25,11 @@ const styles = stylex.create({
     fontWeight: semanticTokens.fontWeightMedium,
     letterSpacing: semanticTokens.letterSpacingEyebrow,
     lineHeight: semanticTokens.lineHeightHeading,
+    // A legend is not a flex item: the browser lifts it out of the fieldset's
+    // formatting context and draws it in the border box, so the group's `gap`
+    // never reaches it and the first row sat flush against the question. The
+    // step has to be spent here, and it has to match the group's own gap.
+    marginBlockEnd: semanticTokens.spacingSm,
     padding: 0,
   },
 });

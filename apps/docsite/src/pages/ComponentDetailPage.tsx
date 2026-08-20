@@ -39,6 +39,7 @@ import {componentHref, componentSlug, routeHref} from '../router.js';
 
 import {componentCatalog} from '../data/componentCatalog.js';
 import {specimens} from '../data/specimens.js';
+import {railOffset, railScroll} from '../layout/sticky.js';
 
 const storybookOrigin = 'http://localhost:6006';
 
@@ -69,8 +70,12 @@ function SpecimenPlate({
   readonly slug: string;
   readonly storyId: string | null;
 }) {
-  const {density, mode} = useTheme();
-  const [themeId, setThemeId] = useState('washi');
+  const {density, mode, theme} = useTheme();
+  // The plate previews one skin at a time, and it starts on the skin the
+  // reader is already inrather than on a skin picked at authoring time: a
+  // reader who chose Sumi and opens a component should not be shown Washi.
+  const [preview, setPreview] = useState<string | null>(null);
+  const themeId = preview ?? theme.id;
   const copy = useCopy(componentDetail);
   const Specimen = specimens[slug];
 
@@ -104,7 +109,7 @@ function SpecimenPlate({
         */}
         <TabList
           label={copy.specimen.themeLabel}
-          onSelect={setThemeId}
+          onSelect={setPreview}
           selectedId={themeId}
           tabs={kiokuThemes.map((theme) => ({
             id: theme.id,
@@ -117,12 +122,22 @@ function SpecimenPlate({
         defaultDensity={density}
         defaultMode={mode}
         defaultThemeId={themeId}
-        key={themeId}
+        key={`${themeId}:${mode}:${density}`}
         themes={kiokuThemes}
       >
+        {/*
+          The plate is the paper a specimen is laid on, so it takes the paper
+          role and the page keeps the page role. Reaching for `canvas` here
+          borrowed a value that happens to sit below `surface` in the light
+          skins; in every dark skin canvas is the deepest step of all, and the
+          plate turned into a black slab on a lighter page. The ring is what
+          gives it an edge once it is no longer the darkest thing in view.
+        */}
         <div
           style={{
-            backgroundColor: 'var(--kioku-ui-color-canvas)',
+            backgroundColor: 'var(--kioku-ui-color-surface)',
+            borderRadius: 'var(--kioku-ui-radius-container)',
+            boxShadow: 'var(--kioku-ui-elevation-low)',
             padding: 'var(--kioku-ui-spacing-lg)',
           }}
         >
@@ -233,9 +248,9 @@ export function ComponentDetailPage({slug}: ComponentDetailPageProps) {
             gap="lg"
             style={{
               alignSelf: 'start',
-              insetBlockStart: 'var(--kioku-ui-spacing-2xl)',
+              insetBlockStart: railOffset,
               maxHeight: `calc(100vh - 5 * ${measure})`,
-              overflowY: 'auto',
+              ...railScroll,
               position: 'sticky',
             }}
           >

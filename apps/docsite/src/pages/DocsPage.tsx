@@ -36,6 +36,7 @@ import '@misoto22/kioku-ui-theme-kioku/theme.css';
 
 import {ThemeProvider} from '@misoto22/kioku-ui';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
+import {bannerHeight, railOffset} from '../layout/sticky.js';
 
 export function App({children}) {
   return (
@@ -67,17 +68,6 @@ const importCount = 3;
 const providerCount = 1;
 const familyCount = 3;
 const roleCount = tokenNames.length;
-
-// The banner is one control tall plus its own padding and its hairline. The
-// rail has to come to rest below it rather than under it, and a heading jumped
-// to from the rail has to stop in the same place — so both are the one
-// measurement, written as a relationship rather than as the 41px it happens to
-// be in the kioku pack today.
-const bannerHeight = `calc(
-  var(--kioku-ui-size-control-md) + 2 * var(--kioku-ui-spacing-sm) +
-    var(--kioku-ui-border-width)
-)`;
-const railOffset = `calc(${bannerHeight} + var(--kioku-ui-spacing-xl))`;
 
 // The lede and the notice split the head of the page the way the steps split
 // their own row. The rail holds four short lines and their marks, and asks for

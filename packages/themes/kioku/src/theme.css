@@ -243,8 +243,13 @@
   --kioku-theme-elevation-medium:
     0 1px 0 light-dark(rgb(38 34 28 / 4%), rgb(0 0 0 / 22%)),
     0 0 0 1px light-dark(#ddd7c5, #302b24);
+  /* `high` is still the top of the ladder, but it says so with a heavier
+     hard line rather than a softer one: nothing in this system blurs. Its
+     five consumers are all modal surfaces, and a modal is separated from
+     the page by the scrim — the shadow only has to say how far off the
+     desk the sheet sits. 霞 is the documented exception; see its block. */
   --kioku-theme-elevation-high:
-    0 2px 5px light-dark(rgb(38 34 28 / 7%), rgb(0 0 0 / 34%)),
+    0 2px 0 light-dark(rgb(38 34 28 / 7%), rgb(0 0 0 / 34%)),
     0 0 0 1px light-dark(#ddd7c5, #302b24);
 }
 
@@ -297,7 +302,7 @@
     0 1px 0 light-dark(rgb(47 50 44 / 4%), rgb(0 0 0 / 24%)),
     0 0 0 1px light-dark(#dcdcd4, #31342d);
   --kioku-theme-elevation-high:
-    0 2px 5px light-dark(rgb(47 50 44 / 7%), rgb(0 0 0 / 36%)),
+    0 2px 0 light-dark(rgb(47 50 44 / 7%), rgb(0 0 0 / 36%)),
     0 0 0 1px light-dark(#dcdcd4, #31342d);
 }
 
@@ -346,7 +351,7 @@
     0 1px 0 light-dark(rgb(19 19 17 / 6%), rgb(0 0 0 / 40%)),
     0 0 0 1px light-dark(#dcdcd8, #2a2a27);
   --kioku-theme-elevation-high:
-    0 2px 5px light-dark(rgb(19 19 17 / 10%), rgb(0 0 0 / 52%)),
+    0 2px 0 light-dark(rgb(19 19 17 / 10%), rgb(0 0 0 / 52%)),
     0 0 0 1px light-dark(#dcdcd8, #2a2a27);
 }
 

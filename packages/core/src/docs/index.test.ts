@@ -46,6 +46,7 @@ describe('componentDocs', () => {
       'FileInput',
       'Slider',
       'DateInput',
+      'DatePicker',
       'TimeInput',
       'DateTimeInput',
       'DateRangeInput',

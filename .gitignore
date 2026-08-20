@@ -3,6 +3,7 @@ node_modules/
 .superpowers/
 docs/superpowers/
 dist/
+*.tsbuildinfo
 apps/example-*/.next/
 apps/storybook/storybook-static/
 coverage/

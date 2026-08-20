@@ -42,6 +42,7 @@ import {
   ComplexSelector,
   ContextMenu,
   DateInput,
+  DatePicker,
   DateRangeInput,
   DateTimeInput,
   Dialog,
@@ -835,7 +836,7 @@ function SegmentedControlSpecimen() {
   return (
     <Row
       label="State"
-      note="The one documented exception to the no-fill rule: the selected option gets a raised surface and a hairline, because the control's whole metaphor is a physical switch."
+      note="The current option is marked, not filled: full-strength ink on the label and an ink rail along its edge — beneath it when the options run across, down its leading edge when they stack. The raised fill this used to carry measured 1.03:1 against the groove in every dark skin."
     >
       <Piece caption="Horizontal">
         <SegmentedControl
@@ -1942,7 +1943,7 @@ function DateInputSpecimen() {
   return (
     <Row
       label="State"
-      note="An input sinks: it is filled with the muted surface, a rank darker than the card it sits on. The value is exchanged as an ISO string."
+      note="The well always belonged to this system; what sat inside it did not. The separators now recede to the muted rank, an empty control reads muted throughout so it is not mistaken for an answered one, and the calendar control is a cell in the well rather than the engine's own glyph — it opens the platform picker, which is what keeps the wheel on a phone and the reader's own date order."
     >
       <Piece caption="With a date" width={fieldWidth}>
         <DateInput
@@ -1959,6 +1960,36 @@ function DateInputSpecimen() {
           aria-label="Release date, disabled"
           defaultValue="2026-08-18"
           disabled
+        />
+      </Piece>
+    </Row>
+  );
+}
+
+function DatePickerSpecimen() {
+  const [value, setValue] = useState('2026-08-20');
+
+  return (
+    <Row
+      label="State"
+      note="The month grid here is this system's own, not the engine's. That is worth paying for only when the sheet has to belong to the page — a bound to show, two months to place side by side. For a lone date `DateInput` is still the better trade, because the platform picker brings the phone wheel and the accessibility tree with it."
+    >
+      <Piece caption="With a date" width={fieldWidth}>
+        <DatePicker
+          label="Release date"
+          onValueChange={setValue}
+          value={value}
+        />
+      </Piece>
+      <Piece caption="Empty" width={fieldWidth}>
+        <DatePicker label="Release date, empty" />
+      </Piece>
+      <Piece caption="Bounded" width={fieldWidth}>
+        <DatePicker
+          defaultValue="2026-08-20"
+          label="Release date, bounded"
+          max="2026-08-31"
+          min="2026-08-10"
         />
       </Piece>
     </Row>
@@ -4569,6 +4600,7 @@ const byName: Readonly<Record<string, ComponentType>> = {
   ComplexSelector: ComplexSelectorSpecimen,
   ContextMenu: ContextMenuSpecimen,
   DateInput: DateInputSpecimen,
+  DatePicker: DatePickerSpecimen,
   DateRangeInput: DateRangeInputSpecimen,
   DateTimeInput: DateTimeInputSpecimen,
   Dialog: DialogSpecimen,

@@ -100,6 +100,7 @@ export {
 } from './ComplexSelector/index.js';
 export {ContextMenu, type ContextMenuProps} from './ContextMenu/index.js';
 export {DateInput, type DateInputProps} from './DateInput/index.js';
+export {DatePicker, type DatePickerProps} from './DatePicker/index.js';
 export {
   DateRangeInput,
   type DateRange,

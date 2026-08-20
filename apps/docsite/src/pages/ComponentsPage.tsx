@@ -24,6 +24,7 @@ import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 import {components} from '../i18n/components.js';
 import {useCopy, useLocale} from '../i18n/index.js';
 import {PageContainer} from '../layout/PageContainer.js';
+import {railOffset, railScroll} from '../layout/sticky.js';
 import {componentHref, routeHref, sectionSlug, useLocation} from '../router.js';
 
 import {
@@ -118,6 +119,8 @@ export function ComponentsPage() {
   // Two filters over one list, in the order the reader applied them: the route
   // chooses which groups are on the page, the search box chooses what is left
   // inside them.
+  // One group on screen is a chosen group, whether it was chosen from the rail
+  // or narrowed to by the search field.
   const groups = useMemo(() => {
     const chosen =
       location.group === null
@@ -143,6 +146,7 @@ export function ComponentsPage() {
       .filter((group) => group.entries.length > 0);
   }, [location.group, query]);
 
+  const roster = groups.length === 1;
   const matches = groups.reduce(
     (total, group) => total + group.entries.length,
     0,
@@ -165,9 +169,9 @@ export function ComponentsPage() {
             gap="lg"
             style={{
               alignSelf: 'start',
-              insetBlockStart: 'var(--kioku-ui-spacing-2xl)',
+              insetBlockStart: railOffset,
               maxHeight: `calc(100vh - 5 * ${measure})`,
-              overflowY: 'auto',
+              ...railScroll,
               position: 'sticky',
             }}
           >
@@ -359,16 +363,26 @@ export function ComponentsPage() {
             </Card>
           ) : (
             /*
-              One index in four columns rather than four hand-packed columns:
-              the groups flow, so adding a component cannot leave a column
-              short. Each group is kept whole so a heading never ends a column
-              with its list starting in the next one.
+              Two jobs, two layouts. Browsing every group is a four-column
+              index: the groups flow, so adding a component cannot leave a
+              column short, and each group is kept whole so a heading never
+              ends a column with its list starting in the next one.
+
+              Reading ONE group is not that job. A single group fills one of
+              the four columns and leaves the other three empty — about 700px
+              of the content region — so it gets a roster instead: rows across
+              the full measure, each carrying what the component is, which is
+              the question a reader who has already chosen a group is asking.
             */
             <div
-              style={{
-                columnGap: 'var(--kioku-ui-spacing-2xl)',
-                columnWidth: `calc(7 * ${measure})`,
-              }}
+              style={
+                roster
+                  ? undefined
+                  : {
+                      columnGap: 'var(--kioku-ui-spacing-2xl)',
+                      columnWidth: `calc(7 * ${measure})`,
+                    }
+              }
             >
               {groups.map((group) => (
                 <div
@@ -399,7 +413,30 @@ export function ComponentsPage() {
                         href={componentHref(entry.name)}
                         key={entry.name}
                       >
-                        {entry.name}
+                        <span
+                          style={
+                            roster
+                              ? {flex: 'none', minWidth: `calc(6 * ${measure})`}
+                              : undefined
+                          }
+                        >
+                          {entry.name}
+                        </span>
+                        {roster ? (
+                          <span
+                            style={{
+                              color: 'var(--kioku-ui-color-text-muted)',
+                              fontSize:
+                                'var(--kioku-ui-typography-font-size-sm)',
+                              minWidth: 0,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {entry.description}
+                          </span>
+                        ) : null}
                       </NavItem>
                     ))}
                   </NavMenu>

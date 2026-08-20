@@ -97,6 +97,7 @@ export function Resizable({
         {panel}
       </div>
       <ResizeHandle
+        dragging={dragging}
         label={handleLabel}
         max={max}
         min={min}

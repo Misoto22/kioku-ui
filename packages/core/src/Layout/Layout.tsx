@@ -8,6 +8,12 @@ import {semanticTokens} from '../authoring.stylex.js';
 // lands on the console's 2.4rem gutter at either density.
 const marginColumn = `calc(${semanticTokens.spacing2xl} + ${semanticTokens.spacingMd})`;
 
+// Hanging means the numeral goes into the margin and the title keeps the text
+// edge. The pull is exactly the page's own side margin — the same token
+// `content` spends on `paddingInline` — so the numeral comes to rest on the
+// paper's edge and never overhangs it. Change the margin and the hang follows.
+const hangColumn = `calc(${semanticTokens.spacing2xl} - ${semanticTokens.spacingSm})`;
+
 const styles = stylex.create({
   frame: {
     backgroundColor: semanticTokens.colorCanvas,
@@ -48,16 +54,24 @@ const styles = stylex.create({
   // the column has room to centre itself.
   pageHead: {
     alignItems: 'baseline',
-    borderBlockEndColor: semanticTokens.borderStrong,
-    borderBlockEndStyle: semanticTokens.borderStyle,
-    borderBlockEndWidth: semanticTokens.borderWidth,
     columnGap: semanticTokens.spacingSm,
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1fr)',
-    paddingBlockEnd: semanticTokens.spacingLg,
   },
+  // The two-column grid this used to be pushed the *title* inward by the width
+  // of the numeral column plus the gap — 44px — so the head no longer began
+  // where the prose beneath it began. Pulling the whole grid back by the page
+  // margin puts the title on the text edge and sends the numeral out into the
+  // margin, which is the arrangement the comment above always described.
   pageHeadIndexed: {
+    gridTemplateColumns: `${hangColumn} minmax(0, 1fr)`,
+    marginInlineStart: `calc(-1 * ${semanticTokens.spacing2xl})`,
+  },
+  // With the page margins off there is no margin to hang into, so the numeral
+  // takes a column in the flow rather than overhanging the frame.
+  pageHeadIndexedFlush: {
     gridTemplateColumns: `${marginColumn} minmax(0, 1fr)`,
+    marginInlineStart: 0,
   },
   // Set in the display face and the third rank of ink: it is wayfinding, and
   // a numeral drawn at the title's weight would compete with the title.
@@ -72,10 +86,18 @@ const styles = stylex.create({
     marginInline: 0,
     textAlign: 'end',
   },
+  // The rule closes the chapter head across the measure the text occupies. It
+  // sits here rather than on the grid so that a hanging numeral stays outside
+  // it: a rule that ran under the numeral too would end 28px left of every
+  // other edge on the page.
   pageHeadBody: {
+    borderBlockEndColor: semanticTokens.borderStrong,
+    borderBlockEndStyle: semanticTokens.borderStyle,
+    borderBlockEndWidth: semanticTokens.borderWidth,
     display: 'flex',
     flexDirection: 'column',
     minWidth: 0,
+    paddingBlockEnd: semanticTokens.spacingLg,
     rowGap: semanticTokens.spacingXs,
   },
   footer: {
@@ -143,6 +165,9 @@ export function Layout({
               {...stylex.props(
                 styles.pageHead,
                 pageIndex !== undefined && styles.pageHeadIndexed,
+                pageIndex !== undefined &&
+                  !contentPadding &&
+                  styles.pageHeadIndexedFlush,
               )}
             >
               {pageIndex === undefined ? null : (

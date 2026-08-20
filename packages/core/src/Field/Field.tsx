@@ -59,7 +59,10 @@ const styles = stylex.create({
     margin: 0,
   },
   description: {color: semanticTokens.colorTextSecondary},
-  info: {color: semanticTokens.statusInfoText},
+  // A line under a field explaining the field is prose about it, not a badge
+  // on it. Colour is reserved for the two tones that mean stop; FieldStatus
+  // already said so, and the two drew the same message two ways.
+  info: {color: semanticTokens.colorTextSecondary},
   success: {color: semanticTokens.statusSuccessText},
   warning: {color: semanticTokens.statusWarningText},
   danger: {color: semanticTokens.statusDangerText},

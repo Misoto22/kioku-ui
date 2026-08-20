@@ -20,6 +20,11 @@ import {useFieldControl} from '../Field/index.js';
 const boxSize = semanticTokens.spacingLg;
 const boxFirstLineOffset = `calc((${semanticTokens.fontSizeMd} * ${semanticTokens.lineHeightBody} - ${boxSize}) / 2)`;
 
+// The mark inside the box. It is stroked at twice the hairline — one hairline
+// disappears inside a 14px square — and sized as a fraction of the box rather
+// than as a length, so it follows a density change the way the box does.
+const markStroke = `calc(2 * ${semanticTokens.borderWidth})`;
+
 const styles = stylex.create({
   row: {
     alignItems: 'flex-start',
@@ -27,20 +32,95 @@ const styles = stylex.create({
     fontFamily: semanticTokens.fontFamilyBody,
     gap: semanticTokens.spacingSm,
   },
+  // The box is drawn here, not by the engine. Left native, this component
+  // contributed exactly one declaration — `accent-color` — and the browser
+  // supplied the white fill, the #767676 edge, the radius, the check glyph and
+  // every disabled grey. None of those are in this system, and no amount of
+  // tinting makes them join it. `appearance: none` is what hands authorship
+  // back; `Slider` makes the same move for the same reason.
+  //
+  // It is still a real `<input type="checkbox">`: the click target, the label
+  // association, the form value, the space key and the accessibility tree all
+  // stay where they were. Only the paint changes.
   box: {
-    accentColor: semanticTokens.colorAccent,
+    appearance: 'none',
+    backgroundColor: semanticTokens.colorSurfaceMuted,
     blockSize: boxSize,
+    borderColor: semanticTokens.borderStrong,
+    borderRadius: semanticTokens.radiusElement,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     cursor: 'pointer',
+    display: 'inline-block',
     flexShrink: 0,
     inlineSize: boxSize,
+    // The UA gives a checkbox 3px/4px of its own margin. Left in place it
+    // insets the box from the row's start edge and pushes the label to 9px,
+    // so the 6px gap declared above was never the gap on screen.
+    marginBlockEnd: 0,
     marginBlockStart: boxFirstLineOffset,
-    ':disabled': {cursor: 'default'},
+    marginInline: 0,
+    position: 'relative',
+    transitionDuration: semanticTokens.durationFast,
+    transitionProperty: 'background-color, border-color',
+    transitionTimingFunction: semanticTokens.easingStandard,
+    ':disabled': {
+      backgroundColor: semanticTokens.colorDisabledSurface,
+      borderColor: semanticTokens.borderDisabled,
+      cursor: 'default',
+    },
     ':focus-visible': {
       outlineColor: semanticTokens.colorFocus,
       outlineOffset: semanticTokens.focusOffset,
       outlineStyle: semanticTokens.borderStyle,
       outlineWidth: semanticTokens.focusWidth,
     },
+    ':hover:not(:disabled)': {borderColor: semanticTokens.borderInteractive},
+  },
+  // Holding is a mark, not a fill: a tick stroked in ink inside the same well.
+  // It is two edges of an empty box stood on its corner, so it takes its
+  // colour from the palette — an image could not, across four skins and two
+  // appearances.
+  boxChecked: {
+    '::before': {
+      blockSize: '58%',
+      borderBlockEndColor: semanticTokens.colorText,
+      borderBlockEndStyle: semanticTokens.borderStyle,
+      borderBlockEndWidth: markStroke,
+      borderInlineEndColor: semanticTokens.colorText,
+      borderInlineEndStyle: semanticTokens.borderStyle,
+      borderInlineEndWidth: markStroke,
+      content: '',
+      inlineSize: '30%',
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -58%) rotate(45deg)',
+    },
+  },
+  boxCheckedDisabled: {
+    '::before': {
+      borderBlockEndColor: semanticTokens.colorDisabledText,
+      borderInlineEndColor: semanticTokens.colorDisabledText,
+    },
+  },
+  // Partly held is a rule rather than a tick: the question has an answer, but
+  // not one this box can state.
+  boxIndeterminate: {
+    '::before': {
+      backgroundColor: semanticTokens.colorText,
+      blockSize: markStroke,
+      content: '',
+      inlineSize: '50%',
+      insetBlockStart: '50%',
+      insetInlineStart: '50%',
+      position: 'absolute',
+      transform: 'translate(-50%, -50%)',
+    },
+  },
+  boxIndeterminateDisabled: {
+    '::before': {backgroundColor: semanticTokens.colorDisabledText},
   },
   text: {
     display: 'flex',
@@ -129,11 +209,15 @@ export function CheckboxInput({
     [field?.describedBy, ariaDescribedBy].filter(Boolean).join(' ') ||
     undefined;
 
+  // `indeterminate` is a DOM property rather than an attribute, so it is set
+  // imperatively; the mark it draws is the same fact read back out.
+  const showsDash = indeterminate && !isChecked;
+
   useEffect(() => {
     if (boxRef.current) {
-      boxRef.current.indeterminate = indeterminate && !isChecked;
+      boxRef.current.indeterminate = showsDash;
     }
-  }, [indeterminate, isChecked]);
+  }, [showsDash]);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const next = event.currentTarget.checked;
@@ -154,7 +238,13 @@ export function CheckboxInput({
         onChange={handleChange}
         ref={boxRef}
         required={required ?? field?.required}
-        {...stylex.props(styles.box)}
+        {...stylex.props(
+          styles.box,
+          isChecked && styles.boxChecked,
+          isChecked && disabled && styles.boxCheckedDisabled,
+          showsDash && styles.boxIndeterminate,
+          showsDash && disabled && styles.boxIndeterminateDisabled,
+        )}
         type="checkbox"
       />
       <span {...stylex.props(styles.text)}>

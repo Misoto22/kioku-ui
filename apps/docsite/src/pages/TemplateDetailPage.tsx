@@ -56,6 +56,7 @@ import {
   type TemplateEntry,
 } from '../data/templateCatalog.js';
 import {sketches, TemplateThumbnail} from './TemplatesPage.js';
+import {railOffset, railScroll} from '../layout/sticky.js';
 
 // Every dimension the token contract has no role for is built from the spacing
 // scale rather than written as a length, so the pages grow with the density the
@@ -215,9 +216,9 @@ function CategoryRail({entry}: {readonly entry: TemplateEntry}) {
       gap="lg"
       style={{
         alignSelf: 'start',
-        insetBlockStart: 'var(--kioku-ui-spacing-2xl)',
+        insetBlockStart: railOffset,
         maxHeight: `calc(100vh - 5 * ${measure})`,
-        overflowY: 'auto',
+        ...railScroll,
         position: 'sticky',
       }}
     >

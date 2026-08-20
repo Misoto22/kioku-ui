@@ -2,6 +2,10 @@ import * as stylex from '@stylexjs/stylex';
 import {Children, type HTMLAttributes, type ReactNode} from 'react';
 
 import {semanticTokens} from '../authoring.stylex.js';
+import {
+  NavMenuOrientationProvider,
+  type NavMenuOrientation,
+} from './orientation.js';
 
 const styles = stylex.create({
   list: {
@@ -28,9 +32,6 @@ const styles = stylex.create({
   },
 });
 
-/** Axis a navigation menu lays its destinations along. */
-export type NavMenuOrientation = 'horizontal' | 'vertical';
-
 /** Props for a named group of navigation destinations. */
 export interface NavMenuProps extends Omit<
   HTMLAttributes<HTMLElement>,
@@ -53,11 +54,15 @@ export function NavMenu({
 }: NavMenuProps) {
   return (
     <nav {...props} aria-label={label}>
-      <ul {...stylex.props(styles.list, styles[orientation])}>
-        {Children.map(children, (child, index) => (
-          <li key={index}>{child}</li>
-        ))}
-      </ul>
+      {/* Each item draws its own mark, and where that mark belongs is a fact
+          about the menu rather than about the item. */}
+      <NavMenuOrientationProvider value={orientation}>
+        <ul {...stylex.props(styles.list, styles[orientation])}>
+          {Children.map(children, (child, index) => (
+            <li key={index}>{child}</li>
+          ))}
+        </ul>
+      </NavMenuOrientationProvider>
     </nav>
   );
 }

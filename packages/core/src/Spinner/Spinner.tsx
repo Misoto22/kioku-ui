@@ -22,7 +22,11 @@ const styles = stylex.create({
       default: spin,
       '@media (prefers-reduced-motion: reduce)': 'none',
     },
-    animationTimingFunction: semanticTokens.easingStandard,
+    // Linear, and deliberately not the standard easing. An easing curve
+    // describes a move from somewhere to somewhere; this ring never arrives,
+    // so an ease-out spends the first third of every turn racing and the last
+    // third drifting, then snaps back to the start.
+    animationTimingFunction: 'linear',
     borderBlockStartColor: semanticTokens.colorText,
     borderColor: semanticTokens.borderDefault,
     borderRadius: semanticTokens.radiusFull,

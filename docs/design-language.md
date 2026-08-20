@@ -31,8 +31,12 @@ component reads as a pill and is not a dot or a knob, it is wrong.
 
 ### 2. Depth is a hairline, not a shadow
 
-`elevationLow|Medium|High` are ring shadows — `0 0 0 1px <border>` plus at most
-`0 1px 0` at 4% opacity. Nothing in this system blurs.
+`elevationLow|Medium|High` are ring shadows — `0 0 0 1px <border>`, plus a
+**hard** offset line that grows by one step per rank: none, `0 1px 0`,
+`0 2px 0`. Every one of them has a zero blur radius. Nothing in this system
+blurs. (霞, the glass skin, is the single documented exception and says so in
+its own block: glass needs the lift, and it spends a real drop shadow on
+`high` only.)
 
 - A card is `colorSurface` + `elevationLow` and **no border**. Elevation and
   border are mutually exclusive; stacking them draws the line twice.
@@ -42,11 +46,14 @@ component reads as a pill and is not a dot or a knob, it is wrong.
 
 ### 3. Cards rise, inputs sink
 
-The surface ladder is `colorCanvas` (the page) → `colorSurface` (a card, which
-in light mode is _lighter_ than the canvas) → `colorSurfaceMuted` (an input
-fill, a track, a table header, a well — _darker_ than the canvas). A component
-that paints an input the same colour as the card it sits on has flattened the
-ladder.
+The surface ladder is `colorCanvas` (the page) → `colorSurface` (a card) →
+`colorSurfaceMuted` (an input fill, a track, a table header, a well). It is a
+ladder of **relationships**, not of values: paper is always a step brighter
+than the page it lies on and a well is always a step deeper than the paper —
+in dark skins as much as in light ones. Reach for `canvas` because it happens
+to be darker than `surface` today and the dark skins will hand back a slab:
+there, `canvas` is the deepest step of all. A component that paints an input
+the same colour as the card it sits on has flattened the ladder.
 
 ### 4. The primary action is ink, not brand
 
@@ -76,9 +83,19 @@ is why `NavItem` draws no bar and adds no weight; `aria-current` carries the
 fact for anyone who cannot see the ink. Keep the bar for a mark that has to
 survive beside longer content — a menu row, a selected table row.
 
-`SegmentedControl` is the one documented exception to the no-fill rule: its
-selected option gets `colorSurfaceRaised` + `elevationLow`, because the
-control's whole metaphor is a physical switch.
+`SegmentedControl` used to be listed here as the one documented exception —
+its selected option took `colorSurfaceRaised` + `elevationLow`, on the argument
+that the control's whole metaphor is a physical switch. It is no longer an
+exception, because the exception did not survive the dark skins: raised
+measures **1.03:1** against the groove it sits in (washi `#282419` on
+`#2a2620`, and the same in muji and sumi), and the `elevationLow` ring meant to
+close it measures 1.06:1. The rank the system reserves for "raised" has nowhere
+to go once the paper is already dark. The selected option now takes the second
+form above — a 2px `colorText` rail, beneath the option when the group runs
+across and down its leading edge when it stacks — which reads at the same
+strength on either paper.
+
+There is no exception to this rule.
 
 ### 6. Tracking runs inverse to size
 

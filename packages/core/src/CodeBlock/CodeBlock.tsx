@@ -5,9 +5,14 @@ import {semanticTokens} from '../authoring.stylex.js';
 import {useClipboard} from '../hooks/useClipboard.js';
 import {Button} from '../Button/index.js';
 
-// The control is a small Button inset by one step on each side. Written as a
-// relationship so a denser theme moves the gutter with the control.
-const copyGutter = `calc(${semanticTokens.sizeControlSm} + ${semanticTokens.spacingXs} * 3)`;
+// The gutter the copy control needs. It is not the control's height — the
+// control is a Button carrying a word, and the word changes: "Copy" becomes
+// "Copied" the moment it is pressed, and a translation may be longer than
+// both. Measuring it as one small square left a long line running under the
+// button, which is what a gutter exists to prevent. Six steps of the outer
+// scale clears the longer label at either density with room to spare, and it
+// is still written as a relationship rather than as a pixel count.
+const copyGutter = `calc(3 * ${semanticTokens.spacing2xl})`;
 
 const styles = stylex.create({
   // The well sinks below the surface it sits on, so it needs no border of

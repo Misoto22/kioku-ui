@@ -12,8 +12,16 @@ const styles = stylex.create({
   // second fill.
   token: {
     alignItems: 'center',
-    backgroundColor: semanticTokens.colorSurfaceMuted,
+    // Paper, not the well. A token's usual home is inside a Tokenizer, whose
+    // field is the well colour too — same fill, no border, and the token had
+    // no edge at all. Lifting it to the surface rank says what it is: a thing
+    // resting in the field rather than part of the field.
+    backgroundColor: semanticTokens.colorSurface,
+    borderColor: semanticTokens.borderStrong,
     borderRadius: semanticTokens.radiusElement,
+    borderStyle: semanticTokens.borderStyle,
+    borderWidth: semanticTokens.borderWidth,
+    boxSizing: 'border-box',
     color: semanticTokens.colorText,
     display: 'inline-flex',
     fontFamily: semanticTokens.fontFamilyBody,

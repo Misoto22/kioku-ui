@@ -284,6 +284,11 @@ export const componentCatalog: readonly CatalogGroup[] = [
         status: 'ready',
       },
       {
+        description: "Picks a date from this system's own month grid.",
+        name: 'DatePicker',
+        status: 'ready',
+      },
+      {
         description: 'A start and end date that cannot cross.',
         name: 'DateRangeInput',
         status: 'ready',

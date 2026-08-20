@@ -7,7 +7,10 @@ import {clamp} from '../utils/index.js';
 
 const styles = stylex.create({
   // The divider is a hairline like every other seam in this system; the grab
-  // area is widened by a pseudo-element instead of the visible box.
+  // area is widened by a pseudo-element instead of the visible box, and it is
+  // widened to the hit target the rest of the system uses — `Slider` writes
+  // the same token for its thumb. At the 6px it used to be, the thing a reader
+  // has to catch was a seventh of the size of everything else they can press.
   handle: {
     backgroundColor: semanticTokens.borderDefault,
     borderStyle: 'none',
@@ -28,13 +31,18 @@ const styles = stylex.create({
       backgroundColor: semanticTokens.borderInteractive,
     },
   },
+  // A drag begins by pressing a one-pixel rule and immediately moving off it,
+  // so hover is the wrong thing to hang the highlight on: it goes out on the
+  // first pixel of every drag while the drag is still going. The caller owns
+  // the fact and hands it back.
+  dragging: {backgroundColor: semanticTokens.borderInteractive},
   vertical: {
     cursor: 'col-resize',
     inlineSize: semanticTokens.borderWidth,
     '::before': {
       blockSize: '100%',
       content: '',
-      inlineSize: semanticTokens.spacingSm,
+      inlineSize: semanticTokens.sizeHitTarget,
       insetBlockStart: 0,
       insetInlineStart: '50%',
       position: 'absolute',
@@ -45,7 +53,7 @@ const styles = stylex.create({
     blockSize: semanticTokens.borderWidth,
     cursor: 'row-resize',
     '::before': {
-      blockSize: semanticTokens.spacingSm,
+      blockSize: semanticTokens.sizeHitTarget,
       content: '',
       inlineSize: '100%',
       insetBlockStart: '50%',
@@ -77,6 +85,8 @@ export interface ResizeHandleProps extends Omit<
   readonly max?: number;
   readonly min?: number;
   readonly onValueChange?: (value: number) => void;
+  /** Held while the caller is dragging, so the mark survives the pointer. */
+  readonly dragging?: boolean;
   readonly orientation?: ResizeHandleOrientation;
   readonly step?: number;
   readonly value?: number;
@@ -90,6 +100,7 @@ export interface ResizeHandleProps extends Omit<
  * that reports a range it does not have is worse than one that reports none.
  */
 export function ResizeHandle({
+  dragging = false,
   label,
   max,
   min,
@@ -140,7 +151,11 @@ export function ResizeHandle({
       aria-valuenow={value}
       onKeyDown={handleKeyDown}
       role="separator"
-      {...stylex.props(styles.handle, styles[orientation])}
+      {...stylex.props(
+        styles.handle,
+        styles[orientation],
+        dragging && styles.dragging,
+      )}
       tabIndex={0}
     />
   );
