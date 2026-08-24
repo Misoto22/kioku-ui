@@ -1,14 +1,18 @@
-# Kioku UI
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/hero-dark.png" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/brand/hero-light.png" />
+  <img alt="Kioku UI — React component system" src="assets/brand/hero-light.png" />
+</picture>
 
 <div align="center">
 
-**A product-neutral React design system**
+**Product-neutral primitives**
 
-React 19 components, semantic tokens, and StyleX build tooling.
+React 19 components, semantic tokens, and themes.
 
 <br />
 
-[Report Issue](https://github.com/Misoto22/kioku-ui/issues) · [Release Runbook](docs/operations/release.md) · [Architecture Decision](docs/adr/0001-astryx-aligned-product-architecture.md)
+[Component API](packages/core/README.md) · [Design Language](docs/design-language.md) · [Report Issue](https://github.com/Misoto22/kioku-ui/issues)
 
 <br />
 
@@ -16,43 +20,34 @@ React 19 components, semantic tokens, and StyleX build tooling.
 ![StyleX](https://img.shields.io/badge/StyleX-0.19.0-5A5A5A)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)
 ![Node](https://img.shields.io/badge/Node.js-24+-5FA04E)
-![License](https://img.shields.io/badge/License-MIT-750014)
 
 </div>
 
 ---
 
-Kioku UI ships components, tokens, themes, and build integrations. It ships no
-application routes, APIs, data, or business logic — see [Boundaries](#boundaries).
-
-> [!NOTE]
-> No version has been published to npm yet. The `pnpm add` commands below describe
-> the intended install once the first Changesets release runs; until then, consume
-> the packages through the workspace.
+Kioku UI provides components, tokens, themes, and StyleX build integrations. It
+does not provide application routes, APIs, data access, or business logic.
 
 ---
 
 ### Features
 
-- **33 components** — layout (`Stack`, `Grid`, `Section`, `Card`), controls (`Button`, `TextInput`, `Toggle`, `SegmentedControl`), data (`Table`, `MetricGrid`), and state (`Alert`, `AsyncState`, `EmptyState`, `Skeleton`, `Spinner`)
-- **72 semantic tokens** across eleven groups — color, border, status, focus, typography, spacing, radius, size, elevation, texture, motion — validated by `validateThemeDefinition` at runtime
-- **Runtime theming** (`ThemeProvider`) — the host supplies the theme list, the default id, and an optional `ThemePersistence` adapter; the library owns no storage and hard-codes no theme
-- **Density** (`compact` by default, `standard` opt-in) — a theme pack fulfills the spacing roles twice and the reader picks, without any component changing what it means
-- **Two consumption modes** — compiled consumers import prebuilt CSS and configure nothing; source consumers import `/source` and run StyleX themselves through `@misoto22/kioku-ui-build`
-- **Routing-agnostic links** (`LinkProvider`) — the host injects its own router; the package depends on no routing library
-- **Accessibility baseline** — every Storybook story is audited with axe across all themes and color modes, with violations fingerprinted against a committed baseline (`pnpm a11y:audit`)
+- **Composable components** — primitives, controls, form inputs, overlays, navigation, data display, and chat interfaces share one token contract.
+- **Host-owned themes** (`ThemeProvider`) — validate and supply the theme list, default theme, and optional persistence from the application that owns them.
+- **Four Kioku themes** (`kiokuThemes`) — use Washi, Muji, Sumi, or Kasumi as a ready-made theme pack.
+- **Two consumption modes** — import compiled CSS with no StyleX setup, or author from source with the Vite, Babel, or PostCSS integrations.
+- **Router-neutral navigation** (`LinkProvider`) — adapt links to the host router without adding a routing dependency.
+- **Accessibility audit** (`pnpm a11y:audit`) — builds Storybook and audits its stories with Playwright and axe-core.
 
 ---
 
 ### Packages
 
-| Package                          | Contents                                                                                              |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `@misoto22/kioku-ui`             | Components, token contracts, `ThemeProvider`, `LinkProvider`, compiled CSS, and opt-in source entries |
-| `@misoto22/kioku-ui-theme-kioku` | Washi, Muji, and Sumi theme definitions plus their CSS                                                |
-| `@misoto22/kioku-ui-build`       | Vite, Babel, and PostCSS integrations for source consumers                                            |
-
-`charts`, `cli`, `lab`, and `vega` are reserved workspace placeholders and are not published.
+| Package                                                             | Use                                                        |
+| ------------------------------------------------------------------- | ---------------------------------------------------------- |
+| [`@misoto22/kioku-ui`](packages/core/README.md)                     | React components, token contracts, CSS, and source entries |
+| [`@misoto22/kioku-ui-theme-kioku`](packages/themes/kioku/README.md) | Washi, Muji, Sumi, and Kasumi theme definitions and CSS    |
+| [`@misoto22/kioku-ui-build`](packages/build/README.md)              | Vite, Babel, and PostCSS setup for source authoring        |
 
 ---
 
@@ -60,10 +55,10 @@ application routes, APIs, data, or business logic — see [Boundaries](#boundari
 
 <table>
 <tr><td><b>Runtime</b></td><td>React 19 · <code>@stylexjs/stylex</code> 0.19.0</td></tr>
-<tr><td><b>Language</b></td><td>TypeScript 6 · <code>NodeNext</code> module resolution · strict</td></tr>
-<tr><td><b>Workspace</b></td><td>pnpm 11.10.0 workspaces · Node.js 24+</td></tr>
-<tr><td><b>Testing</b></td><td>Vitest 4 · Testing Library · Playwright + axe-core (accessibility)</td></tr>
-<tr><td><b>Documentation</b></td><td>Storybook 10.4.6 · Vite 8</td></tr>
+<tr><td><b>Language</b></td><td>TypeScript 6</td></tr>
+<tr><td><b>Workspace</b></td><td>pnpm 11.10.0 · Node.js 24+</td></tr>
+<tr><td><b>Quality</b></td><td>ESLint · Vitest · Playwright · axe-core</td></tr>
+<tr><td><b>Documentation</b></td><td>Storybook 10 · Vite 8</td></tr>
 <tr><td><b>Release</b></td><td>Changesets · npm trusted publishing with OIDC provenance</td></tr>
 </table>
 
@@ -73,65 +68,36 @@ application routes, APIs, data, or business logic — see [Boundaries](#boundari
 
 ```
 packages/
-├── core/                   @misoto22/kioku-ui — components, tokens, theme, navigation
-├── themes/kioku/           @misoto22/kioku-ui-theme-kioku — Washi, Muji, Sumi
-├── build/                  @misoto22/kioku-ui-build — Vite, Babel, PostCSS integrations
-└── charts, cli, lab, vega  Reserved placeholders, unpublished
+├── core/                   Components, token contracts, themes, and navigation adapters
+├── themes/kioku/           Washi, Muji, Sumi, and Kasumi theme pack
+└── build/                  Vite, Babel, and PostCSS integrations for source consumers
 
 apps/
-├── storybook/              Component catalogue and the accessibility audit target
-├── sandbox/                Workspace playground, built in CI
-└── example-*/              Standalone consumers, installed outside the workspace
+├── docsite/                Vite documentation site
+├── storybook/              Component catalogue and accessibility-audit target
+├── sandbox/                Workspace playground
+└── example-*/              Standalone Vite and Next.js package-consumer checks
 
 internal/
-├── scripts/                Repository gates: workspace, boundaries, exports, pack smoke
-├── stylex-capabilities/    StyleX behaviour probes
-├── test-utils/             Shared test helpers
+├── scripts/                Workspace, package-boundary, export, and pack-smoke gates
+├── stylex-capabilities/    Supported StyleX behaviour probes
 └── vibe-tests/             Visual and interaction assertions
 
 docs/
 ├── adr/                    Architecture decisions
 ├── operations/             Release runbook
-└── superpowers/            Design specs and delivery plans
+└── design-language.md      System-wide visual and implementation rules
 ```
-
-The four `example-*` apps are excluded from the workspace on purpose: each installs
-its own dependency tree so CI proves the packages work as published rather than as
-linked.
 
 ---
 
 ### Getting Started
 
 ```sh
-git clone https://github.com/Misoto22/kioku-ui.git
-cd kioku-ui
-pnpm install
-pnpm check
-```
-
-**Prerequisites** — Node.js 24 or newer, pnpm 11.10.0.
-
-```
-pnpm check              Repository gates, lint, build, typecheck, and tests
-pnpm storybook          Component catalogue on port 6006
-pnpm build:packages     Build the published packages only
-pnpm a11y:audit         Audit every story against the committed baseline
-pnpm pack:smoke         Pack and install the tarballs in a fresh workspace
-pnpm release:verify     Everything the release workflow runs
-```
-
-`pnpm typecheck` and `pnpm test` resolve packages through their published `types`
-entry, and everything that renders components — `pnpm storybook`,
-`pnpm storybook:build`, `pnpm sandbox:build`, `pnpm a11y:audit` — loads them
-through their published `dist` entry, so `pnpm build:packages` has to run first.
-`pnpm check` already orders that correctly.
-
-**Consuming the compiled packages:**
-
-```sh
 pnpm add @misoto22/kioku-ui @misoto22/kioku-ui-theme-kioku
 ```
+
+**Prerequisites** — React 19 and pnpm. Node.js 24+ is required to develop this repository and use `@misoto22/kioku-ui-build`.
 
 ```tsx
 import {Button, ThemeProvider} from '@misoto22/kioku-ui';
@@ -140,57 +106,81 @@ import '@misoto22/kioku-ui/styles.css';
 import {kiokuThemes} from '@misoto22/kioku-ui-theme-kioku';
 import '@misoto22/kioku-ui-theme-kioku/theme.css';
 
-<ThemeProvider defaultThemeId="washi" themes={kiokuThemes}>
-  <Button>Save</Button>
-</ThemeProvider>;
+export function App() {
+  return (
+    <ThemeProvider defaultThemeId="washi" themes={kiokuThemes}>
+      <Button>Save</Button>
+    </ThemeProvider>
+  );
+}
 ```
 
-Compiled consumers configure no StyleX. Source consumers add
-`@misoto22/kioku-ui-build`, import `@misoto22/kioku-ui/source` and
-`@misoto22/kioku-ui/authoring.stylex`, and omit `styles.css` — see the
-[build package guide](packages/build/README.md).
+Compiled consumers need no StyleX configuration.
+
+<details>
+<summary>Author against the source entry</summary>
+
+Source consumers install `@misoto22/kioku-ui-build`, import
+`@misoto22/kioku-ui/source` and `@misoto22/kioku-ui/authoring.stylex`, and do
+not import `styles.css`. Choose the integration that matches the host:
+[Vite, Babel, and PostCSS setup](packages/build/README.md).
+
+</details>
+
+<details>
+<summary>Develop Kioku UI locally</summary>
+
+```sh
+git clone https://github.com/Misoto22/kioku-ui.git
+cd kioku-ui
+pnpm install
+pnpm check
+```
+
+```
+pnpm check              Run repository gates, lint, builds, type checks, and tests
+pnpm storybook          Start the component catalogue on port 6006
+pnpm docsite            Start the Vite documentation site
+pnpm a11y:audit         Audit Storybook with Playwright and axe-core
+pnpm pack:smoke         Pack and install published-package tarballs in a fresh workspace
+pnpm release:verify     Run the release workflow's verification commands
+```
+
+The four `example-*` apps intentionally sit outside the pnpm workspace. Each
+uses its own install, so CI exercises the packages as consumers do.
+
+</details>
 
 ---
 
 ### Documentation
 
-| Document                                                                | Covers                                                 |
-| ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| [`packages/core/README.md`](packages/core/README.md)                    | Component API, theme contracts, both consumption modes |
-| [`packages/build/README.md`](packages/build/README.md)                  | StyleX setup for Vite, Babel, and PostCSS              |
-| [`docs/adr/0001`](docs/adr/0001-astryx-aligned-product-architecture.md) | Why the repository is shaped the way it is             |
-| [`docs/operations/release.md`](docs/operations/release.md)              | Release authority, npm trusted publishing, recovery    |
-| [`docs/design-language.md`](docs/design-language.md)                    | The rules a component is judged against                |
-
----
-
-### Release
-
-Every change to a published package requires a Changeset. Two independent gates
-enforce it: the protected `Changeset Policy / changeset-policy` check runs from the
-default branch with read-only permissions and never executes pull-request code, and
-ordinary CI repeats the base-branch comparison.
-
-Merging to `main` runs `pnpm release:verify` and then Changesets, which either opens
-a version pull request or publishes the approved versions. Publishing uses npm
-trusted publishing with OIDC provenance from the protected `npm` environment — the
-repository holds no `NPM_TOKEN`. The [release runbook](docs/operations/release.md)
-separates repository policy from the GitHub and npm settings a release authority
-must configure externally.
+| Document                                                                      | Covers                                                          |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [Component API](packages/core/README.md)                                      | Components, token contracts, themes, and both consumption modes |
+| [Build integrations](packages/build/README.md)                                | StyleX configuration for Vite, Babel, and PostCSS               |
+| [Design language](docs/design-language.md)                                    | The visual and implementation rules behind every component      |
+| [Architecture decision](docs/adr/0001-astryx-aligned-product-architecture.md) | Public-package boundaries and Astryx-aligned repository shape   |
+| [Release runbook](docs/operations/release.md)                                 | Changesets, release authority, trusted publishing, and recovery |
 
 ---
 
 ### Boundaries
 
-This repository owns components, tokens, themes, and build integrations. It owns no
-application concern, and that is enforced rather than documented: `pnpm
-check:package-boundaries` fails the build if core source imports a host application
-path, names a specific theme skin, hard-codes a default theme id, or reaches for
-`localStorage`.
+The host application owns its router, theme selection, persistence, data, and
+domain behaviour. Kioku UI owns only reusable interface primitives and their
+contracts. `pnpm check:package-boundaries` enforces that core source does not
+import host application paths, name a specific theme skin, choose a default
+theme, or reach for browser storage.
 
-The host application supplies the theme list, the default theme, persistence, and
-the router. Kioku Console is one consumer of these packages, and nothing about it
-ships here.
+---
+
+### Release
+
+Every user-visible public-package change needs a Changeset. Merging to `main`
+updates the Changesets release pull request; merging that approved pull request
+publishes through the protected npm environment. See the [release
+runbook](docs/operations/release.md) for the required GitHub and npm controls.
 
 ---
 
