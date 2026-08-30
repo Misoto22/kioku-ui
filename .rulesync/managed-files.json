@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 2,
+  "files": [
+    {
+      "path": ".github/workflows/misoto-harness.yml",
+      "sha256": "919312fe65c5559d0c550ae8dd5ca2c6a806b6ab270ceda1924012e3a173d0eb"
+    },
+    {
+      "path": ".rulesync/harness-check.py",
+      "sha256": "a83468c73ed9928cc6caf89486824bd6ce7ef6e693549977b8f00c8401020e4c"
+    },
+    {
+      "path": ".rulesync/package.json",
+      "sha256": "792a59d65b8de0bd240875d61016cc6fc21c2640136d416a140e77c7b7d60a6e"
+    },
+    {
+      "path": ".rulesync/pnpm-lock.yaml",
+      "sha256": "78c4e4b97504acc680ac69460f762bb23d6c48cd3f6899c91c7582144bce9004"
+    },
+    {
+      "path": ".rulesync/rules/00-generated-metadata.md",
+      "sha256": "f1581b1615828bd310c7e4848fd968edfdc9014955f13162f00efa0d6aa8e0b9"
+    },
+    {
+      "path": ".rulesync/rules/10-core-behavior.md",
+      "sha256": "63cb1ad920fb72a3afd66f892957b82a5a4800e9394c77b9e2c45c28fa2461d5"
+    },
+    {
+      "path": ".rulesync/rules/10-core-git.md",
+      "sha256": "d9a304cefb8027fb08b7bb29e49b633039df6048802e4bdff8bd029f1b29ebd5"
+    },
+    {
+      "path": ".rulesync/rules/10-core-security.md",
+      "sha256": "8143456468bfae48ef9a51803387a0718f574688ac096b8cd63774792a565ef8"
+    },
+    {
+      "path": ".rulesync/rules/10-core-testing.md",
+      "sha256": "4b42b46eaabe0fb5448b0f722d1fcb708d5ed18c99df53e0e0d62f00abed0593"
+    },
+    {
+      "path": ".rulesync/rules/20-stack-typescript.md",
+      "sha256": "1246207c45378f26e2c4cacbe50350f146db9c704c1e4c867310feedbdd14e3c"
+    },
+    {
+      "path": ".rulesync/shared-rules.json",
+      "sha256": "ff3911fad1bc60bf4026675331595ed5affa1ab488840469c4a01b7b3319c417"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "d4d5af3dd1e3848dd44664620a06e919322e16af9256239270953b9d9873315d"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "e8616f06539f2215ebb80ed07fc1277688a31ccd948ef51652879b3c11249b3e"
+    },
+    {
+      "path": "GEMINI.md",
+      "sha256": "ff1bf655be82a85f7401f4695c7a98828f0f0f8fc2ef4bc7cce744484ee77b55"
+    },
+    {
+      "path": "rulesync.jsonc",
+      "sha256": "06575d7cc265187bd7f9e80ebf95b1623bad991472d541c83b1d2c5f805ec17f"
+    },
+    {
+      "path": "rulesync.lock.json",
+      "sha256": "9a439390727aeb1aec72583b70901a82634843af0fa079105cf8fe9234b56c9f"
+    }
+  ]
+}
