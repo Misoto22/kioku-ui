@@ -1,6 +1,6 @@
 {
   "name": "@misoto22/kioku-ui-theme-kioku",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Kioku Washi, Muji, Sumi, and Kasumi themes for Kioku UI.",
   "license": "MIT",
   "repository": {
@@ -38,7 +38,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
-    "@misoto22/kioku-ui": "workspace:>=0.0.0 <0.2.0",
+    "@misoto22/kioku-ui": "workspace:>=0.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
