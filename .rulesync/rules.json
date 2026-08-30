@@ -1,0 +1,13 @@
+{"rules":[
+  {"id":"KUI-READ-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
+  {"id":"KUI-GIT-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
+  {"id":"KUI-CONTRACT-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md","README.md"],"enforcement":"test"},
+  {"id":"KUI-LINK-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
+  {"id":"KUI-REVIEW-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
+  {"id":"KUI-DONE-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"runtime"},
+  {"id":"KUI-SEC-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
+  {"id":"KUI-BOUND-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["README.md","package.json"],"enforcement":"test"},
+  {"id":"KUI-CMD-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["README.md","package.json"],"enforcement":"test"},
+  {"id":"KUI-REL-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["README.md"],"enforcement":"review"},
+  {"id":"KUI-SKILL-001","level":"SHOULD","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md",".agents/skills/feature-delivery/SKILL.md"],"enforcement":"review"}
+]}

@@ -7,3 +7,5 @@ apps/example-*/pnpm-lock.yaml
 apps/storybook/storybook-static/
 docs/superpowers/
 node_modules/
+.rulesync/
+rulesync.jsonc
