@@ -463,11 +463,77 @@ test('rejects release workflows that can publish pull requests or use npm tokens
     'release workflow must not configure an npm authentication token',
     'release workflow must not run for pull requests',
     'release workflow must pass a GitHub token to changesets',
+    'release workflow must pass pnpm release through the Changesets v1 publish input',
     'release workflow must serialize main releases without cancellation',
     'release workflow must set up Node 24 for the npm registry without caching',
-    'release workflow must use changesets/action with pnpm release',
     'release workflow top-level permissions must be contents: read only',
   ]);
+});
+
+test('rejects a Changesets action that cannot run the locked CLI v2', () => {
+  const problems = releaseWorkflowProblems({
+    jobs: {
+      release: {
+        steps: [
+          {
+            uses: 'changesets/action@v2',
+            with: {
+              commitMode: 'github-api',
+              'publish-script': 'pnpm release',
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.ok(
+    problems.includes(
+      'release workflow must pin Changesets action v1 for the locked Changesets CLI v2',
+    ),
+  );
+});
+
+test('requires the Changesets v1 publish input for the release command', () => {
+  const problems = releaseWorkflowProblems({
+    jobs: {
+      release: {
+        steps: [
+          {
+            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
+            with: {'publish-script': 'pnpm release'},
+          },
+        ],
+      },
+    },
+  });
+
+  assert.ok(
+    problems.includes(
+      'release workflow must pass pnpm release through the Changesets v1 publish input',
+    ),
+  );
+});
+
+test('keeps the Changesets v2 signed GitHub API commit behavior on v1', () => {
+  const problems = releaseWorkflowProblems({
+    jobs: {
+      release: {
+        steps: [
+          {
+            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
+            with: {publish: 'pnpm release'},
+          },
+        ],
+      },
+    },
+  });
+
+  assert.ok(
+    problems.includes(
+      'release workflow must use the Changesets v1 GitHub API commit mode',
+    ),
+  );
 });
 
 test('rejects a release workflow that audits without installing browsers', () => {
@@ -500,10 +566,11 @@ test('rejects a release workflow that audits without installing browsers', () =>
           {run: 'pnpm install --frozen-lockfile'},
           {run: 'pnpm release:verify'},
           {
-            uses: 'changesets/action@v1',
+            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
             with: {
+              commitMode: 'github-api',
               'github-token': '${{ secrets.GITHUB_TOKEN }}',
-              'publish-script': 'pnpm release',
+              publish: 'pnpm release',
             },
             env: {NPM_CONFIG_PROVENANCE: true},
           },
@@ -548,10 +615,11 @@ test('rejects a release workflow with an unbounded browser install', () => {
           {run: 'pnpm exec playwright install chromium'},
           {run: 'pnpm release:verify'},
           {
-            uses: 'changesets/action@v1',
+            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
             with: {
+              commitMode: 'github-api',
               'github-token': '${{ secrets.GITHUB_TOKEN }}',
-              'publish-script': 'pnpm release',
+              publish: 'pnpm release',
             },
             env: {NPM_CONFIG_PROVENANCE: true},
           },

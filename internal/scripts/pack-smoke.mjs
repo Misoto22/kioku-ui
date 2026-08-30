@@ -19,6 +19,8 @@ const run = promisify(execFile);
 const workspaceRoot = fileURLToPath(new URL('../../', import.meta.url));
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const repositoryUrl = 'https://github.com/Misoto22/kioku-ui.git';
+const changesetsActionV1 =
+  'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d'; // v1.9.0; CLI v2 compatible
 const publicPackageNames = [
   '@misoto22/kioku-ui',
   '@misoto22/kioku-ui-build',
@@ -295,13 +297,23 @@ export function releaseWorkflowProblems(workflow) {
       problems.push(`release job needs ${permission}: ${value}`);
     }
   }
-  if (changesetsStep?.with?.['publish-script'] !== 'pnpm release') {
+  if (changesetsStep?.with?.publish !== 'pnpm release') {
     problems.push(
-      'release workflow must use changesets/action with pnpm release',
+      'release workflow must pass pnpm release through the Changesets v1 publish input',
     );
   }
-  // changesets v2 ignores the GITHUB_TOKEN environment variable, and without a
-  // token it cannot push tags or open the version pull request.
+  if (changesetsStep && changesetsStep.uses !== changesetsActionV1) {
+    problems.push(
+      'release workflow must pin Changesets action v1 for the locked Changesets CLI v2',
+    );
+  }
+  if (changesetsStep && changesetsStep.with?.commitMode !== 'github-api') {
+    problems.push(
+      'release workflow must use the Changesets v1 GitHub API commit mode',
+    );
+  }
+  // The action accepts the GitHub token through this input. Without it the
+  // release job cannot push tags or open the version pull request.
   if (
     changesetsStep?.with?.['github-token'] !== '${{ secrets.GITHUB_TOKEN }}'
   ) {
