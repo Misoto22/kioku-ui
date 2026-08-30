@@ -3,15 +3,15 @@
   "files": [
     {
       "path": ".cursor/rules/misoto-harness.mdc",
-      "sha256": "b48bc2b2accdcf8643265f78412b520038ecadb7efc45df9cb4025b25a7a6019"
+      "sha256": "9172fb4ca1a3a0d25c1b98a3e1ffd88cbc3e46fb4e5f07ac54e53819f69f338a"
     },
     {
       "path": ".github/workflows/misoto-harness.yml",
-      "sha256": "6bfcce900a9bd2a5e7322f3fee155511d994df71294940b207640a2792bd1d8b"
+      "sha256": "da9c901ce00e6c06f34b8f1eb19acd3e95560cc41ca20a15af3e00ccd5fc73ba"
     },
     {
       "path": ".rulesync/harness-check.py",
-      "sha256": "9426d0c73b197ad2165a55d665bd5e6f97d1f40bc46d45cc432ccb9e7edbadce"
+      "sha256": "45f342452bb1b92c4bd250b1d1f8cb11df46d31b47e987b4d6682fb0892e11bc"
     },
     {
       "path": ".rulesync/package.json",
@@ -23,7 +23,7 @@
     },
     {
       "path": ".rulesync/rules/00-generated-metadata.md",
-      "sha256": "685f606fae7d134789a1b2302e247e6d00c1a16d08c4bfbad6f5a8e7c4ad3883"
+      "sha256": "9d6830fd6fd7b19e13ee1e53d2fbf0458df09d35a11bc41804fd15a36474060c"
     },
     {
       "path": ".rulesync/rules/10-core-behavior.md",
@@ -63,15 +63,15 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "d92ceb294a3484e4a143844d45379995286745aa091bad491c02018631a4cbbc"
+      "sha256": "851db90b1a180b5e308da666fe3434d6dcb87dc59e5611c840a1ff8dc25047d6"
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "7695efbd535e77652b0442417cb36dedc69e0d627d8fe003681ea2854d84e62a"
+      "sha256": "3bd36de6c9b91990d78a891ef0520c00d59b67a45f6b0b8d13b4fcc630bdabbe"
     },
     {
       "path": "GEMINI.md",
-      "sha256": "c8f4d606c95e051a30d5d9064c275c31784bb69de0cfa56b1b6531a2887678c9"
+      "sha256": "e5a296de8dae96b744b26c0fc47ce6e67f83fd2a3fe209226e3178a5482b2e6f"
     },
     {
       "path": "rulesync.jsonc",
@@ -79,7 +79,7 @@
     },
     {
       "path": "rulesync.lock.json",
-      "sha256": "669086da77ad4d825e954b964199966bf921d67fa6670173b4ccc8b0057486d2"
+      "sha256": "1d22a6381b38188f0cdb0ea4ff7458266c6b7ca2f33fe0b74faa5a3149455e16"
     }
   ]
 }
