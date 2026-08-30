@@ -2,12 +2,16 @@
   "schemaVersion": 2,
   "files": [
     {
+      "path": ".cursor/rules/misoto-harness.mdc",
+      "sha256": "9e88f3fe2ca6e1d3e243dee3dbcc3a5c6424f9715ed7b50700453d82e7948a83"
+    },
+    {
       "path": ".github/workflows/misoto-harness.yml",
-      "sha256": "919312fe65c5559d0c550ae8dd5ca2c6a806b6ab270ceda1924012e3a173d0eb"
+      "sha256": "1dfed1ef6d528b7b8cc5abf7c3ac3a1c962ee7cb5f82d7b4a95c451f1caed07b"
     },
     {
       "path": ".rulesync/harness-check.py",
-      "sha256": "a83468c73ed9928cc6caf89486824bd6ce7ef6e693549977b8f00c8401020e4c"
+      "sha256": "434ed6d1a95f521f5ee5e192f39413e1b9cb5767e3c74f04ecd7a84cb6d255fc"
     },
     {
       "path": ".rulesync/package.json",
@@ -19,15 +23,27 @@
     },
     {
       "path": ".rulesync/rules/00-generated-metadata.md",
-      "sha256": "f1581b1615828bd310c7e4848fd968edfdc9014955f13162f00efa0d6aa8e0b9"
+      "sha256": "6ecf279880d9549fac110d9fa7bd2206e1901dc42987fc3e31cca0a7d1e2299b"
     },
     {
       "path": ".rulesync/rules/10-core-behavior.md",
       "sha256": "63cb1ad920fb72a3afd66f892957b82a5a4800e9394c77b9e2c45c28fa2461d5"
     },
     {
+      "path": ".rulesync/rules/10-core-code-review.md",
+      "sha256": "f2dfb378610434a8c45fbbc823c1ed92b3545c1249790c3a25b1ba6c0e35f205"
+    },
+    {
       "path": ".rulesync/rules/10-core-git.md",
       "sha256": "d9a304cefb8027fb08b7bb29e49b633039df6048802e4bdff8bd029f1b29ebd5"
+    },
+    {
+      "path": ".rulesync/rules/10-core-governance.md",
+      "sha256": "248e9bbca65d9775ee3296515fc0739d86c0eed106e781fee5daec652eed7207"
+    },
+    {
+      "path": ".rulesync/rules/10-core-naming.md",
+      "sha256": "2c3bf504418565f651eed9a2c1fe360052a3552616cb492cd060178c80e7cc37"
     },
     {
       "path": ".rulesync/rules/10-core-security.md",
@@ -43,19 +59,19 @@
     },
     {
       "path": ".rulesync/shared-rules.json",
-      "sha256": "ff3911fad1bc60bf4026675331595ed5affa1ab488840469c4a01b7b3319c417"
+      "sha256": "cef6898ff40446520eadbd2cf15dc69ceef8cf19bb9ab54111cf20d1b4ceb4d5"
     },
     {
       "path": "AGENTS.md",
-      "sha256": "d4d5af3dd1e3848dd44664620a06e919322e16af9256239270953b9d9873315d"
+      "sha256": "c20040eaa39b1b60af2f0dca0c24cf5647b7018a720a015227489bbea4666da1"
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "e8616f06539f2215ebb80ed07fc1277688a31ccd948ef51652879b3c11249b3e"
+      "sha256": "ea8818a50c845f4145a9bf7d424264884612aadce4cbe872e9abe64529fba865"
     },
     {
       "path": "GEMINI.md",
-      "sha256": "ff1bf655be82a85f7401f4695c7a98828f0f0f8fc2ef4bc7cce744484ee77b55"
+      "sha256": "c269a5e585c99cd82cd1a24c3777d0f1eb1cc99f41ab8f5c9fb6e5d8bf97882c"
     },
     {
       "path": "rulesync.jsonc",
@@ -63,7 +79,7 @@
     },
     {
       "path": "rulesync.lock.json",
-      "sha256": "9a439390727aeb1aec72583b70901a82634843af0fa079105cf8fe9234b56c9f"
+      "sha256": "44da5d0cb05fec5a7aa111f8b802cc786623dbb6753adb38acfd804672bc7957"
     }
   ]
 }
