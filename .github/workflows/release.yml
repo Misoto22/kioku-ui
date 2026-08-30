@@ -39,9 +39,12 @@ jobs:
         timeout-minutes: 10
       - run: pnpm release:verify
       - name: Create release PR or publish approved versions
-        uses: changesets/action@v2
+        # Action v2 requires Changesets CLI v3. Keep v1 pinned while this
+        # repository intentionally remains on the CLI v2 release contract.
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
-          publish-script: pnpm release
+          commitMode: github-api
+          publish: pnpm release
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           NPM_CONFIG_PROVENANCE: true
