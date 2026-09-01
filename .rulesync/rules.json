@@ -1,13 +1,285 @@
-{"rules":[
-  {"id":"KUI-READ-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
-  {"id":"KUI-GIT-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
-  {"id":"KUI-CONTRACT-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md","README.md"],"enforcement":"test"},
-  {"id":"KUI-LINK-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
-  {"id":"KUI-REVIEW-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
-  {"id":"KUI-DONE-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"runtime"},
-  {"id":"KUI-SEC-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md"],"enforcement":"review"},
-  {"id":"KUI-BOUND-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["README.md","package.json"],"enforcement":"test"},
-  {"id":"KUI-CMD-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["README.md","package.json"],"enforcement":"test"},
-  {"id":"KUI-REL-001","level":"MUST","scope":"project","owner":"Misoto22/kioku-ui","sources":["README.md"],"enforcement":"review"},
-  {"id":"KUI-SKILL-001","level":"SHOULD","scope":"project","owner":"Misoto22/kioku-ui","sources":["AGENTS.md",".agents/skills/feature-delivery/SKILL.md"],"enforcement":"review"}
-]}
+{
+  "schemaVersion": 2,
+  "rules": [
+    {
+      "id": "KUI-READ-001",
+      "name": "Read producer delivery context for cross-repository work",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Use the sibling KIOKU repository's `docs/agent-delivery/system.yaml`, assigned Kanban task, and linked producer contract before implementation.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-READ-001 review gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-GIT-001",
+      "name": "Work only in the assigned worktree and branch",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Do not reuse a shared or dirty checkout.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-GIT-001 review gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-CONTRACT-001",
+      "name": "Do not invent producer contracts",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "When API or persisted-data behavior must change, create or link the KIOKU core task instead of forking types or behavior locally.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        },
+        {
+          "type": "policy",
+          "ref": "README.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "test",
+          "check": "Repository-owned KUI-CONTRACT-001 test gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-LINK-001",
+      "name": "Preserve cross-repository traceability",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Link the related KIOKU issue or PR and contract change in each cross-repository PR.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-LINK-001 review gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-REVIEW-001",
+      "name": "Separate implementation from final approval",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "An implementation session cannot approve its own final diff or release.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-REVIEW-001 review gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-DONE-001",
+      "name": "Require integration evidence",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Completion needs CI-equivalent verification plus integrator confirmation that API contracts, build/typecheck, and relevant end-to-end behavior agree.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "runtime",
+          "check": "Repository-owned KUI-DONE-001 runtime gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-SEC-001",
+      "name": "Protect secrets and release authority",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Use 1Password as credential truth, never materialize production secrets, and leave production release decisions to the KIOKU delivery graph.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-SEC-001 review gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-BOUND-001",
+      "name": "Keep packages product-neutral",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Core packages own reusable components, tokens, themes, and build adapters, while host applications own routes, data, persistence, and domain behavior; run the package-boundary gate.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "README.md"
+        },
+        {
+          "type": "policy",
+          "ref": "package.json"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "test",
+          "check": "Repository-owned KUI-BOUND-001 test gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-CMD-001",
+      "name": "Run the repository gate",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Use `pnpm check`; run accessibility, pack-smoke, example-build, or release verification when those surfaces change.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "README.md"
+        },
+        {
+          "type": "policy",
+          "ref": "package.json"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "test",
+          "check": "Repository-owned KUI-CMD-001 test gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-REL-001",
+      "name": "Record public-package changes",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Add a Changeset for user-visible package changes and preserve protected trusted-publishing authority.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "README.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-REL-001 review gate",
+          "blocking": true
+        }
+      ]
+    },
+    {
+      "id": "KUI-SKILL-001",
+      "name": "Use the assigned-worker workflow",
+      "level": "SHOULD",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "0.1.0",
+      "statement": "Use `.agents/skills/feature-delivery/SKILL.md` when the delivery graph assigns this repository work.",
+      "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "AGENTS.md"
+        },
+        {
+          "type": "policy",
+          "ref": ".agents/skills/feature-delivery/SKILL.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-SKILL-001 review gate",
+          "blocking": false
+        }
+      ]
+    }
+  ]
+}
