@@ -4,7 +4,6 @@ import tseslint from 'typescript-eslint';
 export default [
   {
     ignores: [
-      '.changeset/**',
       '.github/workflows/**',
       'apps/*/dist/**',
       'apps/example-*/.next/**',

@@ -19,8 +19,8 @@ const run = promisify(execFile);
 const workspaceRoot = fileURLToPath(new URL('../../', import.meta.url));
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const repositoryUrl = 'https://github.com/Misoto22/kioku-ui.git';
-const changesetsActionV1 =
-  'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d'; // v1.9.0; CLI v2 compatible
+const fleetReleaseWorkflow = 'Misoto22/ci/.github/workflows/release.yml@';
+const publishCommand = 'pnpm -r publish --access public --no-git-checks';
 const publicPackageNames = [
   '@misoto22/kioku-ui',
   '@misoto22/kioku-ui-build',
@@ -247,18 +247,16 @@ export function artifactProblems({manifest, files}) {
 export function releaseWorkflowProblems(workflow) {
   const problems = [];
   const release = workflow.jobs?.release;
-  const permissions = release?.permissions ?? {};
+  const publish = workflow.jobs?.publish;
+  const publishPermissions = publish?.permissions ?? {};
   const workflowText = JSON.stringify(workflow);
-  const setupNodeStep = release?.steps?.find(
+  const steps = publish?.steps ?? [];
+  const setupNodeStep = steps.find(
     (step) =>
       typeof step.uses === 'string' &&
       step.uses.startsWith('actions/setup-node@'),
   );
-  const changesetsStep = release?.steps?.find(
-    (step) =>
-      typeof step.uses === 'string' &&
-      step.uses.startsWith('changesets/action@'),
-  );
+  const publishStep = steps.find((step) => step.run === publishCommand);
 
   if (workflow.on?.pull_request !== undefined) {
     problems.push('release workflow must not run for pull requests');
@@ -279,50 +277,50 @@ export function releaseWorkflowProblems(workflow) {
       'release workflow must serialize main releases without cancellation',
     );
   }
-  if (release?.['runs-on'] !== 'ubuntu-latest') {
-    problems.push('release job must use a GitHub-hosted runner');
-  }
-  if (release?.environment !== 'npm') {
-    problems.push('release job must use the npm protected environment');
+
+  // release-please runs in the fleet reusable workflow, pinned to a commit so
+  // a moved tag in Misoto22/ci cannot change what mints the App token.
+  if (
+    typeof release?.uses !== 'string' ||
+    !release.uses.startsWith(fleetReleaseWorkflow) ||
+    !/^[0-9a-f]{40}$/.test(release.uses.slice(fleetReleaseWorkflow.length))
+  ) {
+    problems.push(
+      'release job must call the fleet release workflow pinned to a commit SHA',
+    );
   }
   if (release?.if !== "github.repository == 'Misoto22/kioku-ui'") {
     problems.push('release job must be limited to Misoto22/kioku-ui');
   }
+
+  if (publish?.['runs-on'] !== 'ubuntu-latest') {
+    problems.push('publish job must use a GitHub-hosted runner');
+  }
+  // The npm trusted publishers are bound to this workflow filename AND this
+  // environment; without it OIDC mints no credential.
+  if (publish?.environment !== 'npm') {
+    problems.push('publish job must use the npm protected environment');
+  }
+  // Nothing may publish before release-please has cut the tag.
+  if (
+    !String(publish?.if ?? '').includes(
+      "needs.release.outputs.release_created == 'true'",
+    )
+  ) {
+    problems.push('publish job must run only for a created release');
+  }
   for (const [permission, value] of [
-    ['contents', 'write'],
+    ['contents', 'read'],
     ['id-token', 'write'],
-    ['pull-requests', 'write'],
   ]) {
-    if (permissions[permission] !== value) {
-      problems.push(`release job needs ${permission}: ${value}`);
+    if (publishPermissions[permission] !== value) {
+      problems.push(`publish job needs ${permission}: ${value}`);
     }
   }
-  if (changesetsStep?.with?.publish !== 'pnpm release') {
-    problems.push(
-      'release workflow must pass pnpm release through the Changesets v1 publish input',
-    );
+  if (publishPermissions['pull-requests'] !== undefined) {
+    problems.push('publish job must not be able to write pull requests');
   }
-  if (changesetsStep && changesetsStep.uses !== changesetsActionV1) {
-    problems.push(
-      'release workflow must pin Changesets action v1 for the locked Changesets CLI v2',
-    );
-  }
-  if (changesetsStep && changesetsStep.with?.commitMode !== 'github-api') {
-    problems.push(
-      'release workflow must use the Changesets v1 GitHub API commit mode',
-    );
-  }
-  // The action accepts the GitHub token through this input. Without it the
-  // release job cannot push tags or open the version pull request.
-  if (
-    changesetsStep?.with?.['github-token'] !== '${{ secrets.GITHUB_TOKEN }}'
-  ) {
-    problems.push('release workflow must pass a GitHub token to changesets');
-  }
-  if (String(changesetsStep?.env?.NPM_CONFIG_PROVENANCE) !== 'true') {
-    problems.push('release job must set NPM_CONFIG_PROVENANCE=true');
-  }
-  const steps = release?.steps ?? [];
+
   const verifyIndex = steps.findIndex(
     (step) => step.run === 'pnpm release:verify',
   );
@@ -332,19 +330,28 @@ export function releaseWorkflowProblems(workflow) {
   );
 
   if (verifyIndex === -1) {
-    problems.push('release job must run pnpm release:verify');
+    problems.push('publish job must run pnpm release:verify');
   } else if (browserIndex === -1 || browserIndex > verifyIndex) {
     // release:verify runs the accessibility audit, which drives a real browser.
     problems.push(
-      'release job must install Playwright browsers before pnpm release:verify',
+      'publish job must install Playwright browsers before pnpm release:verify',
     );
   } else if (!steps[browserIndex]['timeout-minutes']) {
     // Releases never cancel an in-progress run, so one hung install blocks
     // every later release until a human cancels it.
     problems.push(
-      'release job must bound the Playwright install with a timeout',
+      'publish job must bound the Playwright install with a timeout',
     );
   }
+
+  if (!publishStep) {
+    problems.push(
+      'publish job must publish every public package in one recursive command',
+    );
+  } else if (publishStep.env?.NPM_CONFIG_PROVENANCE !== 'true') {
+    problems.push("publish step must set NPM_CONFIG_PROVENANCE to 'true'");
+  }
+
   if (
     String(setupNodeStep?.with?.['node-version']) !== '24' ||
     setupNodeStep?.with?.['registry-url'] !== 'https://registry.npmjs.org' ||
@@ -357,119 +364,6 @@ export function releaseWorkflowProblems(workflow) {
   if (/(?:NPM_TOKEN|NODE_AUTH_TOKEN|_authToken)/i.test(workflowText)) {
     problems.push(
       'release workflow must not configure an npm authentication token',
-    );
-  }
-
-  return problems.sort();
-}
-
-export function changesetWorkflowProblems(workflow) {
-  const problems = [];
-  const steps = workflow.jobs?.check?.steps ?? [];
-  const checkoutStep = steps.find(
-    (step) =>
-      typeof step.uses === 'string' &&
-      step.uses.startsWith('actions/checkout@'),
-  );
-  const changesetStep = steps.find(
-    (step) =>
-      typeof step.run === 'string' && step.run.includes('changeset status'),
-  );
-  const condition = String(changesetStep?.if ?? '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const trustedReleaseCondition =
-    "github.event_name == 'pull_request' && " +
-    "(github.event.pull_request.user.login != 'github-actions[bot]' || " +
-    'github.event.pull_request.head.repo.full_name != github.repository || ' +
-    "github.head_ref != 'changeset-release/main')";
-
-  if (workflow.on?.pull_request === undefined) {
-    problems.push(
-      'CI workflow must trigger the Changeset gate for pull requests',
-    );
-  }
-  if (Number(checkoutStep?.with?.['fetch-depth']) !== 0) {
-    problems.push(
-      'CI checkout must fetch full history for Changeset comparison',
-    );
-  }
-  if (
-    changesetStep?.run !==
-    'pnpm changeset status --since=origin/${{ github.base_ref }}'
-  ) {
-    problems.push(
-      'CI Changeset gate must compare the pull request with its base branch',
-    );
-  }
-  if (condition !== trustedReleaseCondition) {
-    problems.push(
-      'CI Changeset gate must exempt only the trusted Changesets release PR',
-    );
-  }
-
-  return problems.sort();
-}
-
-export function changesetPolicyWorkflowProblems(workflow) {
-  const problems = [];
-  const job = workflow.jobs?.['changeset-policy'];
-  const steps = job?.steps ?? [];
-  const checkoutStep = steps.find(
-    (step) =>
-      typeof step.uses === 'string' &&
-      step.uses.startsWith('actions/checkout@'),
-  );
-  const policyStep = steps.find(
-    (step) => step.run === 'node internal/scripts/check-changeset-policy.mjs',
-  );
-  const events = Object.keys(workflow.on ?? {}).sort();
-  const permissions = workflow.permissions ?? {};
-
-  if (events.length !== 1 || events[0] !== 'pull_request_target') {
-    problems.push(
-      'Changeset policy workflow must use pull_request_target only',
-    );
-  }
-  if (
-    workflow.on?.pull_request_target !== undefined &&
-    JSON.stringify(workflow.on?.pull_request_target?.branches) !==
-      JSON.stringify(['main'])
-  ) {
-    problems.push('Changeset policy workflow must target protected main');
-  }
-  if (
-    permissions.contents !== 'read' ||
-    permissions['pull-requests'] !== 'read' ||
-    Object.keys(permissions).length !== 2 ||
-    job?.permissions !== undefined
-  ) {
-    problems.push(
-      'Changeset policy permissions must be contents: read and pull-requests: read only',
-    );
-  }
-  if (job?.['runs-on'] !== 'ubuntu-latest') {
-    problems.push('Changeset policy job must use a GitHub-hosted runner');
-  }
-  if (
-    checkoutStep?.with?.ref !== '${{ github.event.repository.default_branch }}'
-  ) {
-    problems.push(
-      'Changeset policy checkout must use the trusted default branch',
-    );
-  }
-  if (String(checkoutStep?.with?.['persist-credentials']) !== 'false') {
-    problems.push(
-      'Changeset policy checkout must disable persisted credentials',
-    );
-  }
-  if (
-    steps.length !== 2 ||
-    !policyStep ||
-    policyStep.env?.GITHUB_TOKEN !== '${{ github.token }}'
-  ) {
-    problems.push(
-      'Changeset policy job must run the read-only policy script only',
     );
   }
 
@@ -1357,16 +1251,7 @@ async function workflow(root, filename) {
 }
 
 export async function repositoryWorkflowProblems(root) {
-  const [release, ci, changesetPolicy] = await Promise.all([
-    workflow(root, 'release.yml'),
-    workflow(root, 'ci.yml'),
-    workflow(root, 'changeset-policy.yml'),
-  ]);
-  return [
-    ...releaseWorkflowProblems(release),
-    ...changesetWorkflowProblems(ci),
-    ...changesetPolicyWorkflowProblems(changesetPolicy),
-  ].sort();
+  return releaseWorkflowProblems(await workflow(root, 'release.yml')).sort();
 }
 
 export async function packSmoke(root = workspaceRoot) {

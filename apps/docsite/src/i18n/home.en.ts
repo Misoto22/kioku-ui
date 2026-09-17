@@ -81,5 +81,5 @@ export const homeEn = {
     verdict: {no: 'Not this', yes: 'This'},
   },
   unreleased:
-    'No version has been published to npm yet. Until the first Changesets release runs, consume the packages through the workspace.',
+    'No version has been published to npm yet. Until the first release-please release runs, consume the packages through the workspace.',
 };

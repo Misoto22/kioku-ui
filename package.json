@@ -14,7 +14,6 @@
     "a11y:baseline": "pnpm storybook:build && node .github/scripts/accessibility-audit.js --update-baseline",
     "build": "pnpm -r --if-present build",
     "build:packages": "pnpm --filter './packages/**' --if-present build",
-    "changeset": "changeset",
     "check": "pnpm check:repo && pnpm check:package-boundaries && pnpm lint && pnpm build:packages && pnpm typecheck && pnpm test",
     "check:package-boundaries": "node internal/scripts/check-package-boundaries.mjs",
     "check:repo": "node internal/scripts/check-workspace.mjs",
@@ -25,7 +24,6 @@
     "lint": "eslint .",
     "pack:smoke": "node internal/scripts/pack-smoke.mjs",
     "prepare": "node scripts/install-git-hooks.mjs",
-    "release": "changeset publish",
     "release:verify": "pnpm pack:smoke && pnpm check && pnpm format && pnpm a11y:audit && pnpm build && pnpm verify-exports && pnpm examples:build",
     "sandbox:build": "pnpm --dir apps/sandbox build",
     "storybook": "pnpm --dir apps/storybook storybook",
@@ -38,7 +36,6 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
-    "@changesets/cli": "^2.29.7",
     "@playwright/test": "^1.62.1",
     "@types/node": "^24.10.1",
     "eslint": "^10.8.1",

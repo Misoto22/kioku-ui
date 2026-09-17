@@ -59,7 +59,7 @@ does not provide application routes, APIs, data access, or business logic.
 <tr><td><b>Workspace</b></td><td>pnpm 11.10.0 · Node.js 24+</td></tr>
 <tr><td><b>Quality</b></td><td>ESLint · Vitest · Playwright · axe-core</td></tr>
 <tr><td><b>Documentation</b></td><td>Storybook 10 · Vite 8</td></tr>
-<tr><td><b>Release</b></td><td>Changesets · npm trusted publishing with OIDC provenance</td></tr>
+<tr><td><b>Release</b></td><td>release-please · npm trusted publishing with OIDC provenance</td></tr>
 </table>
 
 ---
@@ -161,7 +161,7 @@ uses its own install, so CI exercises the packages as consumers do.
 | [Build integrations](packages/build/README.md)                                | StyleX configuration for Vite, Babel, and PostCSS               |
 | [Design language](docs/design-language.md)                                    | The visual and implementation rules behind every component      |
 | [Architecture decision](docs/adr/0001-astryx-aligned-product-architecture.md) | Public-package boundaries and Astryx-aligned repository shape   |
-| [Release runbook](docs/operations/release.md)                                 | Changesets, release authority, trusted publishing, and recovery |
+| [Release runbook](docs/operations/release.md)                                 | release-please, release authority, trusted publishing, recovery |
 
 ---
 
@@ -177,10 +177,11 @@ theme, or reach for browser storage.
 
 ### Release
 
-Every user-visible public-package change needs a Changeset. Merging to `main`
-updates the Changesets release pull request; merging that approved pull request
-publishes through the protected npm environment. See the [release
-runbook](docs/operations/release.md) for the required GitHub and npm controls.
+release-please reads the Conventional Commit subjects on `main` and keeps one
+release pull request open. Merging that approved pull request tags `vX.Y.Z` and
+publishes all three packages at that same version through the protected npm
+environment. See the [release runbook](docs/operations/release.md) for the
+required GitHub and npm controls.
 
 ---
 

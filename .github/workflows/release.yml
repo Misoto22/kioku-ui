@@ -1,3 +1,19 @@
+# Release the three public packages.
+#
+# release-please owns the version numbers. Every push to main hands main to the
+# fleet reusable workflow, which mints a misoto22-release-bot App token and
+# maintains one release pull request. Merging that pull request creates tag
+# `vX.Y.Z` and a GitHub Release, and only then does `publish` run.
+#
+# The three packages share one version: the root package is the only
+# release-please path, and `extra-files` rewrites each package.json. So a
+# release never publishes two of them at different numbers.
+#
+# This filename is load-bearing. All three npm trusted publishers are bound to
+# repository `Misoto22/kioku-ui`, workflow `release.yml` and environment `npm`;
+# renaming the file or dropping the environment revokes the OIDC identity and
+# the publish fails with no token to fall back on.
+
 name: Release
 
 on:
@@ -14,12 +30,25 @@ permissions:
 jobs:
   release:
     if: github.repository == 'Misoto22/kioku-ui'
-    runs-on: ubuntu-latest
-    environment: npm
+    uses: Misoto22/ci/.github/workflows/release.yml@168697c01c8c24ce02a24a4e7b7b773e65c5cefe # v0.2.0
     permissions:
       contents: write
-      id-token: write
       pull-requests: write
+      issues: write
+    with:
+      app-client-id: ${{ vars.APP_CLIENT_ID }}
+    secrets:
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+
+  publish:
+    needs: release
+    if: needs.release.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -38,13 +67,8 @@ jobs:
       - run: pnpm exec playwright install chromium
         timeout-minutes: 10
       - run: pnpm release:verify
-      - name: Create release PR or publish approved versions
-        # Action v2 requires Changesets CLI v3. Keep v1 pinned while this
-        # repository intentionally remains on the CLI v2 release contract.
-        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
-        with:
-          commitMode: github-api
-          publish: pnpm release
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish the public packages
+        # npm mints the credential from the OIDC token; there is no NPM_TOKEN.
         env:
-          NPM_CONFIG_PROVENANCE: true
+          NPM_CONFIG_PROVENANCE: 'true'
+        run: pnpm -r publish --access public --no-git-checks

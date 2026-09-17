@@ -5,6 +5,7 @@ apps/example-*/dist/
 apps/example-*/next-env.d.ts
 apps/example-*/pnpm-lock.yaml
 apps/storybook/storybook-static/
+/CHANGELOG.md
 docs/superpowers/
 node_modules/
 .rulesync/

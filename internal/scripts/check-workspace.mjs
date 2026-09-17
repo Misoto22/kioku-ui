@@ -8,7 +8,7 @@ function isRecord(value) {
 }
 
 export async function workspaceProblems(root) {
-  const required = ['apps', 'packages', 'internal', '.changeset'];
+  const required = ['apps', 'packages', 'internal'];
   const missing = [];
 
   for (const name of required) {
