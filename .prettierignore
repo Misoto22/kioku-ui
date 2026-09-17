@@ -9,3 +9,4 @@ docs/superpowers/
 node_modules/
 .rulesync/
 rulesync.jsonc
+.github/workflows/misoto-harness.yml
