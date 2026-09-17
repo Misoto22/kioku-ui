@@ -101,15 +101,18 @@ its own reasoning, not a side effect of landing a component.
 **Tests that would fail if the behaviour broke.** Query by role and accessible
 name. A test that only asserts an element exists rarely catches anything.
 
-## Changesets
+## Releases
 
-Any change to a published package needs a changeset, and CI enforces it:
+Nothing to record by hand. This repository squash-merges, so the pull-request
+title becomes the commit subject on `main`, and release-please reads those
+subjects to decide the next version. Write the title as a Conventional Commit:
+`feat(core): add the split button` bumps the minor, `fix(...)` and `perf(...)`
+the patch, a `!` or a `BREAKING CHANGE:` footer the major, and `chore`, `docs`,
+`test`, `ci`, `build`, `refactor`, `style` release nothing. The
+`pr-title / pr-title` check enforces the vocabulary.
 
-```bash
-pnpm changeset
-```
-
-Changes confined to `apps/`, `internal/`, or documentation do not need one.
+All three published packages share one version and one tag. See the [release
+runbook](docs/operations/release.md).
 
 ## Commits and pull requests
 

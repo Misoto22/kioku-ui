@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {test} from 'node:test';
 import {workspaceProblems} from './check-workspace.mjs';
 
-const requiredDirectories = ['apps', 'packages', 'internal', '.changeset'];
+const requiredDirectories = ['apps', 'packages', 'internal'];
 
 async function workspaceFixture(t, pnpmWorkspaceYaml) {
   const root = await mkdtemp(join(tmpdir(), 'kioku-ui-workspace-policy-'));

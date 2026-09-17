@@ -103,5 +103,5 @@ export const homeZh = {
     heading: '选中是一个记号，不是一块底色',
     verdict: {no: '不要这样', yes: '这样'},
   },
-  unreleased: `npm${quarter}上还没有发布过任何版本。首次${quarter}Changesets${quarter}发布跑通之前，请从${quarter}workspace${quarter}里直接引用这几个包。`,
+  unreleased: `npm${quarter}上还没有发布过任何版本。首次${quarter}release-please${quarter}发布跑通之前，请从${quarter}workspace${quarter}里直接引用这几个包。`,
 };

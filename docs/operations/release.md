@@ -1,66 +1,88 @@
 # Release operations
 
-Kioku UI releases are prepared with Changesets and published from
+Kioku UI releases are cut by release-please and published from
 `.github/workflows/release.yml`. The repository contains the policy and the
 verification commands; GitHub and npm settings are external prerequisites and
 must be configured by a release authority before publishing.
 
+## One version for three packages
+
+`release-please-config.json` declares a single release path — the repository
+root — with `include-component-in-tag: false`, so every release is one tag
+`vX.Y.Z` and one GitHub Release. `extra-files` rewrites the `version` field of
+`packages/core/package.json`, `packages/build/package.json`, and
+`packages/themes/kioku/package.json`, so the three published packages always
+carry the same number.
+
+The shared line starts at `1.0.0`, the highest version already on npm (the
+theme's). Core therefore skips from `0.2.0` and build from `0.1.0`: npm's
+`latest` tag can only move forward, and no package may be republished below a
+version it has already served.
+
+`.release-please-manifest.json` is the bot's record of the last released
+version. Do not hand-edit a package version; release-please owns all four
+numbers.
+
 ## Release authority
 
 A release authority is a maintainer who has write access to the `@misoto22`
-npm scope, can merge the Changesets release PR, and is a required reviewer for
+npm scope, can merge the release pull request, and is a required reviewer for
 the GitHub `npm` environment. Only a release authority may perform the initial
-package bootstrap, approve a publish job, start or end a canary series, change
-dist-tags, or deprecate a release.
+package bootstrap, approve a publish job, change dist-tags, or deprecate a
+release.
 
-Repository contributors add a Changeset for every user-visible package change:
+Contributors do not record releases by hand. The pull-request title is the
+release input: this repository squash-merges, so that title becomes the commit
+subject on `main`, and release-please reads those subjects. `feat:` bumps the
+minor, `fix:` and `perf:` the patch, and a `!` or a `BREAKING CHANGE:` footer
+the major. `chore:`, `test:`, `ci:`, `build:` and `style:` release nothing.
 
-```sh
-pnpm changeset
-```
+The `pr-title / pr-title` required check validates that title against the fleet
+Conventional Commit vocabulary before the pull request can merge. It runs on
+`pull_request_target`, reads only the title through the API, and checks out no
+pull-request code.
 
-CI and review must pass before the change reaches protected `main`. A push to
-`main` updates the Changesets release PR. Merging that reviewed release PR
-causes the next protected-main run to publish the approved versions. The
-workflow is not triggered by pull requests and does not store or read an
+## How a release runs
+
+1. A pull request merges to `main`.
+2. `release.yml` calls the fleet reusable workflow, which mints a
+   `misoto22-release-bot` App token and runs release-please. The bot opens or
+   updates one release pull request titled `chore(main): release X.Y.Z`,
+   carrying the root `CHANGELOG.md`, the manifest, and the three package
+   versions.
+3. All ordinary CI gates run on that release pull request.
+4. A release authority merges it. release-please creates tag `vX.Y.Z` and the
+   GitHub Release, and the reusable workflow verifies that the tag really
+   exists before reporting success.
+5. The `publish` job runs in the same workflow file, gated on
+   `needs.release.outputs.release_created`. It waits for the `npm`
+   environment's required reviewer, runs `pnpm release:verify`, and then
+   `pnpm -r publish --access public --no-git-checks`.
+
+The App token matters: anything created with the default `GITHUB_TOKEN` raises
+no further workflow events, so a release created that way would never start a
+publish.
+
+The workflow is not triggered by pull requests and does not store or read an
 `NPM_TOKEN`.
-
-The independent `Changeset Policy / changeset-policy` required check is the
-authoritative pull-request gate. Its `pull_request_target` workflow and policy
-script come from the default branch, use read-only repository and pull-request
-permissions, and compare the PR's file list through the GitHub API. It checks
-for public-package changes and an added `.changeset/*.md` without checking out
-or executing pull-request code. An incomplete GitHub file comparison fails
-closed.
-
-Ordinary PR CI also fetches full history and runs Changesets status against
-`origin/${base_ref}` as defense in depth. The only exception in both checks is
-the same-repository `changeset-release/main` pull request authored by
-`github-actions[bot]`: that PR has already consumed the pending Changeset files
-into versions and changelogs, so repeating the pending-file check would be
-self-contradictory. Bot identity, source repository, and exact branch name must
-all match. All other CI gates still run on that release PR. `release:verify`
-deliberately remains a generic artifact and quality command so operators can
-run it after Changesets have been consumed.
 
 ## External setup
 
-Configure these controls outside the repository before the first stable
-release. Do not mark this checklist complete based only on the files in this
-repository.
+Configure these controls outside the repository. Do not mark this checklist
+complete based only on the files in this repository.
 
 ### GitHub
 
 1. Keep `Misoto22/kioku-ui` public so public npm packages can receive provenance.
-2. Protect `main`: require pull requests, approvals, and both exact status
-   checks `CI / check` and `Changeset Policy / changeset-policy`; block force
-   pushes and branch deletion. Requiring the independent default-branch policy
-   check prevents a PR from bypassing the Changeset rule by editing `ci.yml`.
+2. Protect `main`: require pull requests and the exact status checks `check`,
+   `build`, `accessibility`, `consumers`, and `pr-title / pr-title`; block force
+   pushes and branch deletion.
 3. Create an environment named `npm`. Restrict deployments to `main` and add
    the release authority as a required reviewer.
-4. Allow GitHub Actions to create pull requests so Changesets can maintain its
-   release PR. The workflow's generated `GITHUB_TOKEN` is ephemeral; do not add
-   a personal token for npm publishing.
+4. Set the repository variable `APP_CLIENT_ID` and the secret
+   `APP_PRIVATE_KEY` to the `misoto22-release-bot` GitHub App's client ID and
+   private key. The App must be installed on this repository with permission to
+   write contents and pull requests.
 
 ### npm scope and first package records
 
@@ -115,13 +137,17 @@ uses a GitHub-hosted runner with `id-token: write`; npm generates provenance for
 public packages automatically, and the workflow keeps provenance explicitly
 enabled.
 
+Both halves of that identity are bound to file names. Renaming
+`.github/workflows/release.yml`, moving the publish step into another workflow,
+or dropping `environment: npm` revokes the trusted publisher, and the publish
+fails with no token to fall back on. `pnpm pack:smoke` asserts that topology.
+
 ## Dry run
 
 From a clean checkout of the candidate commit:
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm changeset status
 pnpm release:verify
 ```
 
@@ -131,43 +157,24 @@ and source-authoring Vite consumers. It also runs repository checks, tests,
 accessibility, builds, export verification, and all four reference builds. It
 does not publish or contact npm for a write.
 
-Review the pending Changesets release PR after the dry run. Package versions,
-dependency ranges, changelogs, and the intended stable or canary channel must
-all be explicit before merge.
+Review the open release pull request after the dry run. The version, the
+changelog entries, and the three package manifests must all be explicit before
+merge.
 
-For the initial release, core, build, and the Kioku theme are all classified as
-minor releases from `0.0.0` to `0.1.0`. The theme's core peer range is
-`>=0.0.0 <0.2.0`, so Changesets updates peer dependents only when a planned core
-version leaves that reviewed compatibility range. Do not widen the range to
-silence a release-plan bump; confirm runtime compatibility first.
-
-## Canary release
-
-Canaries use Changesets pre mode and the `canary` npm tag. A release authority
-creates a dedicated PR from current `main`, enters pre mode, versions the
-existing Changesets, and runs the full dry run:
-
-```sh
-pnpm changeset pre enter canary
-pnpm changeset version
-pnpm release:verify
-```
-
-Commit the generated `.changeset/pre.json`, versions, dependency ranges, and
-changelogs in that PR. After protected review and merge, the same OIDC workflow
-publishes the prerelease versions under `canary`, not `latest`. End the series
-through another reviewed PR with `pnpm changeset pre exit` followed by
-`pnpm changeset version`; never edit a published version in place.
+The theme's core peer range is `workspace:>=0.2.0`, which pnpm publishes as
+`>=0.2.0`. A shared major bump stays inside it. Do not widen the range to
+silence a compatibility question; confirm runtime compatibility first.
 
 ## Stable release
 
-1. Confirm every releasable change on `main` has a Changeset.
-2. Wait for the Changesets release PR and `pnpm release:verify` to pass.
-3. Review versions, changelogs, package dependency ranges, and tarball evidence.
-4. Merge the release PR through protected `main`.
+1. Confirm every releasable change on `main` merged with a Conventional Commit
+   subject that says what it should bump.
+2. Wait for the release pull request and every CI gate on it to pass.
+3. Review the version, changelogs, package manifests, and tarball evidence.
+4. Merge the release pull request through protected `main`.
 5. Approve the `npm` environment deployment only for that expected commit.
-6. Verify all three npm records, dist-tags, Git tags, GitHub releases, and npm
-   provenance after the workflow completes.
+6. Verify all three npm records, dist-tags, the Git tag, the GitHub Release, and
+   npm provenance after the workflow completes.
 
 ## Rollback and immutable versions
 
@@ -180,16 +187,16 @@ For a bad release, the release authority should:
 1. Deprecate every affected package version with a useful replacement message:
 
    ```sh
-   npm deprecate '@misoto22/kioku-ui@0.1.0' 'Deprecated: use 0.1.1 or later.'
+   npm deprecate '@misoto22/kioku-ui@1.0.1' 'Deprecated: use 1.0.2 or later.'
    ```
 
-2. Add a corrective Changeset and publish a new patch through the normal
-   protected workflow.
+2. Merge a corrective `fix:` change and publish the next patch through the
+   normal protected workflow.
 3. If immediate consumer protection is required, move `latest` back to a known
    good immutable version with `npm dist-tag add`, then move it forward only
    after the corrective release is verified.
-4. Record which core, theme, and build versions are mutually compatible; do not
-   deprecate only one member of an affected release set.
+4. Deprecate the whole release set. The three packages share a version, so a
+   bad `1.2.0` is bad for all three.
 
 If trusted publishing, branch protection, the GitHub environment, package
 ownership, or release authority cannot be verified, stop before approving the

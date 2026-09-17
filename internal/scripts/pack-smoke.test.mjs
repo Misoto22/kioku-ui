@@ -10,7 +10,6 @@ import {load as parseYaml} from 'js-yaml';
 import * as packSmokeContract from './pack-smoke.mjs';
 import {
   artifactProblems,
-  changesetWorkflowProblems,
   consumerInstallProblems,
   exampleBuildScriptProblems,
   packSmoke,
@@ -22,6 +21,52 @@ import {
 
 const run = promisify(execFile);
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+
+const setupNodeInputs = {
+  'node-version': 24,
+  'registry-url': 'https://registry.npmjs.org',
+  'package-manager-cache': false,
+};
+
+// The shape release.yml actually ships, so every contract test below can name
+// only the one thing it breaks.
+function releaseWorkflowFixture({release, publish, publishSteps} = {}) {
+  return {
+    on: {push: {branches: ['main']}},
+    permissions: {contents: 'read'},
+    concurrency: {
+      group: 'release-${{ github.ref }}',
+      'cancel-in-progress': false,
+    },
+    jobs: {
+      release: {
+        if: "github.repository == 'Misoto22/kioku-ui'",
+        uses: 'Misoto22/ci/.github/workflows/release.yml@168697c01c8c24ce02a24a4e7b7b773e65c5cefe',
+        ...release,
+      },
+      publish: {
+        needs: 'release',
+        if: "needs.release.outputs.release_created == 'true'",
+        'runs-on': 'ubuntu-latest',
+        environment: 'npm',
+        permissions: {contents: 'read', 'id-token': 'write'},
+        steps: publishSteps ?? [
+          {uses: 'actions/checkout@v7'},
+          {uses: 'pnpm/action-setup@v6', with: {version: '11.10.0'}},
+          {uses: 'actions/setup-node@v7', with: setupNodeInputs},
+          {run: 'pnpm install --frozen-lockfile'},
+          {run: 'pnpm exec playwright install chromium', 'timeout-minutes': 10},
+          {run: 'pnpm release:verify'},
+          {
+            run: 'pnpm -r publish --access public --no-git-checks',
+            env: {NPM_CONFIG_PROVENANCE: 'true'},
+          },
+        ],
+        ...publish,
+      },
+    },
+  };
+}
 
 test('rejects workspace aliases and unlocked standalone consumer installs', () => {
   assert.deepEqual(
@@ -176,105 +221,6 @@ test('CI reference builds install their standalone frozen locks', async () => {
     .join(' && ');
 
   assert.deepEqual(exampleBuildScriptProblems(script), []);
-});
-
-test('the initial Changeset plan releases every public package at 0.1.0', async () => {
-  const releaseRoot = await mkdtemp(join(tmpdir(), 'kioku-ui-release-plan-'));
-
-  try {
-    await mkdir(join(releaseRoot, '.changeset'), {recursive: true});
-    await writeFile(
-      join(releaseRoot, 'package.json'),
-      `${JSON.stringify({private: true}, null, 2)}\n`,
-    );
-    await writeFile(
-      join(releaseRoot, 'pnpm-workspace.yaml'),
-      "packages:\n  - 'packages/*'\n  - 'packages/themes/*'\n",
-    );
-    await writeFile(
-      join(releaseRoot, '.changeset/config.json'),
-      `${JSON.stringify(
-        {
-          ...JSON.parse(await readFile('.changeset/config.json', 'utf8')),
-          changelog: false,
-        },
-        null,
-        2,
-      )}\n`,
-    );
-
-    for (const directory of [
-      'packages/core',
-      'packages/build',
-      'packages/themes/kioku',
-    ]) {
-      const sourceManifest = JSON.parse(
-        await readFile(join(directory, 'package.json'), 'utf8'),
-      );
-      const manifest = {
-        name: sourceManifest.name,
-        peerDependencies: sourceManifest.peerDependencies,
-        version: '0.0.0',
-      };
-      await mkdir(join(releaseRoot, directory), {recursive: true});
-      await writeFile(
-        join(releaseRoot, directory, 'package.json'),
-        `${JSON.stringify(manifest, null, 2)}\n`,
-      );
-    }
-
-    await run('git', ['init', '-b', 'main'], {cwd: releaseRoot});
-    await run('git', ['config', 'user.email', 'test@example.invalid'], {
-      cwd: releaseRoot,
-    });
-    await run('git', ['config', 'user.name', 'Release plan test'], {
-      cwd: releaseRoot,
-    });
-    await run('git', ['add', '.'], {cwd: releaseRoot});
-    await run('git', ['commit', '-m', 'test: establish release baseline'], {
-      cwd: releaseRoot,
-    });
-    await writeFile(
-      join(releaseRoot, '.changeset/initial.md'),
-      "---\n'@misoto22/kioku-ui': minor\n'@misoto22/kioku-ui-build': minor\n'@misoto22/kioku-ui-theme-kioku': minor\n---\n\nInitial public release.\n",
-    );
-    await run('git', ['add', '.changeset/initial.md'], {cwd: releaseRoot});
-    await run(
-      join(process.cwd(), 'node_modules/.bin/changeset'),
-      ['status', '--since=HEAD', '--output=release-plan.json'],
-      {cwd: releaseRoot},
-    );
-
-    const plan = JSON.parse(
-      await readFile(join(releaseRoot, 'release-plan.json'), 'utf8'),
-    );
-    assert.deepEqual(
-      plan.releases.map(({name, newVersion, type}) => ({
-        name,
-        newVersion,
-        type,
-      })),
-      [
-        {
-          name: '@misoto22/kioku-ui',
-          newVersion: '0.1.0',
-          type: 'minor',
-        },
-        {
-          name: '@misoto22/kioku-ui-build',
-          newVersion: '0.1.0',
-          type: 'minor',
-        },
-        {
-          name: '@misoto22/kioku-ui-theme-kioku',
-          newVersion: '0.1.0',
-          type: 'minor',
-        },
-      ],
-    );
-  } finally {
-    await rm(releaseRoot, {force: true, recursive: true});
-  }
 });
 
 test('discovers every actual publishable package and excludes placeholders', async () => {
@@ -439,11 +385,16 @@ test('rejects release workflows that can publish pull requests or use npm tokens
     on: {pull_request: {}, push: {branches: ['main']}},
     permissions: {contents: 'write'},
     jobs: {
-      release: {
+      publish: {
         'runs-on': 'self-hosted',
+        permissions: {
+          contents: 'read',
+          'id-token': 'write',
+          'pull-requests': 'write',
+        },
         steps: [
           {
-            run: 'pnpm release',
+            run: 'pnpm publish -r',
             env: {NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'},
           },
         ],
@@ -452,323 +403,138 @@ test('rejects release workflows that can publish pull requests or use npm tokens
   });
 
   assert.deepEqual(problems, [
+    'publish job must not be able to write pull requests',
+    'publish job must publish every public package in one recursive command',
+    'publish job must run only for a created release',
+    'publish job must run pnpm release:verify',
+    'publish job must use a GitHub-hosted runner',
+    'publish job must use the npm protected environment',
     'release job must be limited to Misoto22/kioku-ui',
-    'release job must run pnpm release:verify',
-    'release job must set NPM_CONFIG_PROVENANCE=true',
-    'release job must use a GitHub-hosted runner',
-    'release job must use the npm protected environment',
-    'release job needs contents: write',
-    'release job needs id-token: write',
-    'release job needs pull-requests: write',
+    'release job must call the fleet release workflow pinned to a commit SHA',
     'release workflow must not configure an npm authentication token',
     'release workflow must not run for pull requests',
-    'release workflow must pass a GitHub token to changesets',
-    'release workflow must pass pnpm release through the Changesets v1 publish input',
     'release workflow must serialize main releases without cancellation',
     'release workflow must set up Node 24 for the npm registry without caching',
     'release workflow top-level permissions must be contents: read only',
   ]);
 });
 
-test('rejects a Changesets action that cannot run the locked CLI v2', () => {
-  const problems = releaseWorkflowProblems({
-    jobs: {
-      release: {
-        steps: [
-          {
-            uses: 'changesets/action@v2',
-            with: {
-              commitMode: 'github-api',
-              'publish-script': 'pnpm release',
-            },
-          },
-        ],
-      },
-    },
-  });
-
-  assert.ok(
-    problems.includes(
-      'release workflow must pin Changesets action v1 for the locked Changesets CLI v2',
+test('rejects a release job that floats the fleet workflow on a movable ref', () => {
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({
+        release: {
+          uses: 'Misoto22/ci/.github/workflows/release.yml@v0.2.0',
+        },
+      }),
     ),
+    ['release job must call the fleet release workflow pinned to a commit SHA'],
   );
 });
 
-test('requires the Changesets v1 publish input for the release command', () => {
-  const problems = releaseWorkflowProblems({
-    jobs: {
-      release: {
-        steps: [
-          {
-            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
-            with: {'publish-script': 'pnpm release'},
-          },
-        ],
-      },
-    },
-  });
-
-  assert.ok(
-    problems.includes(
-      'release workflow must pass pnpm release through the Changesets v1 publish input',
+test('rejects a publish job that runs before release-please cut the tag', () => {
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({publish: {if: 'always()'}}),
     ),
+    ['publish job must run only for a created release'],
   );
 });
 
-test('keeps the Changesets v2 signed GitHub API commit behavior on v1', () => {
-  const problems = releaseWorkflowProblems({
-    jobs: {
-      release: {
-        steps: [
+test('rejects a publish job that can write pull requests', () => {
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({
+        publish: {
+          permissions: {
+            contents: 'read',
+            'id-token': 'write',
+            'pull-requests': 'write',
+          },
+        },
+      }),
+    ),
+    ['publish job must not be able to write pull requests'],
+  );
+});
+
+test('rejects a publish job without the OIDC identity npm trusts', () => {
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({
+        publish: {environment: undefined, permissions: {contents: 'read'}},
+      }),
+    ),
+    [
+      'publish job must use the npm protected environment',
+      'publish job needs id-token: write',
+    ],
+  );
+});
+
+test('requires the recursive publish to request provenance as a string', () => {
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({
+        publishSteps: [
+          {uses: 'actions/setup-node@v7', with: setupNodeInputs},
+          {run: 'pnpm exec playwright install chromium', 'timeout-minutes': 10},
+          {run: 'pnpm release:verify'},
           {
-            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
-            with: {publish: 'pnpm release'},
+            run: 'pnpm -r publish --access public --no-git-checks',
+            // YAML parses an unquoted true as a boolean, and the runner then
+            // never exports the variable npm reads.
+            env: {NPM_CONFIG_PROVENANCE: true},
           },
         ],
-      },
-    },
-  });
-
-  assert.ok(
-    problems.includes(
-      'release workflow must use the Changesets v1 GitHub API commit mode',
+      }),
     ),
+    ["publish step must set NPM_CONFIG_PROVENANCE to 'true'"],
   );
 });
 
 test('rejects a release workflow that audits without installing browsers', () => {
-  const problems = releaseWorkflowProblems({
-    on: {push: {branches: ['main']}},
-    permissions: {contents: 'read'},
-    concurrency: {
-      group: 'release-${{ github.ref }}',
-      'cancel-in-progress': false,
-    },
-    jobs: {
-      release: {
-        if: "github.repository == 'Misoto22/kioku-ui'",
-        'runs-on': 'ubuntu-latest',
-        environment: 'npm',
-        permissions: {
-          contents: 'write',
-          'id-token': 'write',
-          'pull-requests': 'write',
-        },
-        steps: [
-          {
-            uses: 'actions/setup-node@v6',
-            with: {
-              'node-version': 24,
-              'registry-url': 'https://registry.npmjs.org',
-              'package-manager-cache': false,
-            },
-          },
-          {run: 'pnpm install --frozen-lockfile'},
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({
+        publishSteps: [
+          {uses: 'actions/setup-node@v7', with: setupNodeInputs},
           {run: 'pnpm release:verify'},
           {
-            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
-            with: {
-              commitMode: 'github-api',
-              'github-token': '${{ secrets.GITHUB_TOKEN }}',
-              publish: 'pnpm release',
-            },
-            env: {NPM_CONFIG_PROVENANCE: true},
+            run: 'pnpm -r publish --access public --no-git-checks',
+            env: {NPM_CONFIG_PROVENANCE: 'true'},
           },
         ],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, [
-    'release job must install Playwright browsers before pnpm release:verify',
-  ]);
+      }),
+    ),
+    ['publish job must install Playwright browsers before pnpm release:verify'],
+  );
 });
 
 test('rejects a release workflow with an unbounded browser install', () => {
-  const problems = releaseWorkflowProblems({
-    on: {push: {branches: ['main']}},
-    permissions: {contents: 'read'},
-    concurrency: {
-      group: 'release-${{ github.ref }}',
-      'cancel-in-progress': false,
-    },
-    jobs: {
-      release: {
-        if: "github.repository == 'Misoto22/kioku-ui'",
-        'runs-on': 'ubuntu-latest',
-        environment: 'npm',
-        permissions: {
-          contents: 'write',
-          'id-token': 'write',
-          'pull-requests': 'write',
-        },
-        steps: [
-          {
-            uses: 'actions/setup-node@v6',
-            with: {
-              'node-version': 24,
-              'registry-url': 'https://registry.npmjs.org',
-              'package-manager-cache': false,
-            },
-          },
-          {run: 'pnpm install --frozen-lockfile'},
+  assert.deepEqual(
+    releaseWorkflowProblems(
+      releaseWorkflowFixture({
+        publishSteps: [
+          {uses: 'actions/setup-node@v7', with: setupNodeInputs},
           {run: 'pnpm exec playwright install chromium'},
           {run: 'pnpm release:verify'},
           {
-            uses: 'changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d',
-            with: {
-              commitMode: 'github-api',
-              'github-token': '${{ secrets.GITHUB_TOKEN }}',
-              publish: 'pnpm release',
-            },
-            env: {NPM_CONFIG_PROVENANCE: true},
+            run: 'pnpm -r publish --access public --no-git-checks',
+            env: {NPM_CONFIG_PROVENANCE: 'true'},
           },
         ],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, [
-    'release job must bound the Playwright install with a timeout',
-  ]);
+      }),
+    ),
+    ['publish job must bound the Playwright install with a timeout'],
+  );
 });
 
-test('rejects a Changeset policy workflow that can execute pull request code', () => {
-  const problems =
-    packSmokeContract.changesetPolicyWorkflowProblems?.({
-      on: {pull_request: null},
-      permissions: {contents: 'write'},
-      jobs: {
-        'changeset-policy': {
-          'runs-on': 'self-hosted',
-          steps: [
-            {
-              uses: 'actions/checkout@v5',
-              with: {ref: '${{ github.event.pull_request.head.sha }}'},
-            },
-            {run: 'pnpm install && pnpm changeset status'},
-          ],
-        },
-      },
-    }) ?? [];
-
-  assert.deepEqual(problems, [
-    'Changeset policy checkout must disable persisted credentials',
-    'Changeset policy checkout must use the trusted default branch',
-    'Changeset policy job must run the read-only policy script only',
-    'Changeset policy job must use a GitHub-hosted runner',
-    'Changeset policy permissions must be contents: read and pull-requests: read only',
-    'Changeset policy workflow must use pull_request_target only',
-  ]);
+test('accepts the release-please topology this repository ships', () => {
+  assert.deepEqual(releaseWorkflowProblems(releaseWorkflowFixture()), []);
 });
 
-test('requires the independent Changeset policy to target protected main', () => {
-  const problems = packSmokeContract.changesetPolicyWorkflowProblems({
-    on: {pull_request_target: {types: ['opened', 'synchronize']}},
-    permissions: {contents: 'read', 'pull-requests': 'read'},
-    jobs: {
-      'changeset-policy': {
-        'runs-on': 'ubuntu-latest',
-        steps: [
-          {
-            uses: 'actions/checkout@v5',
-            with: {
-              ref: '${{ github.event.repository.default_branch }}',
-              'persist-credentials': false,
-            },
-          },
-          {
-            run: 'node internal/scripts/check-changeset-policy.mjs',
-            env: {GITHUB_TOKEN: '${{ github.token }}'},
-          },
-        ],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, [
-    'Changeset policy workflow must target protected main',
-  ]);
-});
-
-test('requires a PR-only Changeset gate without blocking the trusted release PR', () => {
-  const problems = changesetWorkflowProblems({
-    on: {pull_request: null, push: {branches: ['main']}},
-    jobs: {
-      check: {
-        steps: [{uses: 'actions/checkout@v5'}, {run: 'pnpm changeset status'}],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, [
-    'CI Changeset gate must compare the pull request with its base branch',
-    'CI Changeset gate must exempt only the trusted Changesets release PR',
-    'CI checkout must fetch full history for Changeset comparison',
-  ]);
-});
-
-test('rejects a Changeset exception whose trust checks use the wrong boolean logic', () => {
-  const problems = changesetWorkflowProblems({
-    on: {pull_request: null},
-    jobs: {
-      check: {
-        steps: [
-          {uses: 'actions/checkout@v5', with: {'fetch-depth': 0}},
-          {
-            if: "github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name != github.repository && github.head_ref != 'changeset-release/main'",
-            run: 'pnpm changeset status --since=origin/${{ github.base_ref }}',
-          },
-        ],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, [
-    'CI Changeset gate must exempt only the trusted Changesets release PR',
-  ]);
-});
-
-test('trusts the Changesets release PR author rather than the workflow trigger actor', () => {
-  const problems = changesetWorkflowProblems({
-    on: {pull_request: null},
-    jobs: {
-      check: {
-        steps: [
-          {uses: 'actions/checkout@v5', with: {'fetch-depth': 0}},
-          {
-            if: "github.event_name == 'pull_request' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.repo.full_name != github.repository || github.head_ref != 'changeset-release/main')",
-            run: 'pnpm changeset status --since=origin/${{ github.base_ref }}',
-          },
-        ],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, []);
-});
-
-test('requires CI to trigger the Changeset gate for pull requests', () => {
-  const problems = changesetWorkflowProblems({
-    jobs: {
-      check: {
-        steps: [
-          {uses: 'actions/checkout@v5', with: {'fetch-depth': 0}},
-          {
-            if: "github.event_name == 'pull_request' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.repo.full_name != github.repository || github.head_ref != 'changeset-release/main')",
-            run: 'pnpm changeset status --since=origin/${{ github.base_ref }}',
-          },
-        ],
-      },
-    },
-  });
-
-  assert.deepEqual(problems, [
-    'CI workflow must trigger the Changeset gate for pull requests',
-  ]);
-});
-
-test('checked-in workflows enforce the release and Changeset topology', async () => {
+test('the checked-in release workflow satisfies the release contract', async () => {
   assert.deepEqual(await repositoryWorkflowProblems(process.cwd()), []);
 });
 

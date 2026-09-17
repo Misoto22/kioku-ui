@@ -1,5 +1,8 @@
 # @misoto22/kioku-ui-theme-kioku
 
+Frozen. Releases from `1.0.x` on are recorded in the [repository
+changelog](../../../CHANGELOG.md), where all three published packages share one version.
+
 ## 1.0.0
 
 ### Minor Changes
