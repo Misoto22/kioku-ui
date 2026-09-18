@@ -235,7 +235,7 @@
       "level": "MUST",
       "scope": "project",
       "owner": "Misoto22/kioku-ui",
-      "status": "active",
+      "status": "deprecated",
       "since": "0.1.0",
       "statement": "Add a Changeset for user-visible package changes and preserve protected trusted-publishing authority.",
       "rationale": "This repository-owned constraint preserves its established architecture and delivery contract.",
@@ -249,6 +249,44 @@
         {
           "kind": "review",
           "check": "Repository-owned KUI-REL-001 review gate",
+          "blocking": true
+        }
+      ],
+      "replacement": "KUI-REL-002"
+    },
+    {
+      "id": "KUI-REL-002",
+      "name": "Title releasable package changes for release-please",
+      "level": "MUST",
+      "scope": "project",
+      "owner": "Misoto22/kioku-ui",
+      "status": "active",
+      "since": "1.0.1",
+      "statement": "Give a pull request that changes a published package a Conventional Commit title release-please will release (`feat`, `fix`, `perf`, `refactor`, `docs`; `!` for a breaking change), and preserve protected trusted-publishing authority.",
+      "rationale": "release-please cuts the shared package version and changelog only from squash-merged pull-request titles in its released sections, so a package change titled `chore` never ships; npm trusted publishing stays bound to `release.yml` and the protected `npm` environment.",
+      "sources": [
+        {
+          "type": "policy",
+          "ref": "docs/operations/release.md"
+        },
+        {
+          "type": "policy",
+          "ref": "release-please-config.json"
+        },
+        {
+          "type": "policy",
+          "ref": "CONTRIBUTING.md"
+        }
+      ],
+      "enforcement": [
+        {
+          "kind": "ci",
+          "check": "pr-title / pr-title lints the pull-request title against Conventional Commits",
+          "blocking": false
+        },
+        {
+          "kind": "review",
+          "check": "Repository-owned KUI-REL-002 review gate",
           "blocking": true
         }
       ]
